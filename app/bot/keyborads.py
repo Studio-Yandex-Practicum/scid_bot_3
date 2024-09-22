@@ -10,7 +10,9 @@ PRODUCTS_AND_SERVICES = [
     'Разработка сайтов', 'Создание порталов',
     'Разработка мобильных приложений', 'Консультация по КИОСК365',
     '"НБП ЕЖА"', 'Хостинг',
-]  # моделирую результат запроса из бд
+]  # моделирую результат запроса из бд ( * )
+
+LIST_OF_PROJECTS = ['Проект1', 'Проект2', 'Проект3']  # ( * )
 
 main_keyboard = ReplyKeyboardMarkup(
     keyboard=[
@@ -41,8 +43,8 @@ company_information_keyboard = InlineKeyboardMarkup(
         ],
         [
             InlineKeyboardButton(
-                text='Назад к основным вариантам.',
-                callback_data='previous_choice'
+                text='Вернуться к основным вариантам.',
+                callback_data='back_to_main_menu'
             )
         ]
     ]
@@ -63,8 +65,8 @@ async def inline_products_and_services():  # тут будем брать дан
 
     keyboard.add(
         InlineKeyboardButton(
-            text='Назад к основным вариантам.',
-            callback_data='previous_choice'
+            text='Вернуться к основным вариантам.',
+            callback_data='back_to_main_menu'
         )
     )
 
@@ -73,11 +75,67 @@ async def inline_products_and_services():  # тут будем брать дан
 
 company_portfolio_choice = InlineKeyboardMarkup(
     inline_keyboard=[
-        [InlineKeyboardButton(text='Да', '''TODO: бот отвечает и выводит проектов''')],
         [
             InlineKeyboardButton(
-                text='Назад к основным вариантам.',
-                callback_data='previous_choice'
+                text='Перейти к проектам.',
+                callback_data='show_projects'
+            )
+        ],
+        [
+            InlineKeyboardButton(
+                text='Вернуться к основным вариантам.',
+                callback_data='back_to_main_menu'
+            )
+        ]
+    ]
+)
+
+
+async def list_of_projects_keyboard():  # данные будут в бд
+    """Инлайн вывод проектов."""
+
+    keyboard = InlineKeyboardBuilder()
+
+    for project in LIST_OF_PROJECTS:
+        keyboard.add(InlineKeyboardButton(
+            text=project,
+            url='https://github.com/'  # тут будут ссылки, берем из бд
+        ))
+
+    keyboard.add(
+        InlineKeyboardButton(
+            text='Вернуться к основным вариантам.',
+            callback_data='back_to_main_menu'
+        )
+    )
+
+    return keyboard.adjust(1).as_markup()
+
+
+support_keyboard = InlineKeyboardMarkup(
+    inline_keyboard=[
+        [
+            InlineKeyboardButton(
+                text='F.A.Q',
+                callback_data='get_faq'
+            )
+        ],
+        [
+            InlineKeyboardButton(
+                text='Проблемы с продуктами',
+                callback_data='get_problems_with_products'
+            )
+        ],
+        [
+            InlineKeyboardButton(
+                text='Запрос на обратный звонок',
+                callback_data='callback_request'
+            )
+        ],
+        [
+            InlineKeyboardButton(
+                text='Вернуться к основным вариантам.',
+                callback_data='back_to_main_menu'
             )
         ]
     ]

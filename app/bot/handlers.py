@@ -1,10 +1,11 @@
 from aiogram import F, Router
 from aiogram.filters import CommandStart
-from aiogram.types import Message, CallbackQuery
+from aiogram.types import Message
 
 from bot.keyborads import (
     main_keyboard, company_information_keyboard,
-    inline_products_and_services
+    inline_products_and_services, company_portfolio_choice,
+    support_keyboard
 )
 
 
@@ -13,7 +14,7 @@ router = Router()
 
 @router.message(CommandStart())
 async def cmd_start(message: Message) -> None:
-    """Приветствие пользователя."""
+    """Выводит приветствие пользователя."""
 
     await message.answer(
         'Здравстуйте! Я ваш виртуальный помошник.'
@@ -24,18 +25,19 @@ async def cmd_start(message: Message) -> None:
 
 @router.message(F.text == 'Посмотреть портфолио.')
 async def view_profile(message: Message) -> None:
-    """Портфолио компании."""
+    """Выводит портфолио компании."""
 
     await message.answer(
         'Вот ссылка на на наше портофолио: [здесь url]. '
         'Хотите узнать больше о конкретных проектах '
-        'или услугах?'
+        'или услугах?',
+        reply_markup=company_portfolio_choice
     )
 
 
 @router.message(F.text == 'Получить информацию о компании.')
 async def get_information_about_company(message: Message) -> None:
-    """Информация о компнии."""
+    """Выводит информацию о компнии."""
 
     await message.answer(
         'Вот несколько вариантов информации о нашей '
@@ -46,7 +48,7 @@ async def get_information_about_company(message: Message) -> None:
 
 @router.message(F.text == 'Узнать о продуктах и услугах.')
 async def get_information_about_products_and_services(message: Message) -> None:
-    """Информация о продуктах и услугах."""
+    """Выводит информация о продуктах и услугах."""
 
     await message.answer(
         'Мы предлагаем следующие продукты и услуги.'
@@ -55,6 +57,12 @@ async def get_information_about_products_and_services(message: Message) -> None:
     )
 
 
-@router.callback_query(lambda call: call == 'previous_choice')
-def previous_choice(callback_query: CallbackQuery) -> None:
-    pass
+@router.message(F.text == 'Получить техническую поддержку.')
+async def get_support(message: Message) -> None:
+    """Выводит виды тех. поддержки."""
+
+    await message.answer(
+        'Какой вид технической поддержки '
+        'вам нужен? ',
+        reply_markup=support_keyboard
+    )
