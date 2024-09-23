@@ -47,7 +47,9 @@ async def get_information_about_company(message: Message) -> None:
 
 
 @router.message(F.text == 'Узнать о продуктах и услугах.')
-async def get_information_about_products_and_services(message: Message) -> None:
+async def get_information_about_products_and_services(
+    message: Message
+) -> None:
     """Выводит информация о продуктах и услугах."""
 
     await message.answer(

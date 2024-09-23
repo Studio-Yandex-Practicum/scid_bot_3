@@ -1,6 +1,6 @@
 from aiogram.types import (
     ReplyKeyboardMarkup, KeyboardButton,
-    InlineKeyboardMarkup, InlineKeyboardButton,
+    InlineKeyboardMarkup, InlineKeyboardButton, WebAppInfo
 )
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
