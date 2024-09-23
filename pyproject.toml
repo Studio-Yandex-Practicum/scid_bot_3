@@ -10,7 +10,8 @@ python = "^3.12"
 aiogram = "^3.13.1"
 pydantic = "^2.9.2"
 python-dotenv = "^1.0.1"
-
+alembic = "^1.13.2"
+sqlalchemy = "^2.0.35"
 
 [build-system]
 requires = ["poetry-core"]
