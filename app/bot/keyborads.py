@@ -1,6 +1,6 @@
 from aiogram.types import (
     ReplyKeyboardMarkup, KeyboardButton,
-    InlineKeyboardMarkup, InlineKeyboardButton, WebAppInfo
+    InlineKeyboardMarkup, InlineKeyboardButton
 )
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
@@ -57,7 +57,6 @@ async def inline_products_and_services():  # тут будем брать дан
     keyboard = InlineKeyboardBuilder()
 
     for index, product_and_service in enumerate(PRODUCTS_AND_SERVICES):
-        # callback_data = f"service_{index}"
         keyboard.add(InlineKeyboardButton(
             text=product_and_service,
             callback_data=f'service_{index}'

@@ -15,6 +15,7 @@ dispatcher = Dispatcher(storage=MemoryStorage())
 
 def check_token() -> None:
     """Проверка наличия токена бота."""
+
     if os.getenv('BOT_TOKEN') is None:
         logger.error("Токен бота не найден.")
         raise ValueError('Отсутствуют необходимые токены.')

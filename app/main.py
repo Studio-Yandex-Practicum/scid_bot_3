@@ -12,7 +12,7 @@ logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     handlers=[
-        logging.StreamHandler(),  # Логирование в консоль
+        logging.StreamHandler(),  # Логирование в консоль, при диплое убираем
         logging.FileHandler("bot.log", encoding='utf-8')  # Логирование в файл
     ]
 )

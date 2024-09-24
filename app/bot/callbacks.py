@@ -45,7 +45,7 @@ async def get_faq(callback: CallbackQuery) -> None:
     """Инлайн вывод ответов на часто задаваемые вопросы."""
 
     pass
-    # ( * )
+    # ( * ) кнопка с вопросами - ответ отдельным сообщением
 
 
 @router.callback_query(F.data == 'get_problems_with_products')
@@ -53,7 +53,7 @@ async def get_problems_with_products(callback: CallbackQuery) -> None:
     """Инлайн вывод проблем с продуктами."""
 
     pass
-    # ( * )
+    # ( * ) кнопка с вопросами - ответ отдельным сообщением
 
 
 @router.callback_query(F.data == 'callback_request')
@@ -62,3 +62,10 @@ async def callback_request(callback: CallbackQuery) -> None:
 
     pass
     # ( * )
+
+
+@router.callback_query(F.data == 'back_to_products')
+async def back_to_products(callback: CallbackQuery) -> None:
+    """Возвращает к выюору продуктов."""
+
+    pass
