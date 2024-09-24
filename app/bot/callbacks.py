@@ -64,7 +64,7 @@ async def callback_request(callback: CallbackQuery) -> None:
     # ( * )
 
 
-@router.callback_data(F.data == 'back_to_products')
+@router.callback_query(F.data == 'back_to_products')
 async def back_to_products(callback: CallbackQuery) -> None:
     """Возвращает к выюору продуктов."""
 
