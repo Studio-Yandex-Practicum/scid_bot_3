@@ -1,33 +1,49 @@
-import os
 import logging
 import asyncio
-import sys
 
-from aiogram import Bot, Dispatcher
-from dotenv import load_dotenv
-
-from bot.handlers import router
-
-
-load_dotenv()
+from bot_setup import bot, dispatcher, check_token
+from bot.handlers import router as message_router
+from bot.callbacks import router as callback_router
+from bot.fsm_context import router as fsm_context_router
 
 
-bot = Bot(token=os.getenv('BOT_TOKEN'))
-dispatcher = Dispatcher()
+# Настройка логирования
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.StreamHandler(),  # Логирование в консоль, при диплое убираем
+        logging.FileHandler("bot.log", encoding='utf-8')  # Логирование в файл
+    ]
+)
+
+logger = logging.getLogger(__name__)
 
 
 async def main() -> None:
     """Запуск SCID бота."""
 
-    if os.getenv('BOT_TOKEN') is None:  # нарушает solid - принцип ед. наследсвенности
-        sys.exit('Отсутсвуют необходимые токены.')
+    try:
+        check_token()
+    except ValueError as e:
+        logger.error(f"Ошибка проверки токена: {e}")
+        return
 
-    dispatcher.include_router(router)
-    await dispatcher.start_polling(bot)
+    dispatcher.include_router(message_router)
+    dispatcher.include_router(callback_router)
+    dispatcher.include_router(fsm_context_router)
+
+    try:
+        logger.info("Запуск бота...")
+        await dispatcher.start_polling(bot)
+    except Exception as e:
+        logger.error(f"Критическая ошибка в работе бота: {e}")
+
 
 if __name__ == "__main__":
-    logging.basicConfig(level=logging.INFO)
     try:
         asyncio.run(main())
     except KeyboardInterrupt:
-        print('Exit')
+        logger.info("Бот остановлен пользователем.")
+    except Exception as e:
+        logger.error(f"Произошла непредвиденная ошибка: {e}")
