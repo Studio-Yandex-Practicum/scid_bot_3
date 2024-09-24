@@ -71,6 +71,7 @@ async def process_first_name(message: Message, state: FSMContext) -> None:
 @router.message(Form.last_name)
 async def process_last_name(message: Message, state: FSMContext) -> None:
     """Состояние: ввод фамилии."""
+
     if not is_valid_name(message.text):
         await message.answer(
             "Фамилия должна содержать только буквы. Попробуйте снова."
