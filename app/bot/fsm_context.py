@@ -46,7 +46,7 @@ async def contact_with_manager(message: Message, state: FSMContext) -> None:
 
 async def ask_next_question(
         message: Message, state: FSMContext, next_state: State
-):
+) -> None:
     """Переход к следующему вопросу."""
 
     await state.set_state(next_state)
@@ -54,7 +54,8 @@ async def ask_next_question(
 
 
 @router.message(Form.first_name)
-async def process_first_name(message: Message, state: FSMContext):
+async def process_first_name(message: Message, state: FSMContext) -> None:
+    """Состояние: ввод имени."""
 
     if not is_valid_name(message.text):
         await message.answer(
@@ -68,8 +69,8 @@ async def process_first_name(message: Message, state: FSMContext):
 
 
 @router.message(Form.last_name)
-async def process_last_name(message: Message, state: FSMContext):
-
+async def process_last_name(message: Message, state: FSMContext) -> None:
+    """Состояние: ввод фамилии."""
     if not is_valid_name(message.text):
         await message.answer(
             "Фамилия должна содержать только буквы. Попробуйте снова."
@@ -82,7 +83,8 @@ async def process_last_name(message: Message, state: FSMContext):
 
 
 @router.message(Form.middle_name)
-async def process_middle_name(message: Message, state: FSMContext):
+async def process_middle_name(message: Message, state: FSMContext) -> None:
+    """Состояние: ввод отчества."""
 
     if message.text.lower() != "нет" and not is_valid_name(message.text):
         await message.answer(
@@ -97,7 +99,8 @@ async def process_middle_name(message: Message, state: FSMContext):
 
 
 @router.message(Form.phone_number)
-async def process_phone_number(message: Message, state: FSMContext):
+async def process_phone_number(message: Message, state: FSMContext) -> None:
+    """Состояние: ввод номера телефона."""
 
     if not is_valid_phone_number(message.text):
         await message.answer(
@@ -119,6 +122,8 @@ async def process_phone_number(message: Message, state: FSMContext):
         f"Отчество: {user_data['middle_name']}\n"
         f"Номер телефона: {user_data['phone_number']}"
     )
+
+    # данные попадают в бд
 
     keyboard = InlineKeyboardBuilder()
     keyboard.add(InlineKeyboardButton(
