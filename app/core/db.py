@@ -7,8 +7,8 @@ from sqlalchemy.orm import (
 from pydantic_settings import BaseSettings
 
 
-class Settings(BaseSettings):
-    database_url: str = 'sqlite+aiosqlite:///./dev.db'
+class Settings(BaseSettings):  # создать файл settings.py, перенести туда класс
+    database_url: str
     bot_token: str
 
     class Config:
