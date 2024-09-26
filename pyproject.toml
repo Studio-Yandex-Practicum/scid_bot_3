@@ -12,6 +12,10 @@ pydantic = "^2.9.2"
 python-dotenv = "^1.0.1"
 alembic = "^1.13.2"
 sqlalchemy = "^2.0.35"
+pydantic-settings = "^2.5.2"
+
+[tool.poetry.group.dev.dependencies]
+aiosqlite = "^0.20.0"
 
 [build-system]
 requires = ["poetry-core"]

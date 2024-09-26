@@ -1,7 +1,7 @@
 import logging
 import asyncio
 
-from bot_setup import bot, dispatcher, check_token
+from core.bot_setup import bot, dispatcher, check_token
 from bot.handlers import router as message_router
 from bot.callbacks import router as callback_router
 from bot.fsm_context import router as fsm_context_router
@@ -36,6 +36,7 @@ async def main() -> None:
     try:
         logger.info("Запуск бота...")
         await dispatcher.start_polling(bot)
+
     except Exception as e:
         logger.error(f"Критическая ошибка в работе бота: {e}")
 
@@ -43,7 +44,9 @@ async def main() -> None:
 if __name__ == "__main__":
     try:
         asyncio.run(main())
+
     except KeyboardInterrupt:
         logger.info("Бот остановлен пользователем.")
+
     except Exception as e:
         logger.error(f"Произошла непредвиденная ошибка: {e}")

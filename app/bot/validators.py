@@ -23,4 +23,5 @@ def format_phone_number(phone_number: str) -> str:
 
     if phone_number.startswith('8'):
         return '+7' + phone_number[1:]
+
     return phone_number

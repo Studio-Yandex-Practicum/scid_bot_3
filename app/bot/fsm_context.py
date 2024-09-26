@@ -45,15 +45,19 @@ async def contact_with_manager(message: Message, state: FSMContext) -> None:
             'Пожалуйста, оставьте ваше имя и контактный номер, '
             'и наш менеджер свяжется с вами.'
         )
+
         await ask_next_question(message, state, Form.first_name)
+
         logger.info(
             f"Пользователь {message.from_user.id} начал процесс."
         )
+
     except Exception as e:
         logger.error(
             f"Ошибка при выводе формы для пользователя "
             f"{message.from_user.id}: {e}"
         )
+
         await message.answer("Произошла ошибка. Попробуйте снова.")
 
 
@@ -68,11 +72,13 @@ async def ask_next_question(
         logger.info(
             f"Переход к следующему вопросу: {next_state}"
         )
+
     except Exception as e:
         logger.error(
             f"Ошибка при переходе к следующему вопросу для пользователя "
             f"{message.from_user.id}: {e}"
         )
+
         await message.answer("Произошла ошибка. Попробуйте снова.")
 
 
@@ -89,15 +95,19 @@ async def process_first_name(message: Message, state: FSMContext) -> None:
             return
 
         await state.update_data(first_name=message.text)
+
         logger.info(
             f"Пользователь {message.from_user.id} ввёл имя: {message.text}"
         )
+
         await ask_next_question(message, state, Form.last_name)
+
     except Exception as e:
         logger.error(
             f"Ошибка при обработке имени пользователя "
             f"{message.from_user.id}: {e}"
         )
+
         await message.answer("Произошла ошибка. Попробуйте снова.")
 
 
@@ -141,6 +151,7 @@ async def process_middle_name(message: Message, state: FSMContext) -> None:
                 "Отчество должно содержать только буквы или быть 'нет'. "
                 "Попробуйте снова."
             )
+
             await ask_next_question(message, state, Form.middle_name)
             return
 
@@ -172,6 +183,7 @@ async def process_phone_number(message: Message, state: FSMContext) -> None:
                 "Номер телефона должен быть в формате +7XXXXXXXXXX "
                 "или 8XXXXXXXXXX. Попробуйте снова."
             )
+
             await ask_next_question(message, state, Form.phone_number)
             return
 
