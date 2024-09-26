@@ -40,7 +40,7 @@ async def cmd_start(message: Message) -> None:
         )
 
 
-@router.message(F.text == 'Посмотреть портфолио')
+@router.message(F.text == 'Посмотреть портфолио.')
 async def view_portfolio(message: Message) -> None:
     """Показ портфолио компании."""
 
@@ -64,7 +64,7 @@ async def view_portfolio(message: Message) -> None:
         )
 
 
-@router.message(F.text == 'Получить информацию о компании')
+@router.message(F.text == 'Получить информацию о компании.')
 async def company_info(message: Message) -> None:
     """Информация о компании."""
 
@@ -90,7 +90,7 @@ async def company_info(message: Message) -> None:
         )
 
 
-@router.message(F.text == 'Узнать о продуктах и услугах')
+@router.message(F.text == 'Узнать о продуктах и услугах.')
 async def products_services(message: Message) -> None:
     """Информация о продуктах и услугах."""
 
