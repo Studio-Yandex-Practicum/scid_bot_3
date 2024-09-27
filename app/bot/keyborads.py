@@ -3,6 +3,8 @@ from aiogram.types import (
     InlineKeyboardMarkup, InlineKeyboardButton
 )
 from aiogram.utils.keyboard import InlineKeyboardBuilder
+from crud.request_to_manager import get_all_prtfolio_projects
+
 
 # кнопку вернуться назад можно вынести отдельно, чтобы не дублировать код
 
@@ -12,7 +14,7 @@ PRODUCTS_AND_SERVICES = [
     '"НБП ЕЖА"', 'Хостинг',
 ]  # моделирую результат запроса из бд ( * )
 
-LIST_OF_PROJECTS = ['Проект1', 'Проект2', 'Проект3']  # ( * )
+# LIST_OF_PROJECTS = ['Проект1', 'Проект2', 'Проект3']  # ( * )
 
 main_keyboard = ReplyKeyboardMarkup(
     keyboard=[
@@ -90,16 +92,20 @@ company_portfolio_choice = InlineKeyboardMarkup(
 )
 
 
-async def list_of_projects_keyboard():  # данные будут в бд
-    """Инлайн вывод проектов."""
+async def list_of_projects_keyboard():
+    """Инлайн вывод проектов с данными из БД."""
+
+    projects = await get_all_prtfolio_projects()
 
     keyboard = InlineKeyboardBuilder()
 
-    for project in LIST_OF_PROJECTS:
-        keyboard.add(InlineKeyboardButton(
-            text=project,
-            url='https://github.com/'  # тут будут ссылки, берем из бд
-        ))
+    for project in projects:
+        keyboard.add(
+            InlineKeyboardButton(
+                text=project.project_name,
+                url=project.url
+            )
+        )
 
     keyboard.add(
         InlineKeyboardButton(
