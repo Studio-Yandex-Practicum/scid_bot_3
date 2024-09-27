@@ -5,7 +5,7 @@ from aiogram.fsm.state import StatesGroup, State
 from aiogram.fsm.context import FSMContext
 from aiogram.types import Message, InlineKeyboardButton
 from aiogram.utils.keyboard import InlineKeyboardBuilder
-
+from crud.request_to_manager import create_request_to_manager
 from bot.validators import (
     is_valid_name, is_valid_phone_number, format_phone_number
 )
@@ -197,8 +197,15 @@ async def process_phone_number(message: Message, state: FSMContext) -> None:
         )
 
         user_data = await state.get_data()
+
+        new_request = await create_request_to_manager(user_data)
+
+        logger.info(f"Запись создана в БД с ID: {new_request.id}")
+
         await message.answer(
-            f"Форма заполнена!\n"
+            f'Спасибо! Наш менеджер свяжется '
+            f'с вами в ближайшее время.\n'
+            f"Отправленная форма:\n"
             f"Имя: {user_data['first_name']}\n"
             f"Фамилия: {user_data['last_name']}\n"
             f"Отчество: {user_data['middle_name']}\n"

@@ -7,7 +7,7 @@ import sqlalchemy.dialects.postgresql as pgsql_types
 
 from enum import Enum
 
-from app.core.db import Base
+from core.db import Base
 
 
 class RoleEnum(str, Enum):
@@ -144,3 +144,24 @@ class Info(Base):
     # media: Mapped[str] = mapped_column(
     #     pgsql_types.VARCHAR(256),
     # )
+
+
+class ContactManager(Base):
+    """Бд модель для заявки к менеджеру."""
+
+    first_name: Mapped[str] = mapped_column(
+        pgsql_types.VARCHAR(32),
+        nullable=False
+    )
+    last_name: Mapped[str] = mapped_column(
+        pgsql_types.VARCHAR(32),
+        nullable=False
+    )
+    middle_name: Mapped[str] = mapped_column(
+        pgsql_types.VARCHAR(32),
+        nullable=False
+    )
+    phone_number: Mapped[str] = mapped_column(
+        pgsql_types.VARCHAR(25),
+        nullable=False
+    )
