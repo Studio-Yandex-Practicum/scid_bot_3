@@ -1,9 +1,10 @@
 import logging
 from aiogram import F, Router
-from aiogram.filters import CommandStart
+from aiogram.filters import CommandStart, Command
 from aiogram.types import Message
 
-
+from models.models import RoleEnum
+from crud.request_to_manager import create_user_id, get_role_by_tg_id
 from bot.keyborads import (
     main_keyboard, company_information_keyboard,
     inline_products_and_services, company_portfolio_choice,
@@ -14,9 +15,27 @@ router = Router()
 logger = logging.getLogger(__name__)
 
 
+# TODO: данные из message нужно достать один раз,
+# сейчас в каждой фукнции дергаем
+
+@router.message(Command('admin'))
+async def cmd_admin(message: Message) -> None:
+    """Вход в админку."""
+
+    role = await get_role_by_tg_id(message.from_user.id)
+
+    response = 'Добро пожаловать в админку' if role in (
+        RoleEnum.ADMIN, RoleEnum.MANAGER
+    ) else '403: Forbidden'
+
+    await message.answer(response)
+
+
 @router.message(CommandStart())
 async def cmd_start(message: Message) -> None:
     """Выводит приветствие пользователя."""
+
+    await create_user_id(message.from_user.id)
 
     try:
         await message.answer(

@@ -26,21 +26,22 @@ class User(Base):
     """БД модель пользователя."""
 
     tg_id: Mapped[int] = mapped_column(
-        pgsql_types.INTEGER,
+        pgsql_types.BIGINT,
         nullable=False,
         unique=True
     )
 
-    username: Mapped[str] = mapped_column(
-        pgsql_types.VARCHAR(150)
-    )
+    # username: Mapped[str] = mapped_column(
+    #     pgsql_types.VARCHAR(150)
+    # )
 
     # full_name: Mapped[str] = mapped_column(
     #     pgsql_types.VARCHAR(150)
     # )
 
     phone: Mapped[str] = mapped_column(
-        pgsql_types.VARCHAR(25)
+        pgsql_types.VARCHAR(25),
+        nullable=True
     )
 
     role: Mapped[RoleEnum] = mapped_column(
