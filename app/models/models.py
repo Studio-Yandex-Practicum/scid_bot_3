@@ -17,9 +17,8 @@ class RoleEnum(str, Enum):
 
 
 class QuestionEnum(str, Enum):
-    TOPIC_1 = 'ANSWER_1'
-    TOPIC_2 = 'ANSWER_2'
-    TOPIC_3 = 'ANSWER_3'
+    GENERAL_QUESTIONS = 'Общие вопросы'
+    PROBLEMS_WITH_PRODUCTS = 'Проблемы с продуктами'
 
 
 class User(Base):

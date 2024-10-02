@@ -3,9 +3,9 @@ from aiogram.types import (
     InlineKeyboardMarkup, InlineKeyboardButton
 )
 from aiogram.utils.keyboard import InlineKeyboardBuilder
-from crud.request_to_manager import get_all_prtfolio_projects
+from crud.request_to_manager import get_all_prtfolio_projects, get_question_by_title
 
-from models.models import CheckCompanyPortfolio
+from models.models import CheckCompanyPortfolio, ProductCategory
 
 # кнопку вернуться назад можно вынести отдельно, чтобы не дублировать код
 
@@ -52,15 +52,17 @@ company_information_keyboard = InlineKeyboardMarkup(
 )
 
 
-async def inline_products_and_services():  # тут будем брать данные из бд
-    """Инлайн клавиатура для продуктов и услуг."""  # аннатацию тоже не пишу пока
+async def inline_products_and_services():
+    """Инлайн клавиатура для продуктов и услуг."""
 
     keyboard = InlineKeyboardBuilder()
 
-    for index, product_and_service in enumerate(PRODUCTS_AND_SERVICES):
+    objects_in_db = await get_all_prtfolio_projects(ProductCategory)
+
+    for obj in objects_in_db:
         keyboard.add(InlineKeyboardButton(
-            text=product_and_service,
-            callback_data=f'service_{index}'
+            text=obj.title,
+            callback_data=f'category_{obj.id}'
         ))
 
     keyboard.add(
@@ -144,3 +146,20 @@ support_keyboard = InlineKeyboardMarkup(
         ]
     ]
 )
+
+
+async def faq_or_problems_with_products_inline_keyboard(question_type) -> InlineKeyboardMarkup:
+    """Создание инлайн-клавиатуры для частозадаваемых вопросов или проблем с продуктами."""
+
+    questions = await get_question_by_title(question_type)
+
+    keyboard = InlineKeyboardBuilder()
+    for question in questions:
+        keyboard.add(
+            InlineKeyboardButton(
+                text=question.question,
+                callback_data=f"answer:{question.id}"
+            )
+        )
+
+    return keyboard.adjust(1).as_markup()
