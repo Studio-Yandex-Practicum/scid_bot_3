@@ -5,18 +5,7 @@ from sqlalchemy.orm import (
 )
 from contextlib import asynccontextmanager
 
-from pydantic_settings import BaseSettings
-
-
-class Settings(BaseSettings):  # создать файл settings.py, перенести туда класс
-    database_url: str
-    bot_token: str
-
-    class Config:
-        env_file = '.env'
-
-
-settings = Settings()
+from .settings import settings
 
 
 class PreBase:

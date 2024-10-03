@@ -30,17 +30,26 @@ class User(Base):
         unique=True
     )
 
-    # username: Mapped[str] = mapped_column(
-    #     pgsql_types.VARCHAR(150)
-    # )
-
-    # full_name: Mapped[str] = mapped_column(
-    #     pgsql_types.VARCHAR(150)
-    # )
+    name: Mapped[str] = mapped_column(
+        pgsql_types.VARCHAR(32),
+        nullable=True
+    )
 
     phone: Mapped[str] = mapped_column(
         pgsql_types.VARCHAR(25),
         nullable=True
+    )
+
+    need_support: Mapped[bool] = mapped_column(
+        pgsql_types.BOOLEAN,
+        default=False,
+        nullable=False
+    )
+
+    need_contact_with_manager: Mapped[bool] = mapped_column(
+        pgsql_types.BOOLEAN,
+        default=False,
+        nullable=False
     )
 
     role: Mapped[RoleEnum] = mapped_column(
@@ -58,9 +67,15 @@ class User(Base):
         nullable=False
     )
 
+    shipping_date: Mapped[datetime] = mapped_column(
+        pgsql_types.TIMESTAMP(timezone=True),
+        server_default=func.now(),  # TODO: время заностся в бд при /start
+        nullable=False
+    )
+
 
 class ProductCategory(Base):
-    """БД модель о продуктах и услугах."""
+    """БД модель продуктов и услуг."""
 
     title: Mapped[str] = mapped_column(
         pgsql_types.VARCHAR(150)
@@ -85,11 +100,12 @@ class CategoryType(Base):
     )
 
     url: Mapped[str] = mapped_column(
-        pgsql_types.VARCHAR(64)
+        pgsql_types.VARCHAR(128)
     )
 
     media: Mapped[str] = mapped_column(
-        pgsql_types.VARCHAR(128)
+        pgsql_types.VARCHAR(128),
+        nullable=True
     )
 
 
@@ -141,26 +157,15 @@ class Info(Base):
         nullable=False
     )
 
-    # media: Mapped[str] = mapped_column(
-    #     pgsql_types.VARCHAR(256),
-    # )
-
 
 class ContactManager(Base):
-    """Бд модель для заявки к менеджеру."""
+    """Бд модель заявки к менеджеру."""
 
     first_name: Mapped[str] = mapped_column(
         pgsql_types.VARCHAR(32),
         nullable=False
     )
-    last_name: Mapped[str] = mapped_column(
-        pgsql_types.VARCHAR(32),
-        nullable=False
-    )
-    middle_name: Mapped[str] = mapped_column(
-        pgsql_types.VARCHAR(32),
-        nullable=False
-    )
+
     phone_number: Mapped[str] = mapped_column(
         pgsql_types.VARCHAR(25),
         nullable=False

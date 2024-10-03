@@ -19,3 +19,16 @@ INSERT INTO Info (question_type, question, answer) VALUES
 ('PROBLEMS_WITH_PRODUCTS', 'Что делать, если продукт неисправен?', 'Если продукт неисправен, пожалуйста, свяжитесь с поддержкой, и мы организуем замену или возврат.'),
 ('PROBLEMS_WITH_PRODUCTS', 'Почему мой продукт не включается?', 'Убедитесь, что устройство заряжено, и проверьте кнопку включения.');
 '''
+
+'''
+Скрипт тестовых данных для ветки узнать о продуктах и услугах
+
+INSERT INTO categorytype (name, product_id, url, media)
+VALUES
+    ('Корпоративные сайты', 1, 'https://www.google.com', 'adasdad'),
+    ('Лендинги', 1, 'https://www.wikipedia.org', 'adadasda'),
+    ('Интернет-магазины', 1, 'https://www.amazon.com', 'ghfhfgh'),
+    ('Программы лояльности', 2, 'https://www.airlinesoftware.com/loyalty-solutions', 'adasdad'),
+    ('Порталы для госучереждений', 2, 'https://www.egov.kz', 'adadasda'),
+    ('Личные кабинеты', 2, 'https://my.gov.ru', 'ghfhfgh');
+'''

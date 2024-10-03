@@ -1,31 +1,58 @@
 from aiogram.types import (
-    ReplyKeyboardMarkup, KeyboardButton,
     InlineKeyboardMarkup, InlineKeyboardButton
 )
 from aiogram.utils.keyboard import InlineKeyboardBuilder
-from crud.request_to_manager import get_all_prtfolio_projects, get_question_by_title
+from crud.request_to_manager import (
+    get_all_prtfolio_projects, get_question_by_title,
+    get_categories_by_name
+)
 
 from models.models import CheckCompanyPortfolio, ProductCategory
 
-# кнопку вернуться назад можно вынести отдельно, чтобы не дублировать код
 
-PRODUCTS_AND_SERVICES = [
-    'Разработка сайтов', 'Создание порталов',
-    'Разработка мобильных приложений', 'Консультация по КИОСК365',
-    '"НБП ЕЖА"', 'Хостинг',
-]  # моделирую результат запроса из бд ( * )
+back_to_main_menu = InlineKeyboardButton(
+    text='Вернуться к основным вариантам.',
+    callback_data='back_to_main_menu'
+)
 
-main_keyboard = ReplyKeyboardMarkup(
-    keyboard=[
-        [KeyboardButton(text='Посмотреть портфолио.')],
-        [KeyboardButton(text='Получить информацию о компании.')],
-        [KeyboardButton(text='Узнать о продуктах и услугах.')],
-        [KeyboardButton(text='Получить техническую поддержку.'),],
-        [KeyboardButton(text='Связаться с менеджером.')],
-    ],
-    resize_keyboard=True,
-    one_time_keyboard=False,
-    input_field_placeholder='Выберите пункт меню.'
+back_to_previous_menu = InlineKeyboardButton(
+    text='Назад к продуктам.',
+    callback_data='back_to_previous_menu'
+)
+
+main_keyboard = InlineKeyboardMarkup(
+    inline_keyboard=[
+        [
+            InlineKeyboardButton(
+                text='Посмотреть портфолио.',
+                callback_data='view_portfolio'
+            )
+        ],
+        [
+            InlineKeyboardButton(
+                text='Получить информацию о компании.',
+                callback_data='company_info'
+            )
+        ],
+        [
+            InlineKeyboardButton(
+                text='Узнать о продуктах и услугах.',
+                callback_data='products_services'
+            )
+        ],
+        [
+            InlineKeyboardButton(
+                text='Получить техническую поддержку.',
+                callback_data='tech_support'
+            )
+        ],
+        [
+            InlineKeyboardButton(
+                text='Связаться с менеджером.',
+                callback_data='contact_manager'
+            )
+        ],
+    ]
 )
 
 company_information_keyboard = InlineKeyboardMarkup(
@@ -33,21 +60,16 @@ company_information_keyboard = InlineKeyboardMarkup(
         [
             InlineKeyboardButton(
                 text='Презентация компании.',
-                url='https://www.visme.co/ru/powerpoint-online/'  # тут ссылка на презентацию, ткунл рандомную
+                url='https://www.visme.co/ru/powerpoint-online/'
             )
         ],
         [
             InlineKeyboardButton(
                 text='Карточка компании.',
-                url='https://github.com/Rxyalxrd'  # тут будет карточка компании, пока моя)
+                url='https://github.com/Rxyalxrd'
             )
         ],
-        [
-            InlineKeyboardButton(
-                text='Вернуться к основным вариантам.',
-                callback_data='back_to_main_menu'
-            )
-        ]
+        [back_to_main_menu]
     ]
 )
 
@@ -65,12 +87,7 @@ async def inline_products_and_services():
             callback_data=f'category_{obj.id}'
         ))
 
-    keyboard.add(
-        InlineKeyboardButton(
-            text='Вернуться к основным вариантам.',
-            callback_data='back_to_main_menu'
-        )
-    )
+    keyboard.add(back_to_main_menu)
 
     return keyboard.adjust(1).as_markup()
 
@@ -83,12 +100,7 @@ company_portfolio_choice = InlineKeyboardMarkup(
                 callback_data='show_projects'
             )
         ],
-        [
-            InlineKeyboardButton(
-                text='Вернуться к основным вариантам.',
-                callback_data='back_to_main_menu'
-            )
-        ]
+        [back_to_main_menu]
     ]
 )
 
@@ -108,12 +120,7 @@ async def list_of_projects_keyboard():
             )
         )
 
-    keyboard.add(
-        InlineKeyboardButton(
-            text='Вернуться к основным вариантам.',
-            callback_data='back_to_main_menu'
-        )
-    )
+    keyboard.add(back_to_main_menu)
 
     return keyboard.adjust(1).as_markup()
 
@@ -138,18 +145,15 @@ support_keyboard = InlineKeyboardMarkup(
                 callback_data='callback_request'
             )
         ],
-        [
-            InlineKeyboardButton(
-                text='Вернуться к основным вариантам.',
-                callback_data='back_to_main_menu'
-            )
-        ]
+        [back_to_main_menu]
     ]
 )
 
 
-async def faq_or_problems_with_products_inline_keyboard(question_type) -> InlineKeyboardMarkup:
-    """Создание инлайн-клавиатуры для частозадаваемых вопросов или проблем с продуктами."""
+async def faq_or_problems_with_products_inline_keyboard(
+    question_type: str
+) -> InlineKeyboardMarkup:
+    """Инлайн-клавиатуры для f.a.q вопросов или проблем с продуктами."""
 
     questions = await get_question_by_title(question_type)
 
@@ -161,5 +165,29 @@ async def faq_or_problems_with_products_inline_keyboard(question_type) -> Inline
                 callback_data=f"answer:{question.id}"
             )
         )
+
+    keyboard.add(back_to_main_menu)
+
+    return keyboard.adjust(1).as_markup()
+
+
+async def category_type_inline_keyboard(
+    product_name: str
+) -> InlineKeyboardMarkup:
+    """Инлайн клавиатура для типов в категориях."""
+
+    category_types = await get_categories_by_name(product_name)
+
+    keyboard = InlineKeyboardBuilder()
+
+    for category_type in category_types:
+        keyboard.add(
+            InlineKeyboardButton(
+                text=category_type.name,
+                url=category_type.url
+            )
+        )
+
+    keyboard.add(back_to_previous_menu)
 
     return keyboard.adjust(1).as_markup()

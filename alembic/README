@@ -1,1 +1,9 @@
-Generic single-database configuration with an async dbapi.
+Примените миграции
+```bash
+alembic upgrade head
+```
+
+Создание миграций, если внесены изменения в /models
+```bash
+alembic revision --autogenerate -m "Your commit"
+``` 

@@ -1,8 +1,8 @@
-"""First migration
+"""Update user model
 
-Revision ID: e15690914928
+Revision ID: 182d5908e82a
 Revises: 
-Create Date: 2024-09-26 23:48:22.126438
+Create Date: 2024-10-04 01:00:56.159813
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
-revision: str = 'e15690914928'
+revision: str = '182d5908e82a'
 down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -26,8 +26,14 @@ def upgrade() -> None:
     sa.Column('id', sa.Integer(), nullable=False),
     sa.PrimaryKeyConstraint('id')
     )
+    op.create_table('contactmanager',
+    sa.Column('first_name', sa.VARCHAR(length=32), nullable=False),
+    sa.Column('phone_number', sa.VARCHAR(length=25), nullable=False),
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.PrimaryKeyConstraint('id')
+    )
     op.create_table('info',
-    sa.Column('question_type', postgresql.ENUM('TOPIC_1', 'TOPIC_2', 'TOPIC_3', name='question_enum'), nullable=False),
+    sa.Column('question_type', postgresql.ENUM('GENERAL_QUESTIONS', 'PROBLEMS_WITH_PRODUCTS', name='question_enum'), nullable=False),
     sa.Column('question', sa.TEXT(), nullable=False),
     sa.Column('answer', sa.TEXT(), nullable=False),
     sa.Column('id', sa.Integer(), nullable=False),
@@ -47,11 +53,14 @@ def upgrade() -> None:
     sa.PrimaryKeyConstraint('id')
     )
     op.create_table('user',
-    sa.Column('tg_id', sa.INTEGER(), nullable=False),
-    sa.Column('username', sa.VARCHAR(length=150), nullable=False),
-    sa.Column('phone', sa.VARCHAR(length=25), nullable=False),
+    sa.Column('tg_id', sa.BIGINT(), nullable=False),
+    sa.Column('name', sa.VARCHAR(length=32), nullable=True),
+    sa.Column('phone', sa.VARCHAR(length=25), nullable=True),
+    sa.Column('need_support', sa.BOOLEAN(), nullable=False),
+    sa.Column('need_contact_with_manager', sa.BOOLEAN(), nullable=False),
     sa.Column('role', postgresql.ENUM('USER', 'ADMIN', 'MANAGER', name='role_enum'), nullable=False),
     sa.Column('join_date', postgresql.TIMESTAMP(timezone=True), server_default=sa.text('now()'), nullable=False),
+    sa.Column('shipping_date', postgresql.TIMESTAMP(timezone=True), server_default=sa.text('now()'), nullable=False),
     sa.Column('id', sa.Integer(), nullable=False),
     sa.PrimaryKeyConstraint('id'),
     sa.UniqueConstraint('tg_id')
@@ -59,8 +68,8 @@ def upgrade() -> None:
     op.create_table('categorytype',
     sa.Column('name', sa.VARCHAR(length=150), nullable=False),
     sa.Column('product_id', sa.Integer(), nullable=False),
-    sa.Column('url', sa.VARCHAR(length=64), nullable=False),
-    sa.Column('media', sa.VARCHAR(length=128), nullable=False),
+    sa.Column('url', sa.VARCHAR(length=128), nullable=False),
+    sa.Column('media', sa.VARCHAR(length=128), nullable=True),
     sa.Column('id', sa.Integer(), nullable=False),
     sa.ForeignKeyConstraint(['product_id'], ['productcategory.id'], ),
     sa.PrimaryKeyConstraint('id')
@@ -77,5 +86,6 @@ def downgrade() -> None:
     op.drop_table('productcategory')
     op.drop_table('informationaboutcompany')
     op.drop_table('info')
+    op.drop_table('contactmanager')
     op.drop_table('checkcompanyportfolio')
     # ### end Alembic commands ###
