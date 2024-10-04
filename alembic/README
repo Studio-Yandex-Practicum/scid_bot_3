@@ -1,1 +1,14 @@
-Generic single-database configuration with an async dbapi.
+Инициализировать Alembic в проекте(должены использовать асинхронный шаблон)
+```bash
+poetry run alembic init --template async alembic 
+```
+
+Примените миграции
+```bash
+poetry run alembic upgrade head
+```
+
+Создание миграций, если внесены изменения в /models
+```bash
+poetry run alembic revision --autogenerate -m "Your commit"
+``` 

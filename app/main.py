@@ -1,13 +1,14 @@
 import logging
 import asyncio
 
+# from app.core.db import AsyncSessionLocal
+# from app.middlewares.middleware import DataBaseSession
 from core.bot_setup import bot, dispatcher, check_token
 from bot.handlers import router as message_router
 from bot.callbacks import router as callback_router
 from bot.fsm_context import router as fsm_context_router
 
 
-# Настройка логирования
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -43,6 +44,11 @@ async def main() -> None:
 
 if __name__ == "__main__":
     try:
+        # dispatcher.update.middleware(
+        #     DataBaseSession(
+        #         session_pool=AsyncSessionLocal
+        #     )
+        # )
         asyncio.run(main())
 
     except KeyboardInterrupt:
