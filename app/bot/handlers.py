@@ -4,7 +4,7 @@ from aiogram.filters import CommandStart, Command
 from aiogram.types import Message
 
 from models.models import RoleEnum
-from crud.request_to_manager import (
+from crud.users import (
     create_user_id, get_role_by_tg_id, is_user_in_db
 )
 from bot.keyborads import (

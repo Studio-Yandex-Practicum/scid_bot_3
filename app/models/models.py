@@ -30,28 +30,6 @@ class User(Base):
         unique=True
     )
 
-    name: Mapped[str] = mapped_column(
-        pgsql_types.VARCHAR(32),
-        nullable=True
-    )
-
-    phone: Mapped[str] = mapped_column(
-        pgsql_types.VARCHAR(25),
-        nullable=True
-    )
-
-    need_support: Mapped[bool] = mapped_column(
-        pgsql_types.BOOLEAN,
-        default=False,
-        nullable=False
-    )
-
-    need_contact_with_manager: Mapped[bool] = mapped_column(
-        pgsql_types.BOOLEAN,
-        default=False,
-        nullable=False
-    )
-
     role: Mapped[RoleEnum] = mapped_column(
         pgsql_types.ENUM(
             RoleEnum,
@@ -64,12 +42,6 @@ class User(Base):
     join_date: Mapped[datetime] = mapped_column(
         pgsql_types.TIMESTAMP(timezone=True),
         server_default=func.now(),
-        nullable=False
-    )
-
-    shipping_date: Mapped[datetime] = mapped_column(
-        pgsql_types.TIMESTAMP(timezone=True),
-        server_default=func.now(),  # TODO: время заностся в бд при /start
         nullable=False
     )
 
@@ -168,5 +140,23 @@ class ContactManager(Base):
 
     phone_number: Mapped[str] = mapped_column(
         pgsql_types.VARCHAR(25),
+        nullable=False
+    )
+
+    need_support: Mapped[bool] = mapped_column(
+        pgsql_types.BOOLEAN,
+        default=False,
+        nullable=False
+    )
+
+    need_contact_with_manager: Mapped[bool] = mapped_column(
+        pgsql_types.BOOLEAN,
+        default=False,
+        nullable=False
+    )
+
+    shipping_date: Mapped[datetime] = mapped_column(
+        pgsql_types.TIMESTAMP(timezone=True),
+        server_default=func.now(),
         nullable=False
     )

@@ -2,11 +2,8 @@ from aiogram.types import (
     InlineKeyboardMarkup, InlineKeyboardButton
 )
 from aiogram.utils.keyboard import InlineKeyboardBuilder
-from crud.request_to_manager import (
-    get_all_prtfolio_projects, get_question_by_title,
-    get_categories_by_name
-)
-
+from crud.questions import get_question_by_title
+from crud.projects import get_all_prtfolio_projects, get_categories_by_name
 from models.models import CheckCompanyPortfolio, ProductCategory
 
 

@@ -32,3 +32,14 @@ VALUES
     ('Порталы для госучереждений', 2, 'https://www.egov.kz', 'adadasda'),
     ('Личные кабинеты', 2, 'https://my.gov.ru', 'ghfhfgh');
 '''
+
+'''
+Скрипт тестовыхх данных для ветки посмотреть портфолио
+
+INSERT INTO checkcompanyportfolio (project_name, url) VALUES
+('Project Alpha', 'https://example.com/project-alpha'),
+('Project Beta', 'https://example.com/project-beta'),
+('Project Gamma', 'https://example.com/project-gamma'),
+('Project Delta', 'https://example.com/project-delta'),
+('Project Epsilon', 'https://example.com/project-epsilon');
+'''

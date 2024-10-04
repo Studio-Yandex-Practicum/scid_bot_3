@@ -11,10 +11,8 @@ from bot.keyborads import (
     company_information_keyboard, company_portfolio_choice,
     support_keyboard, back_to_main_menu
 )
-from crud.request_to_manager import (
-    get_question_by_id, response_text_by_id, get_title_by_id
-)
-
+from crud.questions import get_question_by_id
+from crud.projects import get_title_by_id, response_text_by_id
 
 router = Router()
 
@@ -53,7 +51,7 @@ async def previous_choice(callback: CallbackQuery) -> None:
     # ( * )
 
 
-@router.callback_query(F.data.in_(['get_faq', 'get_problems_with_products']))
+@router.callback_query(F.data.in_(('get_faq', 'get_problems_with_products')))
 async def get_questions(callback: CallbackQuery) -> None:
     """Инлайн вывод общих вопросов и проблем с продуктами."""
 
@@ -91,15 +89,6 @@ async def get_faq_answer(callback: CallbackQuery) -> None:
 
     else:
         await callback.message.edit_text("Вопрос не найден.")
-
-
-@router.callback_query(F.data == 'callback_request')
-async def callback_request(callback: CallbackQuery) -> None:
-    """Инлайн вывод запроса на обратный звонок."""
-
-    pass
-
-    # ( * )
 
 
 @router.callback_query(F.data == 'back_to_previous_menu')

@@ -32,14 +32,17 @@ QUESTIONS = {
 }
 
 
-@router.callback_query(F.data == 'contact_manager')
+@router.callback_query(F.data.in_(('contact_manager', 'callback_request')))
 async def contact_with_manager(
     callback: CallbackQuery, state: FSMContext
 ) -> None:
-    """Выводит форму для связи с менеджером."""
+    """Выводит форму для связи с менеджером или запрос на обратный звонок."""
 
     try:
-        await callback.message.answer(
+
+        await state.update_data(request_type=callback.data)
+
+        await callback.message.edit_text(
             'Пожалуйста, оставьте ваше имя и контактный номер, '
             'и наш менеджер свяжется с вами.'
         )
@@ -130,8 +133,9 @@ async def process_phone_number(message: Message, state: FSMContext) -> None:
         )
 
         user_data = await state.get_data()
+        request_type = user_data.pop('request_type')
 
-        new_request = await create_request_to_manager(user_data)
+        new_request = await create_request_to_manager(user_data, request_type)
 
         logger.info(f"Запись создана в БД с ID: {new_request.id}")
 
@@ -140,15 +144,10 @@ async def process_phone_number(message: Message, state: FSMContext) -> None:
             f'с вами в ближайшее время.\n'
             f"Отправленная форма:\n"
             f"Имя: {user_data['first_name']}\n"
-            f"Номер телефона: {user_data['phone_number']}"
-        )
-
-        keyboard = InlineKeyboardBuilder()
-        keyboard.add(back_to_main_menu)
-
-        await message.answer(
-            "Вы можете вернуться в главное меню.",
-            reply_markup=keyboard.as_markup()
+            f"Номер телефона: {user_data['phone_number']}",
+            reply_markup=InlineKeyboardBuilder().add(
+                back_to_main_menu)
+            .as_markup()
         )
 
         await state.clear()
