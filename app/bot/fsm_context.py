@@ -1,5 +1,7 @@
 import logging
+import os
 
+import asyncio
 from aiogram import F, Router
 from aiogram.fsm.state import StatesGroup, State
 from aiogram.fsm.context import FSMContext
@@ -7,13 +9,16 @@ from aiogram.types import Message, CallbackQuery
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 from bot.keyborads import back_to_main_menu
-from crud.request_to_manager import create_request_to_manager
+from bot.smtp import send_mail
 from bot.validators import (
     is_valid_name, is_valid_phone_number, format_phone_number
 )
+from crud.request_to_manager import create_request_to_manager
 
 router = Router()
 logger = logging.getLogger(__name__)
+
+CLIENT_EMAIL = os.getenv("EMAIL")
 
 
 class Form(StatesGroup):
@@ -138,6 +143,12 @@ async def process_phone_number(message: Message, state: FSMContext) -> None:
         new_request = await create_request_to_manager(user_data, request_type)
 
         logger.info(f"Запись создана в БД с ID: {new_request.id}")
+
+        mail = send_mail('Заявка на обратную связь', CLIENT_EMAIL, user_data)
+        asyncio.gather(asyncio.create_task(mail))
+
+        logger.info("Отправлено сообщение на почту менеджеру для связи "
+                    f"с пользователем {message.from_user.id}")
 
         await message.answer(
             f'Спасибо! Наш менеджер свяжется '
