@@ -3,6 +3,7 @@ import logging
 from aiogram import F, Router
 from aiogram.types import CallbackQuery
 from aiogram.utils.keyboard import InlineKeyboardBuilder
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from bot.keyborads import (
     list_of_projects_keyboard, main_keyboard,
@@ -52,7 +53,9 @@ async def previous_choice(callback: CallbackQuery) -> None:
 
 
 @router.callback_query(F.data.in_(('get_faq', 'get_problems_with_products')))
-async def get_questions(callback: CallbackQuery) -> None:
+async def get_questions(
+    callback: CallbackQuery, session: AsyncSession
+) -> None:
     """Инлайн вывод общих вопросов и проблем с продуктами."""
 
     await callback.answer()
@@ -66,18 +69,22 @@ async def get_questions(callback: CallbackQuery) -> None:
         await callback.message.edit_text(
             "Выберите вопрос:",
             reply_markup=await faq_or_problems_with_products_inline_keyboard(
-                question_type
+                question_type, session
             )
         )
 
 
 @router.callback_query(F.data.startswith('answer:'))
-async def get_faq_answer(callback: CallbackQuery) -> None:
+async def get_faq_answer(
+    callback: CallbackQuery, session: AsyncSession
+) -> None:
     """Вывод ответа на выбранный вопрос."""
 
     await callback.answer()
 
-    question = await get_question_by_id(callback.data.split(':')[1])
+    question = await get_question_by_id(
+        callback.data.split(':')[1], session
+    )
 
     if question:
         await callback.message.edit_text(
@@ -92,7 +99,9 @@ async def get_faq_answer(callback: CallbackQuery) -> None:
 
 
 @router.callback_query(F.data == 'back_to_previous_menu')
-async def back_to_products(callback: CallbackQuery) -> None:
+async def back_to_products(
+    callback: CallbackQuery, session: AsyncSession
+) -> None:
     """Возвращает к выбору продуктов."""
 
     await callback.answer()
@@ -101,12 +110,14 @@ async def back_to_products(callback: CallbackQuery) -> None:
 
         await callback.message.edit_text(
             text='Вы вернулись к списку продуктов и услуг:',
-            reply_markup=await inline_products_and_services()
+            reply_markup=await inline_products_and_services(session)
         )
 
 
 @router.callback_query(F.data.startswith('category_'))
-async def get_response_by_title(callback: CallbackQuery) -> None:
+async def get_response_by_title(
+    callback: CallbackQuery, session: AsyncSession
+) -> None:
     """Возвращает заготовленный ответ на выбранную категорию."""
 
     await callback.answer()
@@ -116,9 +127,9 @@ async def get_response_by_title(callback: CallbackQuery) -> None:
         category_id = int(callback.data.split('_')[1])
 
         await callback.message.edit_text(
-            text=await response_text_by_id(category_id),
+            text=await response_text_by_id(category_id, session),
             reply_markup=await category_type_inline_keyboard(
-                await get_title_by_id(category_id)
+                await get_title_by_id(category_id, session), session
             )
         )
 
@@ -189,14 +200,16 @@ async def get_support(callback: CallbackQuery) -> None:
 
 
 @router.callback_query(F.data == 'products_services')
-async def products_services(callback: CallbackQuery) -> None:
+async def products_services(
+    callback: CallbackQuery, session: AsyncSession
+) -> None:
     """Информация о продуктах и услугах."""
 
     try:
         await callback.message.edit_text(
             'Мы предлагаем следующие продукты и услуги. '
             'Какой из них вас интересует?',
-            reply_markup=await inline_products_and_services()
+            reply_markup=await inline_products_and_services(session)
         )
         await callback.answer()
         logger.info(

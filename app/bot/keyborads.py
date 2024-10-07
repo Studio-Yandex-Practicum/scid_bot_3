@@ -5,7 +5,7 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 from crud.questions import get_question_by_title
 from crud.projects import get_all_prtfolio_projects, get_categories_by_name
 from models.models import CheckCompanyPortfolio, ProductCategory
-
+from sqlalchemy.ext.asyncio import AsyncSession
 
 back_to_main_menu = InlineKeyboardButton(
     text='Вернуться к основным вариантам.',
@@ -71,12 +71,12 @@ company_information_keyboard = InlineKeyboardMarkup(
 )
 
 
-async def inline_products_and_services():
+async def inline_products_and_services(session: AsyncSession):
     """Инлайн клавиатура для продуктов и услуг."""
 
     keyboard = InlineKeyboardBuilder()
 
-    objects_in_db = await get_all_prtfolio_projects(ProductCategory)
+    objects_in_db = await get_all_prtfolio_projects(ProductCategory, session)
 
     for obj in objects_in_db:
         keyboard.add(InlineKeyboardButton(
@@ -102,10 +102,10 @@ company_portfolio_choice = InlineKeyboardMarkup(
 )
 
 
-async def list_of_projects_keyboard():
+async def list_of_projects_keyboard(session: AsyncSession):
     """Инлайн вывод проектов с данными из БД."""
 
-    projects = await get_all_prtfolio_projects(CheckCompanyPortfolio)
+    projects = await get_all_prtfolio_projects(CheckCompanyPortfolio, session)
 
     keyboard = InlineKeyboardBuilder()
 
@@ -148,11 +148,12 @@ support_keyboard = InlineKeyboardMarkup(
 
 
 async def faq_or_problems_with_products_inline_keyboard(
-    question_type: str
+    question_type: str,
+    session: AsyncSession
 ) -> InlineKeyboardMarkup:
     """Инлайн-клавиатуры для f.a.q вопросов или проблем с продуктами."""
 
-    questions = await get_question_by_title(question_type)
+    questions = await get_question_by_title(question_type, session)
 
     keyboard = InlineKeyboardBuilder()
     for question in questions:
@@ -169,11 +170,12 @@ async def faq_or_problems_with_products_inline_keyboard(
 
 
 async def category_type_inline_keyboard(
-    product_name: str
+    product_name: str,
+    session: AsyncSession
 ) -> InlineKeyboardMarkup:
     """Инлайн клавиатура для типов в категориях."""
 
-    category_types = await get_categories_by_name(product_name)
+    category_types = await get_categories_by_name(product_name, session)
 
     keyboard = InlineKeyboardBuilder()
 

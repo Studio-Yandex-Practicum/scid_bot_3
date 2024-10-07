@@ -3,7 +3,6 @@ from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import (
     declarative_base, declared_attr, sessionmaker, Mapped, mapped_column
 )
-from contextlib import asynccontextmanager
 
 from .settings import settings
 
@@ -18,11 +17,5 @@ class PreBase:
 
 
 Base = declarative_base(cls=PreBase)
-engine = create_async_engine(settings.database_url)
+engine = create_async_engine(settings.database_url, echo=True)
 AsyncSessionLocal = sessionmaker(engine, class_=AsyncSession)
-
-
-@asynccontextmanager
-async def get_async_session() -> AsyncSession:
-    async with AsyncSessionLocal() as async_session:
-        yield async_session

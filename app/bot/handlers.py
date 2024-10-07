@@ -2,6 +2,9 @@ import logging
 from aiogram import Router
 from aiogram.filters import CommandStart, Command
 from aiogram.types import Message
+from sqlalchemy.ext.asyncio import AsyncSession
+from admin.keyboards.keyboards import get_inline_keyboard
+from const import MAIN_MENU_BUTTONS
 
 from models.models import RoleEnum
 from crud.users import (
@@ -20,24 +23,26 @@ logger = logging.getLogger(__name__)
 # сейчас в каждой фукнции дергаем
 
 @router.message(Command('admin'))
-async def cmd_admin(message: Message) -> None:
+async def cmd_admin(message: Message, session: AsyncSession) -> None:
     """Вход в админку."""
 
-    role = await get_role_by_tg_id(message.from_user.id)
+    role = await get_role_by_tg_id(message.from_user.id, session)
 
-    response = 'Добро пожаловать в админку' if role in (
-        RoleEnum.ADMIN, RoleEnum.MANAGER
-    ) else '403: Forbidden'
-
-    await message.answer(response)
+    if role in (RoleEnum.ADMIN, RoleEnum.MANAGER):
+        await message.answer(
+            'Добро пожаловать в админку!',
+            reply_markup=await get_inline_keyboard(MAIN_MENU_BUTTONS)
+        )
+    else:
+        await message.answer('403: Forbidden')
 
 
 @router.message(CommandStart())
-async def cmd_start(message: Message) -> None:
+async def cmd_start(message: Message, session: AsyncSession) -> None:
     """Выводит приветствие пользователя."""
 
-    if not await is_user_in_db(message.from_user.id):
-        await create_user_id(message.from_user.id)
+    if not await is_user_in_db(message.from_user.id, session):
+        await create_user_id(message.from_user.id, session)
 
     try:
         await message.answer(

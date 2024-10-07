@@ -5,7 +5,7 @@ from aiogram.fsm.state import StatesGroup, State
 from aiogram.fsm.context import FSMContext
 from aiogram.types import Message, CallbackQuery
 from aiogram.utils.keyboard import InlineKeyboardBuilder
-
+from sqlalchemy.ext.asyncio import AsyncSession
 from bot.keyborads import back_to_main_menu
 from crud.request_to_manager import create_request_to_manager
 from bot.validators import (
@@ -112,7 +112,9 @@ async def process_first_name(message: Message, state: FSMContext) -> None:
 
 
 @router.message(Form.phone_number)
-async def process_phone_number(message: Message, state: FSMContext) -> None:
+async def process_phone_number(
+    message: Message, state: FSMContext, session: AsyncSession
+) -> None:
     """Состояние: ввод номера телефона."""
 
     try:
@@ -135,7 +137,9 @@ async def process_phone_number(message: Message, state: FSMContext) -> None:
         user_data = await state.get_data()
         request_type = user_data.pop('request_type')
 
-        new_request = await create_request_to_manager(user_data, request_type)
+        new_request = await create_request_to_manager(
+            user_data, request_type, session
+        )
 
         logger.info(f"Запись создана в БД с ID: {new_request.id}")
 
