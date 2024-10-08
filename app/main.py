@@ -1,13 +1,13 @@
 import logging
 import asyncio
 
-# from app.core.db import AsyncSessionLocal
-# from app.middlewares.middleware import DataBaseSession
+from core.db import AsyncSessionLocal
+from middlewares.middleware import DataBaseSession
 from core.bot_setup import bot, dispatcher, check_token
 from bot.handlers import router as message_router
 from bot.callbacks import router as callback_router
 from bot.fsm_context import router as fsm_context_router
-
+from core.init_db import add_portfolio
 
 logging.basicConfig(
     level=logging.INFO,
@@ -36,6 +36,10 @@ async def main() -> None:
 
     try:
         logger.info("Запуск бота...")
+        dispatcher.update.middleware(
+            DataBaseSession(session_pool=AsyncSessionLocal)
+        )
+        await add_portfolio()
         await dispatcher.start_polling(bot)
 
     except Exception as e:
@@ -44,11 +48,6 @@ async def main() -> None:
 
 if __name__ == "__main__":
     try:
-        # dispatcher.update.middleware(
-        #     DataBaseSession(
-        #         session_pool=AsyncSessionLocal
-        #     )
-        # )
         asyncio.run(main())
 
     except KeyboardInterrupt:
