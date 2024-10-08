@@ -1,7 +1,7 @@
 from datetime import datetime
 
 from sqlalchemy import ForeignKey
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.sql import func
 import sqlalchemy.dialects.postgresql as pgsql_types
 
@@ -45,6 +45,8 @@ class User(Base):
         nullable=False
     )
 
+    feedbacks = relationship("Feedback", back_populates="author", cascade="all, delete")
+
 
 class ProductCategory(Base):
     """БД модель продуктов и услуг."""
@@ -57,6 +59,10 @@ class ProductCategory(Base):
         pgsql_types.TEXT
     )
 
+    categories = relationship(
+        "CategoryType", cascade="all, delete", back_populates="product_category"
+    )
+
 
 class CategoryType(Base):
     """БД модель типов категорий."""
@@ -67,7 +73,8 @@ class CategoryType(Base):
     )
 
     product_id: Mapped[int] = mapped_column(
-        ForeignKey('productcategory.id'),
+        ForeignKey('productcategory.id', ondelete='CASCADE'),
+        nullable=False,
         index=True
     )
 
@@ -79,6 +86,8 @@ class CategoryType(Base):
         pgsql_types.VARCHAR(128),
         nullable=True
     )
+
+    product_category = relationship("ProductCategory", back_populates="categories")
 
 
 class InformationAboutCompany(Base):
@@ -160,3 +169,38 @@ class ContactManager(Base):
         server_default=func.now(),
         nullable=False
     )
+
+    shipping_date_close: Mapped[datetime] = mapped_column(
+        pgsql_types.TIMESTAMP(timezone=True),
+        server_default=func.now(),
+        nullable=False
+    )
+
+    feedbacks = relationship(
+        "Feedback", back_populates="contact_manager", cascade="all, delete"
+    )
+
+
+class Feedback(Base):
+    user: Mapped[int] = mapped_column(
+        ForeignKey("user.id", ondelete="CASCADE"),
+        nullable=False
+    )
+    contact_manager_id: Mapped[int] = mapped_column(
+        ForeignKey("contactmanager.id", ondelete="CASCADE"),
+        nullable=False
+    )
+    feedback_text: Mapped[str] = mapped_column(
+        pgsql_types.TEXT,
+        nullable=False
+    )
+    feedback_date: Mapped[datetime] = mapped_column(
+        pgsql_types.TIMESTAMP,
+        default=datetime.now
+    )
+    unread: Mapped[bool] = mapped_column(
+        pgsql_types.BOOLEAN,
+        default=True
+    )
+    author = relationship("User", back_populates="feedbacks")
+    contact_manager = relationship("ContactManager", back_populates="feedbacks")
