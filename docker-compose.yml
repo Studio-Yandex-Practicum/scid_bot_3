@@ -16,7 +16,6 @@ services:
       - db
     container_name: scid-bot
     build: .
-    #image: greenvibe/scid_bot
     env_file: .env
 
   gateway:
