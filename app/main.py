@@ -8,6 +8,8 @@ from bot.handlers import router as message_router
 from bot.callbacks import router as callback_router
 from bot.fsm_context import router as fsm_context_router
 from core.init_db import add_portfolio
+from admin.handlers.admin_handlers import admin_router
+from admin.handlers.user import user_router
 
 logging.basicConfig(
     level=logging.INFO,
@@ -33,6 +35,8 @@ async def main() -> None:
     dispatcher.include_router(message_router)
     dispatcher.include_router(callback_router)
     dispatcher.include_router(fsm_context_router)
+    dispatcher.include_router(admin_router)
+    dispatcher.include_router(user_router)
 
     try:
         logger.info("Запуск бота...")

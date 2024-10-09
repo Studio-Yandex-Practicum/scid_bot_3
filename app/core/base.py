@@ -1,5 +1,6 @@
 """Импорты класса Base и всех моделей для Alembic."""
-from app.core.db import Base # noqa
+
+from app.core.db import Base  # noqa
 from app.models.models import (  # noqa
     User,
     ProductCategory,
@@ -8,5 +9,5 @@ from app.models.models import (  # noqa
     CheckCompanyPortfolio,
     Info,
     ContactManager,
-    Feedback
+    Feedback,
 )
