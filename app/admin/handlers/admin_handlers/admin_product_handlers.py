@@ -8,8 +8,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from .admin import SectionState
 from crud.category_product import category_product_crud
 from crud.product_crud import product_crud
-from filters.filters import ChatTypeFilter, IsAdmin
-from keyboards.keyboards import (
+from admin.filters.filters import ChatTypeFilter, IsAdmin
+from admin.keyboards.keyboards import (
     get_inline_confirmation_keyboard,
     get_inline_keyboard,
 )

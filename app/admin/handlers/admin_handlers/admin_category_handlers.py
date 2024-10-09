@@ -5,16 +5,17 @@ from aiogram.fsm.state import State, StatesGroup
 from aiogram.types import CallbackQuery, Message
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from handlers.admin_handlers.admin import SectionState
+from admin.handlers.admin_handlers.admin import SectionState
 from crud.category_product import category_product_crud
 from crud.product_crud import product_crud
-from filters.filters import ChatTypeFilter, IsAdmin
-from handlers.user import ProductCategory
-from keyboards.keyboards import (
+from admin.filters.filters import ChatTypeFilter, IsAdmin
+from admin.handlers.user import ProductCategory
+from admin.keyboards.keyboards import (
     get_inline_confirmation_keyboard,
     get_inline_keyboard,
 )
 # from settings import MAIN_MENU_OPTIONS, admin_list
+from const import admin_list
 
 MAIN_MENU_OPTIONS = {
     "company_bio": "Информация о компании",

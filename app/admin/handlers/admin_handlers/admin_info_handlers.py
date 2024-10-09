@@ -5,9 +5,9 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
 
 from crud.info_crud import info_crud
-from filters.filters import ChatTypeFilter, IsAdmin
-from handlers.admin_handlers.admin import SectionState
-from keyboards.keyboards import (
+from admin.filters.filters import ChatTypeFilter, IsAdmin
+from admin.handlers.admin_handlers.admin import SectionState
+from admin.keyboards.keyboards import (
     get_inline_confirmation_keyboard,
     get_inline_keyboard,
 )

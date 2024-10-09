@@ -7,8 +7,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from crud.feedback_crud import feedback_crud
 from crud.user_crud import user_crud
-from filters.filters import ChatTypeFilter, IsAdmin
-from keyboards.keyboards import (
+from admin.filters.filters import ChatTypeFilter, IsAdmin
+from admin.keyboards.keyboards import (
     get_inline_keyboard,
     get_inline_paginated_keyboard,
     get_paginated_keyboard_size,
