@@ -10,11 +10,11 @@ from dotenv import load_dotenv
 load_dotenv()
 
 BASE_EMAIL = os.getenv("EMAIL")
-PASSWORD = os.getenv("PASSWORD")
+PASSWORD = os.getenv("EMAIL_PASSWORD")
 
 
 async def send_mail(subject, to, user_data):
-    text = (f'Пользователь {user_data["first_name"]} {user_data["last_name"]} '
+    text = (f'Пользователь {user_data["first_name"]} '
             f'заказал звонок по номеру {user_data["phone_number"]}')
 
     message = MIMEMultipart()
@@ -28,7 +28,3 @@ async def send_mail(subject, to, user_data):
     async with smtp_client:
         await smtp_client.login(BASE_EMAIL, PASSWORD)
         await smtp_client.send_message(message)
-
-
-#if __name__ == '__main__':
-#    asyncio.run(send_mail('Тесты', EMAIL, '<h1>Как оно?)</h1>'))

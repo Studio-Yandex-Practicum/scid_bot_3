@@ -3,12 +3,17 @@
 poetry run alembic init --template async alembic 
 ```
 
-Примените миграции
+При первом запуске указать нулевое состояние базы
 ```bash
-poetry run alembic upgrade head
+poetry run alembic stamp head
 ```
 
-Создание миграций, если внесены изменения в /models
+Создать миграции, если внесены изменения в /models
 ```bash
 poetry run alembic revision --autogenerate -m "Your commit"
 ``` 
+
+Применить миграции
+```bash
+poetry run alembic upgrade head
+```

@@ -45,7 +45,8 @@ class User(Base):
         nullable=False
     )
 
-    feedbacks = relationship("Feedback", back_populates="author", cascade="all, delete")
+    feedbacks = relationship("Feedback", back_populates="author",
+                             cascade="all, delete")
 
 
 class ProductCategory(Base):
@@ -59,9 +60,8 @@ class ProductCategory(Base):
         pgsql_types.TEXT
     )
 
-    categories = relationship(
-        "CategoryType", cascade="all, delete", back_populates="product_category"
-    )
+    categories = relationship("CategoryType", cascade="all, delete",
+                              back_populates="product_category")
 
 
 class CategoryType(Base):
@@ -87,7 +87,8 @@ class CategoryType(Base):
         nullable=True
     )
 
-    product_category = relationship("ProductCategory", back_populates="categories")
+    product_category = relationship("ProductCategory",
+                                    back_populates="categories")
 
 
 class InformationAboutCompany(Base):
@@ -203,4 +204,5 @@ class Feedback(Base):
         default=True
     )
     author = relationship("User", back_populates="feedbacks")
-    contact_manager = relationship("ContactManager", back_populates="feedbacks")
+    contact_manager = relationship("ContactManager",
+                                   back_populates="feedbacks")
