@@ -8,6 +8,7 @@ from .settings import settings
 
 
 class PreBase:
+    """Общий класс для всех таблиц."""
 
     @declared_attr
     def __tablename__(cls):

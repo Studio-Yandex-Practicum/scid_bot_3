@@ -3,15 +3,15 @@ from aiogram import Router
 from aiogram.filters import CommandStart, Command
 from aiogram.types import Message
 from sqlalchemy.ext.asyncio import AsyncSession
+
 from admin.keyboards.keyboards import get_inline_keyboard
 from const import MAIN_MENU_BUTTONS
 from bot.bot_const import (
     ADMIN_NEGATIVE_ANSWER, ADMIN_POSITIVE_ANSWER, START_MESSAGE
 )
 from models.models import RoleEnum
-from crud.users import (
-    create_user_id, get_role_by_tg_id, is_user_in_db
-)
+from crud.users import create_user_id, get_role_by_tg_id, is_user_in_db
+
 from bot.keyborads import main_keyboard
 from bot.exceptions import message_exception_handler
 from helpers import get_user_id
