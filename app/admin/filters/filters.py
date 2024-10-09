@@ -1,6 +1,7 @@
 from aiogram.filters import Filter
 from aiogram import Bot, types
 # from settings import admin_list
+from const import admin_list
 
 
 class ChatTypeFilter(Filter):
@@ -15,5 +16,5 @@ class IsAdmin(Filter):
     def __init__(self) -> None:
         pass
 
-    # async def __call__(self, message: types.Message, bot: Bot) -> bool:
-    #     return message.from_user.id in admin_list
+    async def __call__(self, message: types.Message, bot: Bot) -> bool:
+        return message.from_user.id in admin_list

@@ -5,11 +5,11 @@ from aiogram.fsm.state import State, StatesGroup
 from aiogram.types import CallbackQuery, Message
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from .admin import SectionState
+from admin.handlers.admin_handlers.admin import SectionState
 from crud.about_crud import company_info_crud
 from crud.portfolio_projects_crud import portfolio_crud
-from filters.filters import ChatTypeFilter, IsAdmin
-from keyboards.keyboards import (
+from admin.filters.filters import ChatTypeFilter, IsAdmin
+from admin.keyboards.keyboards import (
     get_inline_confirmation_keyboard,
     get_inline_keyboard,
 )
