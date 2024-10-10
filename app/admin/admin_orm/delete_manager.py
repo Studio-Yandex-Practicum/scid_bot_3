@@ -1,7 +1,7 @@
 from app.admin.keyboards.keyboards import (
     get_inline_confirmation_keyboard,
     get_inline_keyboard,
-    InlineKeyboardManager
+    InlineKeyboardManager,
 )
 from app.crud.base_crud import CRUDBase
 from aiogram.fsm.context import FSMContext
