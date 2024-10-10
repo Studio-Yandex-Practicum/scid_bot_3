@@ -1,3 +1,4 @@
+from typing import Union
 from sqlalchemy.ext.asyncio import AsyncSession
 from models.models import (
     CheckCompanyPortfolio, ProductCategory,
@@ -7,9 +8,9 @@ from sqlalchemy import select
 
 
 async def get_all_prtfolio_projects(
-        object_model: CheckCompanyPortfolio | ProductCategory,
+        object_model: Union[CheckCompanyPortfolio, ProductCategory],
         session: AsyncSession
-) -> list[CheckCompanyPortfolio | ProductCategory]:
+) -> list[Union[CheckCompanyPortfolio, ProductCategory]]:
     """Получение всех проектов-портфолио или продуктов и услуг."""
 
     result = await session.execute(select(object_model))
@@ -37,7 +38,7 @@ async def get_categories_by_name(
         .join(
             ProductCategory, ProductCategory.id == CategoryType.product_id
         )
-        .where(ProductCategory.title == product_name)
+        .where(ProductCategory.name == product_name)
     )
 
     return result.scalars().all()
@@ -47,7 +48,7 @@ async def get_title_by_id(category_id: int, session: AsyncSession) -> str:
     """Получает название категории по ID из базы данных."""
 
     result = await session.execute(
-        select(ProductCategory.title).where(
+        select(ProductCategory.name).where(
             ProductCategory.id == category_id
         )
     )

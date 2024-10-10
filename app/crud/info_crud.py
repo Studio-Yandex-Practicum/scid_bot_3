@@ -6,7 +6,7 @@ from models.models import Info
 
 
 class InfoCRUD(CRUDBase):
-    async def get_by_question_text(
+    async def get_by_string(
         self,
         question_text: str,
         session: AsyncSession,

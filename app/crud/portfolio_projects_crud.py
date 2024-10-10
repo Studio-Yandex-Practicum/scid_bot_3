@@ -14,7 +14,7 @@ class PortfolioProjectsCRUD(CRUDBase):
     ):
         """Получить проект портфолио по тексту названия."""
         portfolio_project = await session.execute(
-            select(self.model).where(self.model.project_name == project_name)
+            select(self.model).where(self.model.name == project_name)
         )
         return portfolio_project.scalars().first()
 

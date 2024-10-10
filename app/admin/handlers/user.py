@@ -312,7 +312,7 @@ async def faq_answer(
     if callback.data not in question_list:
         return
 
-    question = await info_crud.get_by_question_text(callback.data, session)
+    question = await info_crud.get_by_string(callback.data, session)
     answer = f"{callback.data}\n\n{question.answer}"
 
     await callback.message.answer(

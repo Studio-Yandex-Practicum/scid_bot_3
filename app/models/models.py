@@ -7,7 +7,7 @@ import sqlalchemy.dialects.postgresql as pgsql_types
 
 from enum import Enum
 
-from core.db import Base
+from app.core.base import Base
 
 
 class RoleEnum(str, Enum):
@@ -47,7 +47,7 @@ class User(Base):
 class ProductCategory(Base):
     """БД модель продуктов и услуг."""
 
-    title: Mapped[str] = mapped_column(pgsql_types.VARCHAR(150))
+    name: Mapped[str] = mapped_column(pgsql_types.VARCHAR(150))
 
     response: Mapped[str] = mapped_column(pgsql_types.TEXT)
 
@@ -89,7 +89,7 @@ class InformationAboutCompany(Base):
 class CheckCompanyPortfolio(Base):
     """Бд модель информации о проектах."""
 
-    project_name: Mapped[str] = mapped_column(
+    name: Mapped[str] = mapped_column(
         pgsql_types.VARCHAR(48), nullable=False
     )
 

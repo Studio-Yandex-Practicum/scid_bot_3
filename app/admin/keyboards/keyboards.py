@@ -62,60 +62,6 @@ async def get_inline_keyboard(
     return keyboard.adjust(*size).as_markup(resize_keyboard=True)
 
 
-# async def get_inline_paginated_keyboard(
-#     options: Optional[Union[list[str], str]] = None,
-#     pagination: dict = None,
-#     size: tuple[int] = (1,),
-# ) -> InlineKeyboardMarkup:
-#     """Создать набор кнопок для меню раздела с поддержкой пагинации."""
-#     keyboard = InlineKeyboardBuilder()
-#     total_pages = 0
-#     current_page = 0
-#     if pagination:
-#         current_page = pagination.get("current_page", 1)
-#         items_per_page = pagination.get("items_per_page", 5)
-#         total_items = len(options) if options else 0
-#         total_pages = (total_items + items_per_page - 1) // items_per_page
-
-#         start_index = (current_page - 1) * items_per_page
-#         end_index = min(start_index + items_per_page, total_items)
-
-#         current_options = options[start_index:end_index] if options else []
-#     else:
-#         current_options = options
-
-#     for option in current_options:
-#         keyboard.add(
-#             InlineKeyboardButton(
-#                 text=option,
-#                 callback_data=option,
-#             ),
-#         )
-#     if total_pages > 1:
-#         if current_page > 1:
-#             keyboard.add(
-#                 InlineKeyboardButton(
-#                     text="◀️ Предыдущая",
-#                     callback_data=f"{current_page - 1}",
-#                 )
-#             )
-#         if current_page < total_pages:
-#             keyboard.add(
-#                 InlineKeyboardButton(
-#                     text="Следующая ▶️",
-#                     callback_data=f"{current_page + 1}",
-#                 )
-#             )
-#         keyboard.add(
-#             InlineKeyboardButton(
-#                 text="Главное меню",
-#                 callback_data=BASE_BUTTONS.get("main_menu"),
-#             )
-#         )
-
-#     return keyboard.adjust(*size).as_markup(resize_keyboard=True)
-
-
 async def get_inline_paginated_keyboard(
     options: list[str] | str | None = None,
     callback: list[str] | str | None = None,
@@ -192,8 +138,7 @@ async def get_reply_keyboard(
         else:
             keyboard.add(
                 KeyboardButton(
-                    text=options,
-                    # callback_data=options,
+                    text=options
                 )
             )
 
@@ -211,7 +156,8 @@ async def get_delete_message_keyboard() -> InlineKeyboardMarkup:
 
 
 async def get_inline_confirmation_keyboard(
-    option: str, cancel_option: str
+    cancel_option: str,
+    option: str = "Да",
 ) -> InlineKeyboardMarkup:
     """Кнопка для подтверждения действий."""
 
@@ -220,3 +166,53 @@ async def get_inline_confirmation_keyboard(
     keyboard.add(InlineKeyboardButton(text="Нет", callback_data=cancel_option))
 
     return keyboard.adjust(2).as_markup(resize_keyboard=True)
+
+
+class InlineKeyboardManager:
+    def __init__(self, options=None, callback=None, urls=None, size=(1,)):
+        self.options = options if options is not None else []
+        self.callback = callback if callback is not None else self.options
+        self.urls = urls if urls is not None else []
+        self.size = size
+        self.keyboard = InlineKeyboardBuilder()
+
+    def add_buttons(self):
+        """Добавить основные кнопки в клавиатуру."""
+        for index, option in enumerate(self.options):
+            self.keyboard.add(
+                InlineKeyboardButton(
+                    text=option,
+                    callback_data=str(self.callback[index]),
+                    url=(
+                        self.urls[index]
+                        if self.urls and index < len(self.urls)
+                        else None
+                    ),
+                )
+            )
+
+    def add_previous_menu_button(self, previous_menu):
+        """Добавить кнопку 'Назад'."""
+        self.keyboard.add(
+            InlineKeyboardButton(
+                text="Назад",
+                callback_data=previous_menu,
+            )
+        )
+
+    def add_admin_button(self, admin_update_menu):
+        """Добавить кнопку 'Редактировать' для администраторов."""
+        self.keyboard.add(
+            InlineKeyboardButton(
+                text="Редактировать🔧",
+                callback_data=f"{admin_update_menu}_",
+            )
+        )
+
+    def create_keyboard(self) -> InlineKeyboardMarkup:
+        """Создать клавиатуру и вернуть ее."""
+        self.add_buttons()
+        return self.keyboard.adjust(*self.size).as_markup(resize_keyboard=True)
+    
+    def add_extra_buttons(self, optons: str | list[str], callback: str | list[str]):
+        ...

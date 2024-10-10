@@ -11,6 +11,7 @@ from admin.keyboards.keyboards import (
     get_inline_confirmation_keyboard,
     get_inline_keyboard,
 )
+
 # from settings import SUPPORT_OPTIONS
 from sqlalchemy.ext.asyncio import AsyncSession
 from aiogram.fsm.state import State, StatesGroup
@@ -126,7 +127,7 @@ async def question_to_delete(
 async def confirm_delete_question(
     callback: CallbackQuery, state: FSMContext, session: AsyncSession
 ):
-    question = await info_crud.get_by_question_text(callback.data, session)
+    question = await info_crud.get_by_string(callback.data, session)
     await callback.message.edit_text(
         f"Вы уверены, что хотите удалить этот вопрос?\n\n {question.question}",
         reply_markup=await get_inline_confirmation_keyboard(
@@ -141,7 +142,7 @@ async def delete_question(
     callback: CallbackQuery, state: FSMContext, session: AsyncSession
 ):
     await state.clear()
-    question = await info_crud.get_by_question_text(callback.data, session)
+    question = await info_crud.get_by_string(callback.data, session)
     await info_crud.remove(question, session)
     await callback.message.edit_text(
         "Вопрос удален!",
@@ -201,7 +202,7 @@ async def update_question_answer(
     callback: CallbackQuery, state: FSMContext, session: AsyncSession
 ):
     question_text = (await state.get_data()).get("question")
-    answer = await info_crud.get_by_question_text(question_text, session)
+    answer = await info_crud.get_by_string(question_text, session)
     await callback.message.answer(
         f"Сейчас ответ записан вот так:\n\n{answer.answer}\n\n Введите новый текст"
     )
@@ -216,9 +217,7 @@ async def update_question_data(
 ):
     current_state = await state.get_state()
     old_data = await state.get_data()
-    question = await info_crud.get_by_question_text(
-        old_data.get("question"), session
-    )
+    question = await info_crud.get_by_string(old_data.get("question"), session)
 
     if current_state == UpdateQuestion.confirm:
         await state.update_data(question=message.text)

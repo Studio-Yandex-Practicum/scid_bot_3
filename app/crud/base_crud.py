@@ -49,3 +49,10 @@ class CRUDBase:
         await session.delete(db_obj)
         await session.commit()
         return db_obj
+
+    async def get_by_string(self, string: str, session: AsyncSession):
+        """Получить объект модели из БД по его названию."""
+        db_obj = await session.execute(
+            select(self.model).where(self.model.name == string)
+        )
+        return db_obj.scalars().first()
