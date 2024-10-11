@@ -1,13 +1,13 @@
-from app.admin.keyboards.keyboards import (
-    get_inline_keyboard,
-    InlineKeyboardManager,
-)
-from app.crud.base_crud import CRUDBase
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
 from aiogram.types import CallbackQuery
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.admin.admin_orm.manager_base import BaseAdminManager
+from app.admin.keyboards.keyboards import (
+    get_inline_keyboard,
+    InlineKeyboardManager,
+)
 from models.models import Info
 
 
@@ -18,36 +18,28 @@ class DeleteState(StatesGroup):
     confirm = State()
 
 
-class DeleteManager:
+class DeleteManager(BaseAdminManager):
     """
     Менеджер для удаления объектов из базы данных.
 
-    Этот класс предоставляет методы для удаления объектов из
-    базы данных, используя заданную модель CRUD.
-
-    Attributes:
-        model_crud (CRUDBase): Модель, предоставляющая методы для 
-        работы с объектами в БД.
-
-        keyboard (InlineKeyboardManager): Менеджер клавиатуры для 
-        взаимодействия с пользователем.
+    Этот класс предоставляет функциональность для получения списка объектов,
+    выбора объекта для удаления, подтверждения удаления и выполнения операции удаления.
+    Он взаимодействует с базой данных через CRUD-операции и управляет состоянием
+    пользователя в процессе удаления.
 
     Methods:
-        delete_object(object_id: int) -> bool:
-            Удаляет объект с заданным идентификатором из базы данных.
-            Возвращает True, если удаление прошло успешно, иначе False.
-        
-        confirm_deletion(object_id: int) -> None:
-            Запрашивает подтверждение у пользователя перед удалением объекта.
-    """
+        get_all_model_names(session: AsyncSession) -> list[str]:
+            Получает список названий объектов из таблицы БД.
 
-    def __init__(
-        self,
-        model_crud: CRUDBase,
-        keyboard: InlineKeyboardManager,
-    ) -> None:
-        self.model_crud = model_crud
-        self.keyboard = keyboard
+        select_obj_to_delete(callback: CallbackQuery, state: FSMContext, session: AsyncSession) -> None:
+            Запрашивает у пользователя, какой объект он хочет удалить, и отображает список объектов.
+
+        confirm_delete(callback: CallbackQuery, state: FSMContext, session: AsyncSession) -> None:
+            Подтверждает выбор объекта для удаления и запрашивает подтверждение от пользователя.
+
+        delete_obj(callback: CallbackQuery, state: FSMContext, session: AsyncSession) -> None:
+            Удаляет выбранный объект из базы данных и сбрасывает состояние.
+    """
 
     async def get_all_model_names(self, session: AsyncSession) -> list[str]:
         """Получить список названий объектов из таблицы БД."""
@@ -98,11 +90,14 @@ class DeleteManager:
         session: AsyncSession,
     ) -> None:
         """Удалить объект из БД."""
-        await self.model_crud.remove(self.obj_to_delete, session)
-        await callback.message.edit_text(
-            "Данные удалены!",
-            reply_markup=await get_inline_keyboard(
-                previous_menu=self.previous_menu
-            ),
-        )
-        await state.clear()
+        try:
+            await self.model_crud.remove(self.obj_to_delete, session)
+            await callback.message.edit_text(
+                "Данные удалены!",
+                reply_markup=await get_inline_keyboard(
+                    previous_menu=self.previous_menu
+                ),
+            )
+            await state.clear()
+        except Exception as e:
+            await callback.message.answer(f"Произошла ошибка: {e}")

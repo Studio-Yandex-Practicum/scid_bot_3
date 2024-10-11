@@ -1,24 +1,23 @@
 from aiogram.fsm.context import FSMContext
-from aiogram.fsm.state import State, StatesGroup
+from aiogram.fsm.state import State
 from aiogram.types import CallbackQuery, Message
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.admin.admin_orm.manager_base import (
+    BaseAdminManager,
+    CreateUpdateState,
+)
 from app.admin.keyboards.keyboards import InlineKeyboardManager
 from app.const import ADMIN_CONTENT_BUTTONS
-from app.crud.base_crud import CRUDBase
 
 
-class CreateState(StatesGroup):
+class CreateState(CreateUpdateState):
     """Класс состояний для создания объекта в БД."""
 
-    select = State()
-    name = State()
-    url = State()
-    text = State()
-    media = State()
+    pass
 
 
-class CreateManager:
+class CreateManager(BaseAdminManager):
     """
     Менеджер для управления процессом создания объектов в базе данных.
 
@@ -52,12 +51,6 @@ class CreateManager:
         add_obj_to_db(message: Message, state: FSMContext, session: AsyncSession):
             Добавляет объект в базу данных и сбрасывает машинное состояние.
     """
-
-    def __init__(
-        self, model_crud: CRUDBase, keyboard: InlineKeyboardManager
-    ) -> None:
-        self.model_crud = model_crud
-        self.keyboard = keyboard
 
     async def select_data_type(
         self, callback: CallbackQuery, state: FSMContext
