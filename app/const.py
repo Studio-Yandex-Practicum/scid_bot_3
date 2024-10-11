@@ -37,6 +37,12 @@ ADMIN_BASE_REPLY_OPTIONS = {
     "feedback": "Посмотреть отзывы",
 }
 ADMIN_BASE_BUTTONS = get_buttons(ADMIN_BASE_REPLY_OPTIONS)
+ADMIN_CONTENT_OPTIONS = {
+    "url": "Ссылка",
+    "text": "Текст",
+    "media": "Картинка",
+}
+ADMIN_CONTENT_BUTTONS = get_buttons(ADMIN_CONTENT_OPTIONS)
 # Кнопки экранной клавиатуры
 BASE_BUTTONS = {
     "main_menu": "Главное меню",

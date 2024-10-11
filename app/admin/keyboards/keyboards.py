@@ -136,11 +136,7 @@ async def get_reply_keyboard(
             for option in options:
                 keyboard.add(KeyboardButton(text=option, callback_data=option))
         else:
-            keyboard.add(
-                KeyboardButton(
-                    text=options
-                )
-            )
+            keyboard.add(KeyboardButton(text=options))
 
     return keyboard.adjust(*size).as_markup()
 
@@ -155,17 +151,17 @@ async def get_delete_message_keyboard() -> InlineKeyboardMarkup:
     return keyboard.adjust(1).as_markup(resize_keyboard=True)
 
 
-async def get_inline_confirmation_keyboard(
-    cancel_option: str,
-    option: str = "Да",
-) -> InlineKeyboardMarkup:
-    """Кнопка для подтверждения действий."""
+# async def get_inline_confirmation_keyboard(
+#     cancel_option: str,
+#     option: str = "Да",
+# ) -> InlineKeyboardMarkup:
+#     """Кнопка для подтверждения действий."""
 
-    keyboard = InlineKeyboardBuilder()
-    keyboard.add(InlineKeyboardButton(text="Да", callback_data=option))
-    keyboard.add(InlineKeyboardButton(text="Нет", callback_data=cancel_option))
+#     keyboard = InlineKeyboardBuilder()
+#     keyboard.add(InlineKeyboardButton(text="Да", callback_data=option))
+#     keyboard.add(InlineKeyboardButton(text="Нет", callback_data=cancel_option))
 
-    return keyboard.adjust(2).as_markup(resize_keyboard=True)
+#     return keyboard.adjust(2).as_markup(resize_keyboard=True)
 
 
 class InlineKeyboardManager:
@@ -176,7 +172,7 @@ class InlineKeyboardManager:
         self.size = size
         self.keyboard = InlineKeyboardBuilder()
 
-    def add_buttons(self):
+    async def add_buttons(self):
         """Добавить основные кнопки в клавиатуру."""
         for index, option in enumerate(self.options):
             self.keyboard.add(
@@ -191,8 +187,9 @@ class InlineKeyboardManager:
                 )
             )
 
-    def add_previous_menu_button(self, previous_menu):
+    async def add_previous_menu_button(self, previous_menu):
         """Добавить кнопку 'Назад'."""
+        self.previous_menu = previous_menu
         self.keyboard.add(
             InlineKeyboardButton(
                 text="Назад",
@@ -200,7 +197,7 @@ class InlineKeyboardManager:
             )
         )
 
-    def add_admin_button(self, admin_update_menu):
+    async def add_admin_button(self, admin_update_menu):
         """Добавить кнопку 'Редактировать' для администраторов."""
         self.keyboard.add(
             InlineKeyboardButton(
@@ -209,10 +206,41 @@ class InlineKeyboardManager:
             )
         )
 
-    def create_keyboard(self) -> InlineKeyboardMarkup:
+    async def create_keyboard(self) -> InlineKeyboardMarkup:
         """Создать клавиатуру и вернуть ее."""
         self.add_buttons()
         return self.keyboard.adjust(*self.size).as_markup(resize_keyboard=True)
-    
-    def add_extra_buttons(self, optons: str | list[str], callback: str | list[str]):
-        ...
+
+    async def add_extra_buttons(
+        self, options: str | list[str], callback: str | list[str]
+    ):
+        for index, option in enumerate(options):
+            self.keyboard.add(
+                InlineKeyboardButton(
+                    text=option,
+                    callback_data=str(callback[index]),
+                )
+            )
+
+    @staticmethod
+    async def get_inline_confirmation(
+        cancel_option: str,
+        option: str = "Да",
+    ) -> InlineKeyboardMarkup:
+        """Кнопка для подтверждения действий."""
+
+        keyboard = InlineKeyboardBuilder()
+        keyboard.add(InlineKeyboardButton(text="Да", callback_data=option))
+        keyboard.add(
+            InlineKeyboardButton(text="Нет", callback_data=cancel_option)
+        )
+
+        return keyboard.adjust(2).as_markup(resize_keyboard=True)
+
+    @staticmethod
+    async def get_back_button(previous_menu: str) -> InlineKeyboardMarkup:
+        keyboard = InlineKeyboardBuilder()
+        keyboard.add(
+            InlineKeyboardButton(text="Назад", callback_data=previous_menu)
+        )
+        return keyboard.adjust(1).as_markup(resize_keyboard=True)
