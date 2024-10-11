@@ -1,11 +1,10 @@
 from datetime import datetime
+from enum import Enum
 
 from sqlalchemy import ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.sql import func
 import sqlalchemy.dialects.postgresql as pgsql_types
-
-from enum import Enum
 
 from core.db import Base
 
@@ -37,10 +36,6 @@ class User(Base):
         pgsql_types.TIMESTAMP(timezone=True),
         server_default=func.now(),
         nullable=False,
-    )
-
-    feedbacks = relationship(
-        "Feedback", back_populates="author", cascade="all, delete"
     )
 
 
@@ -142,17 +137,13 @@ class ContactManager(Base):
         nullable=False,
     )
 
-    feedbacks = relationship(
-        "Feedback", back_populates="contact_manager", cascade="all, delete"
-    )
-
 
 class Feedback(Base):
     user: Mapped[int] = mapped_column(
         ForeignKey("user.id", ondelete="CASCADE"), nullable=False
     )
-    contact_manager_id: Mapped[int] = mapped_column(
-        ForeignKey("contactmanager.id", ondelete="CASCADE"), nullable=False
+    rating: Mapped[int] = mapped_column(
+        pgsql_types.INTEGER, nullable=False
     )
     feedback_text: Mapped[str] = mapped_column(
         pgsql_types.TEXT, nullable=False
@@ -161,7 +152,3 @@ class Feedback(Base):
         pgsql_types.TIMESTAMP, default=datetime.now
     )
     unread: Mapped[bool] = mapped_column(pgsql_types.BOOLEAN, default=True)
-    author = relationship("User", back_populates="feedbacks")
-    contact_manager = relationship(
-        "ContactManager", back_populates="feedbacks"
-    )

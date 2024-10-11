@@ -25,3 +25,9 @@ def format_phone_number(phone_number: str) -> str:
         return '+7' + phone_number[1:]
 
     return phone_number
+
+
+def is_valid_rating(rating: str) -> bool:
+    """Валидация рейтинга от 1 до 10."""
+
+    return rating.isdigit() and (1 <= int(rating) <= 10)

@@ -1,5 +1,6 @@
 import logging
-from aiogram import Router
+
+from aiogram import Router, F
 from aiogram.filters import CommandStart, Command
 from aiogram.types import Message
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -11,11 +12,15 @@ from bot.bot_const import (
 )
 from models.models import RoleEnum
 from crud.users import create_user_id, get_role_by_tg_id, is_user_in_db
-
 from bot.keyborads import main_keyboard
 from bot.exceptions import message_exception_handler
-from helpers import get_user_id
+from helpers import get_user_id, start_inactivity_timer
+from core.bot_setup import bot
+from bot.bot_const import MESSAGE_FOR_NOT_SUPPORTED_CONTENT_TYPE
+from loggers.log import setup_logging
 
+
+setup_logging()
 router = Router()
 
 logger = logging.getLogger(__name__)
@@ -64,3 +69,12 @@ async def cmd_start(message: Message, session: AsyncSession) -> None:
     logger.info(
         f'Пользователь {user_id} вызвал команду /start.'
     )
+
+    await start_inactivity_timer(user_id, bot)
+
+
+@router.message(F.content_type)
+async def handle_any_content(message: Message):
+    """Ответ на любой другой тип контента."""
+
+    await message.answer(MESSAGE_FOR_NOT_SUPPORTED_CONTENT_TYPE)

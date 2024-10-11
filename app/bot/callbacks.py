@@ -16,7 +16,10 @@ from bot.keyborads import (
 from crud.questions import get_question_by_id
 from crud.projects import get_title_by_id, response_text_by_id
 import bot.bot_const as bc
+from loggers.log import setup_logging
 
+
+setup_logging()
 
 router = Router()
 
@@ -119,7 +122,7 @@ async def get_faq_answer(
 
     logger.info(
         f'Пользователь {callback.from_user.id} запросил '
-        f'ответ на вопрос {callback.data.split(':')[1]}'
+        f'ответ на вопрос {callback.data.split(':')[1]} '
     )
 
 
@@ -202,7 +205,7 @@ async def company_info(callback: CallbackQuery) -> None:
 
     logger.info(
         f'Пользователь {callback.from_user.id} '
-        f'запросил информацию о компании.'
+        f'запросил информацию о компании. '
     )
 
 
@@ -241,5 +244,16 @@ async def products_services(
 
     logger.info(
         f'Пользователь {callback.from_user.id} запросил '
-        f'информацию о продуктах и услугах.'
+        f'информацию о продуктах и услугах. '
     )
+
+
+@message_exception_handler(
+    log_error_text='Ошибка при ответе "нет" для составления фидбека.'
+)
+@router.callback_query(F.data == 'get_feedback_no')
+async def get_feedback_no(callback: CallbackQuery) -> None:
+    """Ответ на выбор 'Нет'."""
+
+    await callback.answer()
+    await callback.message.answer(bc.MESSAGE_FOR_GET_FEEDBACK_NO)

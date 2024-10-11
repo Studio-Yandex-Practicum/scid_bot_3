@@ -1,10 +1,11 @@
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.utils.keyboard import InlineKeyboardBuilder
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from crud.questions import get_question_by_title
 from crud.projects import get_all_prtfolio_projects, get_categories_by_name
 from models.models import CheckCompanyPortfolio, ProductCategory
-from sqlalchemy.ext.asyncio import AsyncSession
+
 
 back_to_main_menu = InlineKeyboardButton(
     text='Вернуться к основным вариантам.',
@@ -189,3 +190,9 @@ async def category_type_inline_keyboard(
     keyboard.add(back_to_previous_menu)
 
     return keyboard.adjust(1).as_markup()
+
+
+get_feedback_keyboard = InlineKeyboardBuilder().add(
+    InlineKeyboardButton(text='Да', callback_data='get_feedback_yes'),
+    InlineKeyboardButton(text='Нет', callback_data='get_feedback_no')
+).adjust(1).as_markup()

@@ -1,19 +1,28 @@
 import logging
+# import os
+# import asyncio
 
 from aiogram import F, Router
-from aiogram.fsm.state import State
 from aiogram.fsm.context import FSMContext
 from aiogram.types import Message, CallbackQuery
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from sqlalchemy.ext.asyncio import AsyncSession
 
+import bot.bot_const as bc
+from bot.exceptions import message_exception_handler
 from bot.keyborads import back_to_main_menu
-from crud.request_to_manager import create_request_to_manager
+# from bot.smtp import send_mail
 from bot.validators import (
     is_valid_name, is_valid_phone_number, format_phone_number
 )
-import bot.bot_const as bc
-from bot.exceptions import message_exception_handler
+from crud.request_to_manager import create_request_to_manager
+from helpers import ask_next_question
+from loggers.log import setup_logging
+
+
+setup_logging()
+
+# CLIENT_EMAIL = os.getenv("EMAIL")
 
 
 router = Router()
@@ -33,23 +42,11 @@ async def contact_with_manager(
 
     await callback.message.edit_text(bc.START_INPUT_USER_DATA)
 
-    await ask_next_question(callback.message, state, bc.Form.first_name)
+    await ask_next_question(
+        callback.message, state, bc.Form.first_name, bc.QUESTIONS
+    )
 
     logger.info(f'Пользователь {callback.from_user.id} начал процесс.')
-
-
-@message_exception_handler(
-    log_error_text='Ошибка при переходе к следующему вопросу.'
-)
-async def ask_next_question(
-    message: Message, state: FSMContext, next_state: State
-) -> None:
-    """Переход к следующему вопросу."""
-
-    await state.set_state(next_state.state)
-    await message.answer(bc.QUESTIONS[next_state])
-
-    logger.info(f'Переход к следующему вопросу: {next_state}.')
 
 
 @message_exception_handler(
@@ -69,7 +66,7 @@ async def process_first_name(message: Message, state: FSMContext) -> None:
         f'Пользователь {message.from_user.id} ввёл имя: {message.text}.'
     )
 
-    await ask_next_question(message, state, bc.Form.phone_number)
+    await ask_next_question(message, state, bc.Form.phone_number, bc.QUESTIONS)
 
 
 @message_exception_handler(
@@ -102,6 +99,12 @@ async def process_phone_number(
     )
 
     logger.info(f'Запись создана в БД с ID: {new_request.id}.')
+
+    # mail = send_mail('Заявка на обратную связь', CLIENT_EMAIL, user_data)
+    # asyncio.gather(asyncio.create_task(mail))
+
+    # logger.info("Отправлено сообщение на почту менеджеру для связи "
+    #             f"с пользователем {message.from_user.id}")
 
     await message.answer(
         bc.succses_answer(user_data),
