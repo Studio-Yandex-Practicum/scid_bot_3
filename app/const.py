@@ -37,6 +37,11 @@ ADMIN_BASE_REPLY_OPTIONS = {
     "feedback": "Посмотреть отзывы",
 }
 ADMIN_BASE_BUTTONS = get_buttons(ADMIN_BASE_REPLY_OPTIONS)
+ADMIN_UPDATE_OPTIONS = {
+    "name": "Название",
+    "content": "Содержание",
+}
+ADMIN_UPDATE_BUTTONS = get_buttons(ADMIN_UPDATE_OPTIONS)
 ADMIN_CONTENT_OPTIONS = {
     "url": "Ссылка",
     "text": "Текст",

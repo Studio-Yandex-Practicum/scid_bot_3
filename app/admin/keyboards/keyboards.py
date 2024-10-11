@@ -165,14 +165,20 @@ async def get_delete_message_keyboard() -> InlineKeyboardMarkup:
 
 
 class InlineKeyboardManager:
-    def __init__(self, options=None, callback=None, urls=None, size=(1,)):
+    def __init__(
+        self,
+        options=None,
+        callback=None,
+        urls=None,
+        size=(1,),
+    ):
         self.options = options if options is not None else []
         self.callback = callback if callback is not None else self.options
         self.urls = urls if urls is not None else []
         self.size = size
         self.keyboard = InlineKeyboardBuilder()
 
-    async def add_buttons(self):
+    def add_buttons(self):
         """Добавить основные кнопки в клавиатуру."""
         for index, option in enumerate(self.options):
             self.keyboard.add(
@@ -187,17 +193,19 @@ class InlineKeyboardManager:
                 )
             )
 
-    async def add_previous_menu_button(self, previous_menu):
+    def add_previous_menu_button(
+        self, previous_menu: str, menu_text: str = "Назад"
+    ):
         """Добавить кнопку 'Назад'."""
         self.previous_menu = previous_menu
         self.keyboard.add(
             InlineKeyboardButton(
-                text="Назад",
+                text=menu_text,
                 callback_data=previous_menu,
             )
         )
 
-    async def add_admin_button(self, admin_update_menu):
+    def add_admin_button(self, admin_update_menu):
         """Добавить кнопку 'Редактировать' для администраторов."""
         self.keyboard.add(
             InlineKeyboardButton(
@@ -206,7 +214,7 @@ class InlineKeyboardManager:
             )
         )
 
-    async def create_keyboard(self) -> InlineKeyboardMarkup:
+    def create_keyboard(self) -> InlineKeyboardMarkup:
         """Создать клавиатуру и вернуть ее."""
         self.add_buttons()
         return self.keyboard.adjust(*self.size).as_markup(resize_keyboard=True)
@@ -223,7 +231,7 @@ class InlineKeyboardManager:
             )
 
     @staticmethod
-    async def get_inline_confirmation(
+    def get_inline_confirmation(
         cancel_option: str,
         option: str = "Да",
     ) -> InlineKeyboardMarkup:
@@ -238,7 +246,7 @@ class InlineKeyboardManager:
         return keyboard.adjust(2).as_markup(resize_keyboard=True)
 
     @staticmethod
-    async def get_back_button(previous_menu: str) -> InlineKeyboardMarkup:
+    def get_back_button(previous_menu: str) -> InlineKeyboardMarkup:
         keyboard = InlineKeyboardBuilder()
         keyboard.add(
             InlineKeyboardButton(text="Назад", callback_data=previous_menu)

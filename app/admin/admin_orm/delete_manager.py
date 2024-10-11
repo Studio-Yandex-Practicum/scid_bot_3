@@ -3,11 +3,8 @@ from aiogram.fsm.state import State, StatesGroup
 from aiogram.types import CallbackQuery
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.admin.admin_orm.manager_base import BaseAdminManager
-from app.admin.keyboards.keyboards import (
-    get_inline_keyboard,
-    InlineKeyboardManager,
-)
+from app.admin.admin_orm.base_manager import BaseAdminManager
+from app.admin.keyboards.keyboards import InlineKeyboardManager
 from models.models import Info
 
 
@@ -55,9 +52,7 @@ class DeleteManager(BaseAdminManager):
         obj_list_by_name = await self.get_all_model_names(session)
         await callback.message.edit_text(
             "Какой объект удалить?",
-            reply_markup=await self.keyboard.add_extra_buttons(
-                obj_list_by_name
-            ),
+            reply_markup=self.keyboard.add_extra_buttons(obj_list_by_name),
         )
         await state.set_state(DeleteState.select)
 
@@ -77,7 +72,7 @@ class DeleteManager(BaseAdminManager):
         )
         await callback.message.edit_text(
             f"Вы уверены, что хотите удалить этот вопрос?\n\n {obj_data}",
-            reply_markup=await InlineKeyboardManager.get_inline_confirmation(
+            reply_markup=InlineKeyboardManager.get_inline_confirmation(
                 cancel_option=self.keyboard.previous_menu
             ),
         ),
@@ -94,8 +89,8 @@ class DeleteManager(BaseAdminManager):
             await self.model_crud.remove(self.obj_to_delete, session)
             await callback.message.edit_text(
                 "Данные удалены!",
-                reply_markup=await get_inline_keyboard(
-                    previous_menu=self.previous_menu
+                reply_markup=InlineKeyboardManager.get_back_button(
+                    self.keyboard.previous_menu
                 ),
             )
             await state.clear()

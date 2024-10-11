@@ -3,7 +3,7 @@ from aiogram.fsm.state import State
 from aiogram.types import CallbackQuery, Message
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.admin.admin_orm.manager_base import (
+from app.admin.admin_orm.base_manager import (
     BaseAdminManager,
     CreateUpdateState,
 )
@@ -58,7 +58,7 @@ class CreateManager(BaseAdminManager):
         """Выбрать тип данных для модели в БД."""
         await callback.message.edit_text(
             "Выбирите способ передачи информации:",
-            reply_markup=await self.keyboard.add_extra_buttons(
+            reply_markup=self.keyboard.add_extra_buttons(
                 ADMIN_CONTENT_BUTTONS
             ),
         )
@@ -159,7 +159,7 @@ class CreateManager(BaseAdminManager):
 
             await message.answer(
                 "Данные добавлены!",
-                reply_markup=await InlineKeyboardManager.get_back_button(
+                reply_markup=InlineKeyboardManager.get_back_button(
                     self.keyboard.previous_menu
                 ),
             )
