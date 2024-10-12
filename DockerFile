@@ -23,6 +23,7 @@ RUN poetry install --no-root
 COPY . .
 
 # Создание миграций
+#WORKDIR /app/app
 #RUN poetry run alembic stamp head
 #RUN poetry run alembic revision --autogenerate -m "compose commit"
 #RUN poetry run alembic upgrade head
