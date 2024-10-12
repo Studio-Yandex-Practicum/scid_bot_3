@@ -1,19 +1,25 @@
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
+from aiogram.fsm.state import State, StatesGroup
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.admin.admin_orm.base_manager import (
+from .base_manager import (
     BaseAdminManager,
-    CreateUpdateState,
 )
-from app.admin.keyboards.keyboards import InlineKeyboardManager
-from app.const import ADMIN_UPDATE_BUTTONS
+from admin.keyboards.keyboards import (
+    get_inline_keyboard,
+)
+from admin.admin_settings import ADMIN_UPDATE_BUTTONS
 
 
-class UpdateState(CreateUpdateState):
+class UpdateState(StatesGroup):
     """Класс состояний для редактирования данных в БД."""
 
-    pass
+    select = State()
+    name = State()
+    url = State()
+    text = State()
+    media = State()
 
 
 class UpdateManager(BaseAdminManager):
@@ -25,6 +31,10 @@ class UpdateManager(BaseAdminManager):
     внесения изменений в объекты. Он управляет состоянием пользователя
     в процессе редактирования и взаимодействует с базой данных
     через CRUD-операции.
+
+    Attributes:
+        model_crud (CRUDBase): Объект для выполнения операций CRUD с моделью.
+        back_option (str): Данные для возврата в меню.
 
     Methods:
         get_all_model_names(session: AsyncSession) -> list[str]:
@@ -60,7 +70,9 @@ class UpdateManager(BaseAdminManager):
         obj_list_by_name = await self.get_all_model_names(session)
         await callback.message.edit_text(
             "Какой объект отредактировать?",
-            reply_markup=self.keyboard.add_extra_buttons(obj_list_by_name),
+            reply_markup=await get_inline_keyboard(
+                obj_list_by_name, previous_menu=self.back_option
+            ),
         )
         await state.set_state(UpdateState.select)
 
@@ -73,11 +85,11 @@ class UpdateManager(BaseAdminManager):
         self.obj_to_update = await self.model_crud.get_by_string(
             callback.data, session
         )
-        keyboard = InlineKeyboardManager(ADMIN_UPDATE_BUTTONS)
-        await keyboard.add_previous_menu_button(self.keyboard.previous_menu)
         await callback.message.edit_text(
             "Выбирите данные для обновления:",
-            reply_markup=keyboard.create_keyboard(),
+            reply_markup=await get_inline_keyboard(
+                ADMIN_UPDATE_BUTTONS, previous_menu=self.back_option
+            ),
         )
 
     async def change_obj_name(
@@ -90,8 +102,8 @@ class UpdateManager(BaseAdminManager):
         )
         await callback.message.edit_text(
             message_text,
-            reply_markup=InlineKeyboardManager.get_back_button(
-                self.keyboard.previous_menu
+            reply_markup=await get_inline_keyboard(
+                previous_menu=self.back_option
             ),
         )
         await state.set_state(UpdateState.name)
@@ -100,14 +112,15 @@ class UpdateManager(BaseAdminManager):
         self, callback: CallbackQuery, state: FSMContext
     ):
         """Внести изменение в содержание объекта."""
-        if not self.obj_to_update.media:
-            if self.obj_to_update.url:
+        obj_fields = self.obj_to_update.__dict__.keys()
+        if "media" not in obj_fields or not self.obj_to_update.media:
+            if "url" in obj_fields and self.obj_to_update.url:
                 message_text = (
                     f"Текущий адрес ссылки: \n\n {self.obj_to_update.url} \n\n"
                     "Введите новый:"
                 )
                 await state.set_state(UpdateState.url)
-            elif self.obj_to_update.text and not self.obj_to_update.media:
+            elif "text" in obj_fields and self.obj_to_update.text:
                 message_text = (
                     f"Текущий текст: \n\n {self.obj_to_update.text} \n\n"
                     "Введите новый:"
@@ -115,8 +128,8 @@ class UpdateManager(BaseAdminManager):
                 await state.set_state(UpdateState.text)
             await callback.message.edit_text(
                 message_text,
-                reply_markup=InlineKeyboardManager.get_back_button(
-                    self.keyboard.previous_menu
+                reply_markup=await get_inline_keyboard(
+                    previous_menu=self.back_option
                 ),
             )
         else:
@@ -127,8 +140,8 @@ class UpdateManager(BaseAdminManager):
             )
             await callback.message.answer(
                 "Добавьте новую картинку и описание",
-                reply_markup=InlineKeyboardManager.get_back_button(
-                    self.keyboard.previous_menu,
+                reply_markup=await get_inline_keyboard(
+                    previous_menu=self.back_option
                 ),
             )
             await state.set_state(UpdateState.media)
@@ -139,7 +152,9 @@ class UpdateManager(BaseAdminManager):
         """Внести изменения объекта в БД."""
         try:
             current_state = await state.get_state()
-            if current_state == UpdateState.url.state:
+            if current_state == UpdateState.name.state:
+                await state.update_data(name=message.text)
+            elif current_state == UpdateState.url.state:
                 await state.update_data(url=message.text)
             elif current_state == UpdateState.text.state:
                 await state.update_data(text=message.text)
@@ -154,8 +169,8 @@ class UpdateManager(BaseAdminManager):
 
             await message.answer(
                 "Данные обновлены!",
-                reply_markup=InlineKeyboardManager.get_back_button(
-                    self.keyboard.previous_menu
+                reply_markup=await get_inline_keyboard(
+                    previous_menu=self.back_option
                 ),
             )
             await state.clear()

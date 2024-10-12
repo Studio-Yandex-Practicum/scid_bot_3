@@ -3,8 +3,11 @@ from aiogram.fsm.state import State, StatesGroup
 from aiogram.types import CallbackQuery
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.admin.admin_orm.base_manager import BaseAdminManager
-from app.admin.keyboards.keyboards import InlineKeyboardManager
+from .base_manager import BaseAdminManager
+from admin.keyboards.keyboards import (
+    get_inline_confirmation,
+    get_inline_keyboard,
+)
 from models.models import Info
 
 
@@ -23,6 +26,11 @@ class DeleteManager(BaseAdminManager):
     выбора объекта для удаления, подтверждения удаления и выполнения операции удаления.
     Он взаимодействует с базой данных через CRUD-операции и управляет состоянием
     пользователя в процессе удаления.
+
+    Attributes:
+        model_crud (CRUDBase): Объект для выполнения операций CRUD с моделью.
+        back_option (str): Данные для возврата в меню.
+
 
     Methods:
         get_all_model_names(session: AsyncSession) -> list[str]:
@@ -50,10 +58,11 @@ class DeleteManager(BaseAdminManager):
         session: AsyncSession,
     ) -> None:
         obj_list_by_name = await self.get_all_model_names(session)
-        keyboard = self.keyboard.add_extra_buttons(obj_list_by_name)
         await callback.message.edit_text(
-            "Какой объект удалить?",
-            reply_markup=keyboard.create_keyboard(),
+            "Какие данные удалить?",
+            reply_markup=await get_inline_keyboard(
+                obj_list_by_name, previous_menu=self.back_option
+            ),
         )
         await state.set_state(DeleteState.select)
 
@@ -72,9 +81,9 @@ class DeleteManager(BaseAdminManager):
             else self.obj_to_delete.name
         )
         await callback.message.edit_text(
-            f"Вы уверены, что хотите удалить этот вопрос?\n\n {obj_data}",
-            reply_markup=InlineKeyboardManager.get_inline_confirmation(
-                cancel_option=self.keyboard.previous_menu
+            f"Вы уверены, что хотите удалить эти данные?\n\n {obj_data}",
+            reply_markup=await get_inline_confirmation(
+                cancel_option=self.back_option
             ),
         ),
         await state.set_state(DeleteState.confirm)
@@ -90,8 +99,8 @@ class DeleteManager(BaseAdminManager):
             await self.model_crud.remove(self.obj_to_delete, session)
             await callback.message.edit_text(
                 "Данные удалены!",
-                reply_markup=InlineKeyboardManager.get_back_button(
-                    self.keyboard.previous_menu
+                reply_markup=await get_inline_keyboard(
+                    previous_menu=self.back_option
                 ),
             )
             await state.clear()

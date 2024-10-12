@@ -8,21 +8,13 @@ from crud.info_crud import info_crud
 from admin.filters.filters import ChatTypeFilter, IsAdmin
 from admin.handlers.admin_handlers.admin import SectionState
 from admin.keyboards.keyboards import (
-    get_inline_confirmation_keyboard,
+    get_inline_confirmation,
     get_inline_keyboard,
 )
 
-# from settings import SUPPORT_OPTIONS
+from admin.admin_settings import SUPPORT_OPTIONS
 from sqlalchemy.ext.asyncio import AsyncSession
 from aiogram.fsm.state import State, StatesGroup
-
-
-SUPPORT_OPTIONS = {
-    "faq": "Общие вопросы",
-    "troubleshooting": "Проблемы с продуктами",
-    "callback_request": "Запрос на обратный звонок",
-}
-
 
 info_router = Router()
 info_router.message.filter(ChatTypeFilter(["private"]), IsAdmin())
@@ -130,7 +122,7 @@ async def confirm_delete_question(
     question = await info_crud.get_by_string(callback.data, session)
     await callback.message.edit_text(
         f"Вы уверены, что хотите удалить этот вопрос?\n\n {question.question}",
-        reply_markup=await get_inline_confirmation_keyboard(
+        reply_markup=await get_inline_confirmation(
             option=question.question, cancel_option=PREVIOUS_MENU
         ),
     )

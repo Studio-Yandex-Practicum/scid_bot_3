@@ -1,21 +1,25 @@
 from aiogram.fsm.context import FSMContext
-from aiogram.fsm.state import State
+from aiogram.fsm.state import State, StatesGroup
 from aiogram.types import CallbackQuery, Message
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.admin.admin_orm.base_manager import (
+from .base_manager import (
     BaseAdminManager,
-    CreateUpdateState,
 )
-from app.admin.keyboards.keyboards import InlineKeyboardManager
-from app.const import ADMIN_CONTENT_BUTTONS
+from admin.keyboards.keyboards import (
+    get_inline_keyboard,
+)
+from admin.admin_settings import ADMIN_CONTENT_BUTTONS
 
 
-class CreateState(CreateUpdateState):
+class CreateState(StatesGroup):
     """Класс состояний для создания объекта в БД."""
 
-    pass
-
+    select = State()
+    name = State()
+    url = State()
+    text = State()
+    media = State()
 
 class CreateManager(BaseAdminManager):
     """
@@ -27,7 +31,7 @@ class CreateManager(BaseAdminManager):
 
     Attributes:
         model_crud (CRUDBase): Объект для выполнения операций CRUD с моделью.
-        keyboard (InlineKeyboardManager): Менеджер для создания интерактивных клавиатур.
+        back_option (str): Данные для возврата в меню.
 
     Methods:
         select_data_type(callback: CallbackQuery, state: FSMContext):
@@ -56,12 +60,11 @@ class CreateManager(BaseAdminManager):
         self, callback: CallbackQuery, state: FSMContext
     ):
         """Выбрать тип данных для модели в БД."""
-        self.keyboard.add_extra_buttons(
-                ADMIN_CONTENT_BUTTONS
-            )
         await callback.message.edit_text(
             "Выбирите способ передачи информации:",
-            reply_markup=self.keyboard.create_keyboard(),
+            reply_markup=await get_inline_keyboard(
+                ADMIN_CONTENT_BUTTONS, previous_menu=self.back_option
+            ),
         )
         await state.set_state(CreateState.select)
 
@@ -75,7 +78,10 @@ class CreateManager(BaseAdminManager):
         следующее машинное состояние.
         """
         await callback.message.answer(
-            "Введите название:", reply_markup=self.keyboard.create_keyboard()
+            "Введите название:",
+            reply_markup=await get_inline_keyboard(
+                previous_menu=self.back_option
+            ),
         )
         await state.set_state(CreateState.name)
 
@@ -93,7 +99,9 @@ class CreateManager(BaseAdminManager):
         await state.update_data(name=message.text)
         await message.answer(
             message_text,
-            reply_markup=self.keyboard.create_keyboard(),
+            reply_markup=await get_inline_keyboard(
+                previous_menu=self.back_option
+            ),
         )
         await state.set_state(next_state)
 
@@ -160,8 +168,8 @@ class CreateManager(BaseAdminManager):
 
             await message.answer(
                 "Данные добавлены!",
-                reply_markup=InlineKeyboardManager.get_back_button(
-                    self.keyboard.previous_menu
+                reply_markup=await get_inline_keyboard(
+                    previous_menu=self.back_option
                 ),
             )
             await state.clear()

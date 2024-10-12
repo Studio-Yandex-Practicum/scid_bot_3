@@ -11,19 +11,11 @@ from crud.product_crud import product_crud
 from admin.filters.filters import ChatTypeFilter, IsAdmin
 from admin.handlers.user import ProductCategory
 from admin.keyboards.keyboards import (
-    get_inline_confirmation_keyboard,
+    get_inline_confirmation,
     get_inline_keyboard,
 )
-# from settings import MAIN_MENU_OPTIONS, admin_list
-from const import admin_list
 
-MAIN_MENU_OPTIONS = {
-    "company_bio": "Информация о компании",
-    "products": "Продукты и услуги",
-    "support": "Техническая поддержка",
-    "portfolio": "Портфолио",
-    "request_callback": "Связаться с менеджером",
-}
+from admin.admin_settings import MAIN_MENU_OPTIONS, admin_list
 
 category_router = Router()
 category_router.message.filter(ChatTypeFilter(["private"]), IsAdmin())
@@ -171,7 +163,7 @@ async def add_media_description(message: Message, state: FSMContext):
     await state.update_data(media=message.photo[-1].file_id)
     await message.answer(
         "Добавить описание к картинке?",
-        reply_markup=await get_inline_confirmation_keyboard(
+        reply_markup=await get_inline_confirmation(
             "Текст", cancel_option="Нет"
         ),
     )
@@ -225,7 +217,7 @@ async def confirm_delete(
     category = await get_category_by_name(callback.data, state, session)
     await callback.message.edit_text(
         f"Вы уверены, что хотите удалить этот проект?\n\n {category.name}",
-        reply_markup=await get_inline_confirmation_keyboard(
+        reply_markup=await get_inline_confirmation(
             option=category.name, cancel_option="Назад"
         ),
     )

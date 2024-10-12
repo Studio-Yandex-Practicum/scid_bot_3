@@ -1,6 +1,6 @@
 import re
 
-from const import PHONE_NUMBER_REGEX
+from admin.admin_settings import PHONE_NUMBER_REGEX
 
 
 def phone_number_validator(phone_number: int) -> bool:

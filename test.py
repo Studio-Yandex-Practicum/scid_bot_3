@@ -1,92 +1,239 @@
-class QuestionManager:
-    def __init__(self, session: AsyncSession):
-        self.session = session
+# from typing import Any
+# from app.admin.keyboards.keyboards import InlineKeyboardManager
 
-    async def ask_question_to_delete(
-        self, callback: CallbackQuery, state: FSMContext
-    ):
-        current_state = await state.get_state()
-        await state.set_state(DeleteQuestion.question_type)
-        await state.update_data(
-            question_type=await set_question_type(current_state)
-        )
-        question_type = (await state.get_data()).get("question_type")
-        question_list = await get_question_list(question_type, self.session)
-        await callback.message.edit_text(
-            "Какой вопрос удалить?",
-            reply_markup=await get_inline_keyboard(
-                question_list, previous_menu=PREVIOUS_MENU
-            ),
-        )
-        await state.set_state(DeleteQuestion.question)
+# from aiogram.types import (
+#     InlineKeyboardButton,
+#     InlineKeyboardMarkup,
+# )
+# from aiogram.utils.keyboard import InlineKeyboardBuilder
 
-    async def confirm_delete_question(
-        self, callback: CallbackQuery, state: FSMContext
-    ):
-        question = await info_crud.get_by_question_text(
-            callback.data, self.session
-        )
-        await callback.message.edit_text(
-            f"Вы уверены, что хотите удалить этот вопрос?\n\n {question.question}",
-            reply_markup=await get_inline_confirmation_keyboard(
-                option=question.question, cancel_option=PREVIOUS_MENU
-            ),
-        )
-        await state.set_state(DeleteQuestion.confirm)
-
-    async def delete_question(
-        self, callback: CallbackQuery, state: FSMContext
-    ):
-        await state.clear()
-        question = await info_crud.get_by_question_text(
-            callback.data, self.session
-        )
-        await info_crud.remove(question, self.session)
-        await callback.message.edit_text(
-            "Вопрос удален!",
-            reply_markup=await get_inline_keyboard(
-                previous_menu=question.question_type
-            ),
-        )
+# keyboard = InlineKeyboardManager()
+# keyboard.add_previous_menu_button(previous_menu="NAZAD")
 
 
-# Использование в роутере
-@info_router.callback_query(
-    or_f(SectionState.faq, SectionState.troubleshooting), F.data == "Удалить"
-)
-async def handle_delete_question(
-    callback: CallbackQuery, state: FSMContext, session: AsyncSession
-):
-    manager = QuestionManager(session)
-    await manager.ask_question_to_delete(callback, state)
+# test = keyboard.create_keyboard()
+
+# # keyboard.add_admin_button("test")
+
+# keyboard.add_extra_buttons(["test"])
+# test2 = keyboard.create_keyboard()
+# # print(vars(keyboard))
+# keyboard.add_extra_buttons(["extra_test"])
+# test3 = keyboard.create_keyboard()
 
 
-@info_router.callback_query(DeleteQuestion.question, F.data)
-async def handle_confirm_delete_question(
-    callback: CallbackQuery, state: FSMContext, session: AsyncSession
-):
-    manager = QuestionManager(session)
-    await manager.confirm_delete_question(callback, state)
+def get_buttons_from_keyboard(keyboard):
+    button_list = []
+    for row in keyboard.inline_keyboard:
+        for button in row:
+            button_list.append((button.text, button.callback_data))
+    return button_list
 
 
-@info_router.callback_query(DeleteQuestion.confirm, F.data != PREVIOUS_MENU)
-async def handle_delete_question(
-    callback: CallbackQuery, state: FSMContext, session: AsyncSession
-):
-    manager = QuestionManager(session)
-    await manager.delete_question(callback, state)
+# keyboard.update_buttons(["updated_list"])
+# test4 = keyboard.create_keyboard()
+# print(get_buttons_from_keyboard(test))
+# print(get_buttons_from_keyboard(test2))
+# print(get_buttons_from_keyboard(test3))
+# print(get_buttons_from_keyboard(test4))
 
 
-from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+# class InlineKeyboardManager:
+#     def __init__(
+#         self,
+#         options=None,
+#         callback=None,
+#         urls=None,
+#         size=(1,),
+#         previous_menu=None,
+#         admin_update_menu=None,
+#     ):
+#         self.options = options if options is not None else []
+#         self.callback = callback if callback is not None else self.options
+#         self.urls = urls if urls is not None else []
+#         self.size = size
+#         self.previous_menu = previous_menu
+#         self.admin_update_menu = admin_update_menu
+#         self.keyboard = InlineKeyboardBuilder()
+
+#     def add_buttons(self):
+#         """Добавить основные кнопки в клавиатуру."""
+#         for index, option in enumerate(self.options):
+#             self.keyboard.add(
+#                 InlineKeyboardButton(
+#                     text=option,
+#                     callback_data=str(self.callback[index]),
+#                     url=(
+#                         self.urls[index]
+#                         if self.urls and index < len(self.urls)
+#                         else None
+#                     ),
+#                 )
+#             )
+
+#     def add_back_button(self):
+#         """Добавить кнопку 'Назад'."""
+#         if self.previous_menu:
+#             self.keyboard.add(
+#                 InlineKeyboardButton(
+#                     text="Назад",
+#                     callback_data=self.previous_menu,
+#                 )
+#             )
+
+#     def add_admin_button(self):
+#         """Добавить кнопку 'Редактировать' для администраторов."""
+#         self.keyboard.add(
+#             InlineKeyboardButton(
+#                 text="Редактировать🔧",
+#                 callback_data=f"{self.admin_update_menu}_",
+#             )
+#         )
+
+#     def create_keyboard(self) -> InlineKeyboardMarkup:
+#         """Создать клавиатуру и вернуть ее.
+
+#         :return: Объект InlineKeyboardMarkup с добавленными кнопками.
+#         """
+#         self.add_buttons()
+#         if self.previous_menu:
+#             self.add_back_button()
+#         if self.admin_update_menu:
+#             self.add_admin_button
+#         return self.keyboard.adjust(*self.size).as_markup(resize_keyboard=True)
+
+
+# def get_base_inline_keyboard(
+#     options=None,
+#     callback=None,
+#     urls=None,
+#     previous_menu=None,
+# ):
+#     return InlineKeyboardManager(
+#         options=options,
+#         callback=callback,
+#         urls=urls,
+#         previous_menu=previous_menu,
+#     ).create_keyboard()
+
+
+# def get_admin_keyboard(
+#     admin_update_menu,
+#     options=None,
+#     callback=None,
+#     urls=None,
+#     previous_menu=None,
+# ):
+#     return InlineKeyboardManager(
+#         options=options,
+#         callback=callback,
+#         urls=urls,
+#         previous_menu=previous_menu,
+#         admin_update_menu=admin_update_menu,
+#     ).create_keyboard()
+
+
+# class AdminInlineKeyboard(BaseInlineKeyboardManager):
+#     """
+#     Класс для управления инлайн-клавиатурами с администраторскими функциями.
+
+#     Этот класс наследует базовый класс и добавляет возможность
+#     добавления кнопки "Редактировать" для администраторов.
+#     """
+
+#     def __init__(
+#         self,
+#         admin_update_menu: str,
+#         *args,
+#         **kwargs,
+#     ):
+#         self.admin_update_menu = admin_update_menu
+#         super().__init__(*args, **kwargs)
+
+#     def add_admin_button(self):
+#         """Добавить кнопку 'Редактировать' для администраторов."""
+#         self.keyboard.add(
+#             InlineKeyboardButton(
+#                 text="Редактировать🔧",
+#                 callback_data=f"{self.admin_update_menu}_",
+#             )
+#         )
+
+#     def create_keyboard(self) -> InlineKeyboardMarkup:
+#         """Создать клавиатуру и вернуть ее.
+
+#         :return: Объект InlineKeyboardMarkup с добавленными кнопками,
+#                  включая кнопку "Редактировать".
+#         """
+#         super().create_keyboard()
+#         self.add_admin_button()
+#         return self.keyboard
+
+
+# def get_base_inline_keyboard(options=None, callback=None, urls=None):
+#     """Создать базовую инлайн-клавиатуру.
+
+#     :param options: Список названий кнопок.
+#     :param callback: Список коллбек-данных для кнопок.
+#     :param urls: Список URL для кнопок.
+#     :return: Объект InlineKeyboardMarkup.
+#     """
+#     return BaseInlineKeyboardManager(
+#         options, callback=callback, urls=urls
+#     ).create_keyboard()
+
+
+# def get_admin_inline_kb(
+#     admin_update_menu,
+#     options=None,
+#     callback=None,
+#     urls=None,
+#     previous_menu=None,
+# ):
+#     """Создать инлайн-клавиатуру для администраторов.
+
+#     :param admin_update_menu: Коллбек-данные для кнопки "Редактировать".
+#     :param options: Список названий кнопок.
+#     :param callback: Список коллбек-данных для кнопок.
+#     :param urls: Список URL для кнопок.
+#     :param previous_menu: Коллбек-данные для кнопки "Назад".
+#     :return: Объект InlineKeyboardMarkup.
+#     """
+#     return AdminInlineKeyboard(
+#         admin_update_menu=admin_update_menu,
+#         options=options,
+#         callback=callback,
+#         urls=urls,
+#         previous_menu=previous_menu,
+#     ).create_keyboard()
+
+from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 
 class InlineKeyboardManager:
-    def __init__(self, options=None, callback=None, urls=None, size=(1,)):
+    """
+    Менеджер для создания инлайн-клавиатур.
+
+    Этот класс позволяет добавлять кнопки, включая кнопки для администраторов
+    и кнопку "Назад".
+    """
+
+    def __init__(
+        self,
+        options=None,
+        callback=None,
+        urls=None,
+        size=(1,),
+        previous_menu=None,
+        admin_update_menu=None,
+    ):
         self.options = options if options is not None else []
         self.callback = callback if callback is not None else self.options
         self.urls = urls if urls is not None else []
         self.size = size
+        self.previous_menu = previous_menu
+        self.admin_update_menu = admin_update_menu
         self.keyboard = InlineKeyboardBuilder()
 
     def add_buttons(self):
@@ -104,47 +251,76 @@ class InlineKeyboardManager:
                 )
             )
 
-    def add_previous_menu_button(self, previous_menu):
+    def add_back_button(self):
         """Добавить кнопку 'Назад'."""
-        self.keyboard.add(
-            InlineKeyboardButton(
-                text="Назад",
-                callback_data=previous_menu,
+        if self.previous_menu:
+            self.keyboard.add(
+                InlineKeyboardButton(
+                    text="Назад",
+                    callback_data=self.previous_menu,
+                )
             )
-        )
 
-    def add_admin_button(self, admin_update_menu):
+    def add_admin_button(self):
         """Добавить кнопку 'Редактировать' для администраторов."""
-        self.keyboard.add(
-            InlineKeyboardButton(
-                text="Редактировать🔧",
-                callback_data=f"{admin_update_menu}_",
+        if self.admin_update_menu:
+            self.keyboard.add(
+                InlineKeyboardButton(
+                    text="Редактировать🔧",
+                    callback_data=f"{self.admin_update_menu}_",
+                )
             )
-        )
 
     def create_keyboard(self) -> InlineKeyboardMarkup:
         """Создать клавиатуру и вернуть ее."""
         self.add_buttons()
+        self.add_back_button()
+        self.add_admin_button()  # Исправлено: добавлены скобки
         return self.keyboard.adjust(*self.size).as_markup(resize_keyboard=True)
 
 
-# Пример использования
-async def get_inline_keyboard(options, callback=None, urls=None, size=(1,)):
-    manager = InlineKeyboardManager(options, callback, urls, size)
-    return manager.create_keyboard()
-
-
-# Использование с добавлением дополнительных кнопок
-async def get_custom_keyboard(
-    options, previous_menu=None, is_admin=False, admin_update_menu=None
+def get_base_inline_keyboard(
+    options=None,
+    callback=None,
+    urls=None,
+    previous_menu=None,
 ):
-    manager = InlineKeyboardManager(options)
-    manager.add_buttons()
+    """Создать базовую инлайн-клавиатуру.
 
-    if previous_menu:
-        manager.add_previous_menu_button(previous_menu)
+    :param options: Список названий кнопок.
+    :param callback: Список коллбек-данных для кнопок.
+    :param urls: Список URL для кнопок.
+    :param previous_menu: Коллбек-данные для кнопки "Назад".
+    :return: Объект InlineKeyboardMarkup.
+    """
+    return InlineKeyboardManager(
+        options=options,
+        callback=callback,
+        urls=urls,
+        previous_menu=previous_menu,
+    ).create_keyboard()
 
-    if is_admin and admin_update_menu:
-        manager.add_admin_button(admin_update_menu)
 
-    return manager.create_keyboard()
+def get_admin_keyboard(
+    admin_update_menu,
+    options=None,
+    callback=None,
+    urls=None,
+    previous_menu=None,
+):
+    """Создать инлайн-клавиатуру для администраторов.
+
+    :param admin_update_menu: Коллбек-данные для кнопки "Редактировать".
+    :param options: Список названий кнопок.
+    :param callback: Список коллбек-данных для кнопок.
+    :param urls: Список URL для кнопок.
+    :param previous_menu: Коллбек-данные для кнопки "Назад".
+    :return: Объект InlineKeyboardMarkup.
+    """
+    return InlineKeyboardManager(
+        options=options,
+        callback=callback,
+        urls=urls,
+        previous_menu=previous_menu,
+        admin_update_menu=admin_update_menu,
+    ).create_keyboard()

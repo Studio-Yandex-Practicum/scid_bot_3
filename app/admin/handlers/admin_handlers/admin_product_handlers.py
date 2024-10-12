@@ -10,20 +10,13 @@ from crud.category_product import category_product_crud
 from crud.product_crud import product_crud
 from admin.filters.filters import ChatTypeFilter, IsAdmin
 from admin.keyboards.keyboards import (
-    get_inline_confirmation_keyboard,
+    get_inline_confirmation,
     get_inline_keyboard,
 )
-# from settings import (
-#     MAIN_MENU_OPTIONS,
-# )
 
-MAIN_MENU_OPTIONS = {
-    "company_bio": "Информация о компании",
-    "products": "Продукты и услуги",
-    "support": "Техническая поддержка",
-    "portfolio": "Портфолио",
-    "request_callback": "Связаться с менеджером",
-}
+from admin.admin_settings import (
+    MAIN_MENU_OPTIONS,
+)
 
 product_router = Router()
 product_router.message.filter(ChatTypeFilter(["private"]), IsAdmin())
@@ -91,7 +84,7 @@ async def creeate_product(
     await product_crud.create(data, session)
     await message.answer(
         "Продукт создан! Хотите добавить к нему дополнительну информацию?",
-        reply_markup=await get_inline_confirmation_keyboard(
+        reply_markup=await get_inline_confirmation(
             option="Да", cancel_option=PREVIOUS_MENU
         ),
     )
@@ -160,7 +153,7 @@ async def add_media_description(message: Message, state: FSMContext):
 
     await message.answer(
         "Добавить описание к картинке?",
-        reply_markup=await get_inline_confirmation_keyboard(
+        reply_markup=await get_inline_confirmation(
             "Текст", cancel_option="Нет"
         ),
     )
@@ -188,7 +181,7 @@ async def create_product_with_data(
     await category_product_crud.create(data, session)
     await message.answer(
         "Информация добавлена! Добавить еще?",
-        reply_markup=await get_inline_confirmation_keyboard(
+        reply_markup=await get_inline_confirmation(
             option="Да", cancel_option=PREVIOUS_MENU
         ),
     )
@@ -225,7 +218,7 @@ async def confirm_delete(
     await callback.message.edit_text(
         f"Вы уверены, что хотите удалить "
         f"этот проект?\n\n {portfolio_project.title}",
-        reply_markup=await get_inline_confirmation_keyboard(
+        reply_markup=await get_inline_confirmation(
             option=portfolio_project.title, cancel_option=PREVIOUS_MENU
         ),
     )

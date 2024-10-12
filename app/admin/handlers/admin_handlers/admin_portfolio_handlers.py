@@ -10,31 +10,15 @@ from crud.about_crud import company_info_crud
 from crud.portfolio_projects_crud import portfolio_crud
 from admin.filters.filters import ChatTypeFilter, IsAdmin
 from admin.keyboards.keyboards import (
-    get_inline_confirmation_keyboard,
+    get_inline_confirmation,
     get_inline_keyboard,
 )
-# from settings import (
-#     MAIN_MENU_OPTIONS,
-#     ADMIN_PORTFOLIO_OPTIONS,
-#     PORTFOLIO_MENU_OPTIONS,
-# )
 
-MAIN_MENU_OPTIONS = {
-    "company_bio": "Информация о компании",
-    "products": "Продукты и услуги",
-    "support": "Техническая поддержка",
-    "portfolio": "Портфолио",
-    "request_callback": "Связаться с менеджером",
-}
-
-PORTFOLIO_MENU_OPTIONS = {
-    "portfolio_button": "Наше портфолио",
-    "other_projects": "Посмотреть другие проекты",
-}
-
-ADMIN_PORTFOLIO_OPTIONS = {
-    "change_url": "Адрес ссылки на портфолио",
-}
+from admin.admin_settings import (
+    MAIN_MENU_OPTIONS,
+    ADMIN_PORTFOLIO_OPTIONS,
+    PORTFOLIO_MENU_OPTIONS,
+)
 
 portfolio_router = Router()
 portfolio_router.message.filter(ChatTypeFilter(["private"]), IsAdmin())
@@ -128,7 +112,7 @@ async def confirm_delete(
     )
     await callback.message.edit_text(
         f"Вы уверены, что хотите удалить этот проект?\n\n {portfolio_project.project_name}",
-        reply_markup=await get_inline_confirmation_keyboard(
+        reply_markup=await get_inline_confirmation(
             option=portfolio_project.project_name, cancel_option=PREVIOUS_MENU
         ),
     )
@@ -170,7 +154,11 @@ async def portfolio_project_to_update(
 
 @portfolio_router.callback_query(
     UpdateProject.select,
-    and_f(F.data != "Название проекта", F.data != "Адрес ссылки", F.data != PREVIOUS_MENU),
+    and_f(
+        F.data != "Название проекта",
+        F.data != "Адрес ссылки",
+        F.data != PREVIOUS_MENU,
+    ),
 )
 async def update_portfolio_project_choise(
     callback: CallbackQuery, state: FSMContext
@@ -188,7 +176,8 @@ async def update_portfolio_project_choise(
     UpdateProject.select, F.data == "Название проекта"
 )
 async def about_name_update(
-    callback: CallbackQuery, state: FSMContext,
+    callback: CallbackQuery,
+    state: FSMContext,
 ):
     about_name = await state.get_data()
     about_name_text = about_name.get("select")

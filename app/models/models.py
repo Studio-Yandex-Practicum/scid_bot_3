@@ -7,7 +7,7 @@ import sqlalchemy.dialects.postgresql as pgsql_types
 
 from enum import Enum
 
-from app.core.base import Base
+from core.db import Base
 
 
 class RoleEnum(str, Enum):

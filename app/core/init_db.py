@@ -1,6 +1,6 @@
 from core.db import AsyncSessionLocal
 from crud.about_crud import company_info_crud
-from const import PORTFOLIO_DEFAULT_DATA
+from app.admin.admin_settings import PORTFOLIO_DEFAULT_DATA
 
 
 async def add_portfolio():

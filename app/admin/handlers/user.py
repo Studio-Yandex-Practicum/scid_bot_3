@@ -7,7 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from crud.category_product import category_product_crud
 from admin.filters.filters import ChatTypeFilter
-from const import (
+from admin.admin_settings import (
     ADMIN_BASE_BUTTONS,
     PORTFOLIO_DEFAULT_DATA,
     PORTFOLIO_MENU_TEXT,
@@ -111,7 +111,6 @@ async def portfolio_info(callback: CallbackQuery, session: AsyncSession):
                 portlio_url.url,
             ],
             previous_menu=BASE_BUTTONS.get("main_menu"),
-            is_admin=callback.from_user.id in admin_list,
             admin_update_menu=callback.data,
         ),
     )
@@ -140,7 +139,6 @@ async def main_info(
             options=about_company_buttons,
             previous_menu=BASE_BUTTONS.get("main_menu"),
             urls=company_about_urls,
-            is_admin=callback.from_user.id in admin_list,
             admin_update_menu=callback.data,
         ),
     )
@@ -187,7 +185,6 @@ async def info_faq(
         reply_markup=await get_inline_keyboard(
             options=question_list,
             previous_menu=MAIN_MENU_OPTIONS.get("support"),
-            is_admin=callback.from_user.id in admin_list,
             admin_update_menu=callback.data,
         ),
     )
@@ -215,7 +212,6 @@ async def portfolio_other_projects(
             projects_names,
             previous_menu=MAIN_MENU_OPTIONS.get("portfolio"),
             urls=urls,
-            is_admin=callback.from_user.id in admin_list,
             admin_update_menu=callback.data,
         ),
     )
@@ -238,7 +234,6 @@ async def get_products_list(
         reply_markup=await get_inline_keyboard(
             products,
             previous_menu=BASE_BUTTONS.get("main_menu"),
-            is_admin=callback.from_user.id in admin_list,
             admin_update_menu=callback.data,
         ),
     )
@@ -265,7 +260,6 @@ async def product_category(
             categories_by_name,
             urls=urls,
             previous_menu=MAIN_MENU_OPTIONS.get("products"),
-            is_admin=callback.from_user.id in admin_list,
             admin_update_menu=callback.data,
         ),
     )
