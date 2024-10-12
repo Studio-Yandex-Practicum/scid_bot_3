@@ -22,5 +22,10 @@ RUN poetry install --no-root
 # Копирование остальных файлов, включая alembic
 COPY . .
 
+# Создание миграций
+#RUN poetry run alembic stamp head
+#RUN poetry run alembic revision --autogenerate -m "compose commit"
+#RUN poetry run alembic upgrade head
+
 # Команда для запуска приложения
 CMD ["poetry", "run", "python", "app/main.py"]
