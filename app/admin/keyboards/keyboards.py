@@ -151,19 +151,6 @@ async def get_delete_message_keyboard() -> InlineKeyboardMarkup:
     return keyboard.adjust(1).as_markup(resize_keyboard=True)
 
 
-# async def get_inline_confirmation_keyboard(
-#     cancel_option: str,
-#     option: str = "Да",
-# ) -> InlineKeyboardMarkup:
-#     """Кнопка для подтверждения действий."""
-
-#     keyboard = InlineKeyboardBuilder()
-#     keyboard.add(InlineKeyboardButton(text="Да", callback_data=option))
-#     keyboard.add(InlineKeyboardButton(text="Нет", callback_data=cancel_option))
-
-#     return keyboard.adjust(2).as_markup(resize_keyboard=True)
-
-
 class InlineKeyboardManager:
     def __init__(
         self,

@@ -50,9 +50,10 @@ class DeleteManager(BaseAdminManager):
         session: AsyncSession,
     ) -> None:
         obj_list_by_name = await self.get_all_model_names(session)
+        keyboard = self.keyboard.add_extra_buttons(obj_list_by_name)
         await callback.message.edit_text(
             "Какой объект удалить?",
-            reply_markup=self.keyboard.add_extra_buttons(obj_list_by_name),
+            reply_markup=keyboard.create_keyboard(),
         )
         await state.set_state(DeleteState.select)
 

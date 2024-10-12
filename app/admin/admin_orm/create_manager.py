@@ -56,11 +56,12 @@ class CreateManager(BaseAdminManager):
         self, callback: CallbackQuery, state: FSMContext
     ):
         """Выбрать тип данных для модели в БД."""
+        self.keyboard.add_extra_buttons(
+                ADMIN_CONTENT_BUTTONS
+            )
         await callback.message.edit_text(
             "Выбирите способ передачи информации:",
-            reply_markup=self.keyboard.add_extra_buttons(
-                ADMIN_CONTENT_BUTTONS
-            ),
+            reply_markup=self.keyboard.create_keyboard(),
         )
         await state.set_state(CreateState.select)
 
@@ -74,7 +75,7 @@ class CreateManager(BaseAdminManager):
         следующее машинное состояние.
         """
         await callback.message.answer(
-            "Введите название:", reply_markup=self.keyboard
+            "Введите название:", reply_markup=self.keyboard.create_keyboard()
         )
         await state.set_state(CreateState.name)
 
@@ -92,7 +93,7 @@ class CreateManager(BaseAdminManager):
         await state.update_data(name=message.text)
         await message.answer(
             message_text,
-            reply_markup=self.keyboard,
+            reply_markup=self.keyboard.create_keyboard(),
         )
         await state.set_state(next_state)
 
