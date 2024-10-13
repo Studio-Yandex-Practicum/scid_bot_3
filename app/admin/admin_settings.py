@@ -44,7 +44,7 @@ ADMIN_UPDATE_OPTIONS = {
 ADMIN_UPDATE_BUTTONS = get_buttons(ADMIN_UPDATE_OPTIONS)
 ADMIN_CONTENT_OPTIONS = {
     "url": "Ссылка",
-    "text": "Текст",
+    "description": "Текст",
     "media": "Картинка",
 }
 ADMIN_CONTENT_BUTTONS = get_buttons(ADMIN_CONTENT_OPTIONS)
@@ -99,7 +99,6 @@ PORTFOLIO_DEFAULT_DATA = {"name": "Портфолио", "url": "https://scid.ru/
 PRODUCT_LIST_TEXT = (
     "Мы предлагаем следющие продукты и услуги. Что Вас интересует?"
 )
-PRODUCT_LIST = []
 
 # Константы проекта
 DEFAULT_STR_LEN = 150

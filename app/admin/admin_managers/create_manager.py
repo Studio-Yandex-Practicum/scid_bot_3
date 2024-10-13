@@ -3,6 +3,8 @@ from aiogram.fsm.state import State, StatesGroup
 from aiogram.types import CallbackQuery, Message
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from crud.base_crud import CRUDBase
+
 from .base_manager import (
     BaseAdminManager,
 )
@@ -57,17 +59,23 @@ class CreateManager(BaseAdminManager):
             Добавляет объект в базу данных и сбрасывает машинное состояние.
     """
 
-    async def select_data_type(
-        self, callback: CallbackQuery, state: FSMContext
-    ):
+    def __init__(
+        self,
+        model_crud: CRUDBase,
+        back_option: str,
+        states_group: StatesGroup = CreateState(),
+    ) -> None:
+        super().__init__(model_crud, back_option, states_group)
+
+    async def select_data_type(self, callback: CallbackQuery, state: FSMContext):
         """Выбрать тип данных для модели в БД."""
-        await callback.message.edit_text(
+        await callback.message.answer(
             "Выбирите способ передачи информации:",
             reply_markup=await get_inline_keyboard(
                 ADMIN_CONTENT_BUTTONS, previous_menu=self.back_option
             ),
         )
-        await state.set_state(CreateState.select)
+        await state.set_state(self.states_group.select)
 
     async def add_obj_name(
         self,
@@ -84,7 +92,7 @@ class CreateManager(BaseAdminManager):
                 previous_menu=self.back_option
             ),
         )
-        await state.set_state(CreateState.name)
+        await state.set_state(self.states_group.name)
 
     async def prompt_for_input(
         self,
@@ -97,7 +105,9 @@ class CreateManager(BaseAdminManager):
         Добавить название объекта в state_data и перейти
         к заполнению следующего поля.
         """
-        await state.update_data(name=message.text)
+        data = await state.get_data()
+        if not data.get("name"):
+            await state.update_data(name=message.text)
         await message.answer(
             message_text,
             reply_markup=await get_inline_keyboard(
@@ -119,7 +129,7 @@ class CreateManager(BaseAdminManager):
             message,
             message_text,
             state,
-            next_state=CreateState.url,
+            next_state=self.states_group.url,
         )
 
     async def add_obj_description(self, message: Message, state: FSMContext):
@@ -132,7 +142,7 @@ class CreateManager(BaseAdminManager):
             message,
             message_text,
             state,
-            next_state=CreateState.description,
+            next_state=self.states_group.description,
         )
 
     async def add_obj_media(self, message: Message, state: FSMContext):
@@ -145,7 +155,7 @@ class CreateManager(BaseAdminManager):
             message,
             message_text,
             state,
-            next_state=CreateState.media,
+            next_state=self.states_group.media,
         )
 
     async def add_obj_to_db(
@@ -154,11 +164,11 @@ class CreateManager(BaseAdminManager):
         """Добавить объект в БД и сбросить машинное состояние."""
         try:
             current_state = await state.get_state()
-            if current_state == CreateState.url.state:
+            if current_state == self.states_group.url.state:
                 await state.update_data(url=message.text)
-            elif current_state == CreateState.description.state:
+            elif current_state == self.states_group.description.state:
                 await state.update_data(description=message.text)
-            elif current_state == CreateState.media.state:
+            elif current_state == self.states_group.media.state:
                 await state.update_data(
                     media=message.photo[-1].file_id,
                     description=message.caption,

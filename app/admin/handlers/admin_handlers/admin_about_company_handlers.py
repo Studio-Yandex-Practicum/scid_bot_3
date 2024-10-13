@@ -98,7 +98,7 @@ async def about_info_to_update(
         F.data != PREVIOUS_MENU,
     ),
 )
-async def update_info_choice(callback: CallbackQuery, session: FSMContext):
+async def update_info_choice(callback: CallbackQuery, session: AsyncSession):
     """Обработать выбор данных для обновления."""
     await about_update_manager.select_data_to_update(callback, session)
 

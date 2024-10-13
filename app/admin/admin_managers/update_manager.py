@@ -2,6 +2,7 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
 from aiogram.fsm.state import State, StatesGroup
 from sqlalchemy.ext.asyncio import AsyncSession
+from crud.base_crud import CRUDBase
 from crud.portfolio_projects_crud import portfolio_crud
 
 from .base_manager import (
@@ -58,6 +59,14 @@ class UpdateManager(BaseAdminManager):
             Вносит изменения в объект в БД и сбрасывает состояние.
     """
 
+    def __init__(
+        self,
+        model_crud: CRUDBase,
+        back_option: str,
+        states_group: StatesGroup = UpdateState(),
+    ) -> None:
+        super().__init__(model_crud, back_option, states_group)
+
     async def get_all_model_names(self, session: AsyncSession) -> list[str]:
         """Получить список названий объектов из таблицы БД."""
         models = await self.model_crud.get_multi(session)
@@ -76,7 +85,7 @@ class UpdateManager(BaseAdminManager):
                 obj_list_by_name, previous_menu=self.back_option
             ),
         )
-        await state.set_state(UpdateState.select)
+        await state.set_state(self.states_group.select)
 
     async def select_data_to_update(
         self,
@@ -108,7 +117,7 @@ class UpdateManager(BaseAdminManager):
                 previous_menu=self.back_option
             ),
         )
-        await state.set_state(UpdateState.name)
+        await state.set_state(self.states_group.name)
 
     async def change_obj_content(
         self, callback: CallbackQuery, state: FSMContext
@@ -121,7 +130,7 @@ class UpdateManager(BaseAdminManager):
                     f"Текущий адрес ссылки: \n\n {self.obj_to_update.url} \n\n"
                     "Введите новый:"
                 )
-                await state.set_state(UpdateState.url)
+                await state.set_state(self.states_group.url)
             elif (
                 "description" in obj_fields and self.obj_to_update.description
             ):
@@ -129,7 +138,7 @@ class UpdateManager(BaseAdminManager):
                     f"Текущий текст: \n\n {self.obj_to_update.description} \n\n"
                     "Введите новый:"
                 )
-                await state.set_state(UpdateState.description)
+                await state.set_state(self.states_group.description)
             await callback.message.edit_text(
                 message_text,
                 reply_markup=await get_inline_keyboard(
@@ -148,7 +157,7 @@ class UpdateManager(BaseAdminManager):
                     previous_menu=self.back_option
                 ),
             )
-            await state.set_state(UpdateState.media)
+            await state.set_state(self.states_group.media)
 
     async def update_obj_in_db(
         self, message: Message, state: FSMContext, session: AsyncSession
@@ -156,13 +165,13 @@ class UpdateManager(BaseAdminManager):
         """Внести изменения объекта в БД."""
 
         current_state = await state.get_state()
-        if current_state == UpdateState.name.state:
+        if current_state == self.states_group.name.state:
             await state.update_data(name=message.text)
-        elif current_state == UpdateState.url.state:
+        elif current_state == self.states_group.url.state:
             await state.update_data(url=message.text)
-        elif current_state == UpdateState.description.state:
+        elif current_state == self.states_group.description.state:
             await state.update_data(description=message.text)
-        elif current_state == UpdateState.media.state:
+        elif current_state == self.states_group.media.state:
             await state.update_data(
                 media=message.photo[-1].file_id,
                 description=message.caption,
@@ -212,7 +221,7 @@ class UpdatePortfolio:
             f"Текущий адрес ссылки: \n\n {self.obj_to_update.url} \n\n"
             "Введите новый:"
         )
-        await state.set_state(UpdateState.portolio)
+        await state.set_state(self.states_group.portolio)
         await callback.message.edit_text(
             message_text,
             reply_markup=await get_inline_keyboard(

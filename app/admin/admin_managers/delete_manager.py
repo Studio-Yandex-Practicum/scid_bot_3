@@ -3,6 +3,8 @@ from aiogram.fsm.state import State, StatesGroup
 from aiogram.types import CallbackQuery
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from crud.base_crud import CRUDBase
+
 from .base_manager import BaseAdminManager
 from admin.keyboards.keyboards import (
     get_inline_confirmation,
@@ -44,6 +46,13 @@ class DeleteManager(BaseAdminManager):
         delete_obj(callback: CallbackQuery, state: FSMContext, session: AsyncSession) -> None:
             Удаляет выбранный объект из базы данных и сбрасывает состояние.
     """
+    def __init__(
+        self,
+        model_crud: CRUDBase,
+        back_option: str,
+        states_group: StatesGroup = DeleteState(),
+    ) -> None:
+        super().__init__(model_crud, back_option, states_group)
 
     async def get_all_model_names(self, session: AsyncSession) -> list[str]:
         """Получить список названий объектов из таблицы БД."""
@@ -56,6 +65,7 @@ class DeleteManager(BaseAdminManager):
         state: FSMContext,
         session: AsyncSession,
     ) -> None:
+        """Выбрать объкт для удаления."""
         obj_list_by_name = await self.get_all_model_names(session)
         await callback.message.edit_text(
             "Какие данные удалить?",
@@ -63,7 +73,7 @@ class DeleteManager(BaseAdminManager):
                 obj_list_by_name, previous_menu=self.back_option
             ),
         )
-        await state.set_state(DeleteState.select)
+        await state.set_state(self.states_group.select)
 
     async def confirm_delete(
         self,
@@ -71,6 +81,7 @@ class DeleteManager(BaseAdminManager):
         state: FSMContext,
         session: AsyncSession,
     ) -> None:
+        """Подтвердить выбор объекта для удаления."""
         self.obj_to_delete = await self.model_crud.get_by_string(
             callback.data, session
         )
@@ -80,7 +91,7 @@ class DeleteManager(BaseAdminManager):
                 cancel_option=self.back_option
             ),
         ),
-        await state.set_state(DeleteState.confirm)
+        await state.set_state(self.states_group.confirm)
 
     async def delete_obj(
         self,
