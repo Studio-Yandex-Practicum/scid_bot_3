@@ -223,7 +223,7 @@ async def get_products_list(
     """Получить список продуктов."""
 
     products = [
-        product.title for product in await product_crud.get_multi(session)
+        product.name for product in await product_crud.get_multi(session)
     ]
 
     await state.clear()

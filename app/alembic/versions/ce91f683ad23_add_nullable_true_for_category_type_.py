@@ -1,8 +1,8 @@
-"""change all model name fields to name
+"""add nullable True for category type content
 
-Revision ID: 42e8d0d2bdd4
+Revision ID: ce91f683ad23
 Revises: 
-Create Date: 2024-10-10 10:21:14.189895
+Create Date: 2024-10-13 23:29:19.198485
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
-revision: str = '42e8d0d2bdd4'
+revision: str = 'ce91f683ad23'
 down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -52,7 +52,7 @@ def upgrade() -> None:
     )
     op.create_table('productcategory',
     sa.Column('name', sa.VARCHAR(length=150), nullable=False),
-    sa.Column('response', sa.TEXT(), nullable=False),
+    sa.Column('description', sa.TEXT(), nullable=False),
     sa.Column('id', sa.Integer(), nullable=False),
     sa.PrimaryKeyConstraint('id')
     )
@@ -67,8 +67,9 @@ def upgrade() -> None:
     op.create_table('categorytype',
     sa.Column('name', sa.VARCHAR(length=150), nullable=False),
     sa.Column('product_id', sa.Integer(), nullable=False),
-    sa.Column('url', sa.VARCHAR(length=128), nullable=False),
+    sa.Column('url', sa.VARCHAR(length=128), nullable=True),
     sa.Column('media', sa.VARCHAR(length=128), nullable=True),
+    sa.Column('description', sa.TEXT(), nullable=True),
     sa.Column('id', sa.Integer(), nullable=False),
     sa.ForeignKeyConstraint(['product_id'], ['productcategory.id'], ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('id')

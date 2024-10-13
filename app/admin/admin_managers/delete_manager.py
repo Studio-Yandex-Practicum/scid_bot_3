@@ -108,6 +108,5 @@ class DeleteManager(BaseAdminManager):
                     previous_menu=self.back_option
                 ),
             )
-            await state.clear()
         except Exception as e:
             await callback.message.answer(f"Произошла ошибка: {e}")

@@ -186,7 +186,6 @@ class UpdateManager(BaseAdminManager):
                 previous_menu=self.back_option
             ),
         )
-        await state.clear()
 
 
 class UpdatePortfolio:
@@ -244,4 +243,3 @@ class UpdatePortfolio:
                 previous_menu=self.back_option
             ),
         )
-        await state.clear()

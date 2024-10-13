@@ -7,7 +7,7 @@ from admin.keyboards.keyboards import (
     get_inline_confirmation,
     get_inline_keyboard,
 )
-from admin.admin_settings import ADMIN_CONTENT_OPTIONS, ADMIN_UPDATE_BUTTONS
+from admin.admin_settings import ADMIN_UPDATE_BUTTONS
 from crud.base_crud import CRUDBase
 from crud.category_product import category_product_crud
 from .create_manager import CreateManager
@@ -62,12 +62,7 @@ class CreateCategoryManager(CreateManager):
                 previous_menu=self.back_option
             ),
         )
-        if callback.data == ADMIN_CONTENT_OPTIONS.get("url"):
-            await state.set_state(self.states_group.url)
-        elif callback.data == ADMIN_CONTENT_OPTIONS.get("description"):
-            await state.set_state(self.states_group.description)
-        elif callback.data == ADMIN_CONTENT_OPTIONS.get("media"):
-            await state.set_state(self.states_group.media)
+        await state.set_state(self.states_group.name)
 
 
 class UpdateCategoryManager(UpdateManager):

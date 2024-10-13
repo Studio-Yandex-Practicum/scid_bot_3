@@ -67,9 +67,10 @@ class CreateManager(BaseAdminManager):
     ) -> None:
         super().__init__(model_crud, back_option, states_group)
 
-    async def select_data_type(self, callback: CallbackQuery, state: FSMContext):
+    async def select_data_type(self, message: Message, state: FSMContext):
         """Выбрать тип данных для модели в БД."""
-        await callback.message.answer(
+        await state.update_data(name=message.text)
+        await message.answer(
             "Выбирите способ передачи информации:",
             reply_markup=await get_inline_keyboard(
                 ADMIN_CONTENT_BUTTONS, previous_menu=self.back_option
@@ -105,9 +106,7 @@ class CreateManager(BaseAdminManager):
         Добавить название объекта в state_data и перейти
         к заполнению следующего поля.
         """
-        data = await state.get_data()
-        if not data.get("name"):
-            await state.update_data(name=message.text)
+        await state.update_data(name=message.text)
         await message.answer(
             message_text,
             reply_markup=await get_inline_keyboard(
@@ -132,6 +131,24 @@ class CreateManager(BaseAdminManager):
             next_state=self.states_group.url,
         )
 
+    async def add_obj_url_callback(
+        self, callback: CallbackQuery, state: FSMContext
+    ):
+        """
+        Добавить ссылку к объекту и перейти в
+        следующее машинное состояние.
+        """
+        await callback.message.answer(
+            (
+                "Ссылка обязательно должна начинаться с 'https://'\n\n "
+                "Введите адрес ссылки:"
+            ),
+            reply_markup=await get_inline_keyboard(
+                previous_menu=self.back_option
+            ),
+        )
+        await state.set_state(self.states_group.url)
+
     async def add_obj_description(self, message: Message, state: FSMContext):
         """
         Добавить текст к объекту и перейти в
@@ -145,6 +162,21 @@ class CreateManager(BaseAdminManager):
             next_state=self.states_group.description,
         )
 
+    async def add_obj_description_callback(
+        self, callback: CallbackQuery, state: FSMContext
+    ):
+        """
+        Добавить текст к объекту и перейти в
+        следующее машинное состояние.
+        """
+        await callback.message.answer(
+            "Введите текст:",
+            reply_markup=await get_inline_keyboard(
+                previous_menu=self.back_option
+            ),
+        )
+        await state.set_state(self.states_group.description)
+
     async def add_obj_media(self, message: Message, state: FSMContext):
         """
         Добавить картинку к объекту и перейти в
@@ -157,6 +189,21 @@ class CreateManager(BaseAdminManager):
             state,
             next_state=self.states_group.media,
         )
+
+    async def add_obj_media_callback(
+        self, callback: CallbackQuery, state: FSMContext
+    ):
+        """
+        Добавить картинку к объекту и перейти в
+        следующее машинное состояние.
+        """
+        await callback.message.answer(
+            "Добавьте картинку и текст к ней:",
+            reply_markup=await get_inline_keyboard(
+                previous_menu=self.back_option
+            ),
+        )
+        await state.set_state(self.states_group.media)
 
     async def add_obj_to_db(
         self, message: Message, state: FSMContext, session: AsyncSession
@@ -183,6 +230,5 @@ class CreateManager(BaseAdminManager):
                     previous_menu=self.back_option
                 ),
             )
-            await state.clear()
         except Exception as e:
             await message.answer(f"Произошла ошибка: {e}")

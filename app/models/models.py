@@ -69,11 +69,11 @@ class CategoryType(Base):
         index=True,
     )
 
-    url: Mapped[str] = mapped_column(pgsql_types.VARCHAR(128))
+    url: Mapped[str] = mapped_column(pgsql_types.VARCHAR(128), nullable=True)
 
     media: Mapped[str] = mapped_column(pgsql_types.VARCHAR(128), nullable=True)
 
-    description: Mapped[str] = mapped_column(pgsql_types.TEXT)
+    description: Mapped[str] = mapped_column(pgsql_types.TEXT, nullable=True)
 
     product_category = relationship(
         "ProductCategory", back_populates="categories"
