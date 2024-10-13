@@ -4,7 +4,7 @@ from aiogram.filters import CommandStart, Command
 from aiogram.types import Message
 from sqlalchemy.ext.asyncio import AsyncSession
 from admin.keyboards.keyboards import get_inline_keyboard
-from app.admin.admin_settings import MAIN_MENU_BUTTONS
+from admin.admin_settings import MAIN_MENU_BUTTONS
 from bot.bot_const import (
     ADMIN_NEGATIVE_ANSWER, ADMIN_POSITIVE_ANSWER, START_MESSAGE
 )

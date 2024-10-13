@@ -102,7 +102,7 @@ async def main_menu_callback(callback: CallbackQuery, state: FSMContext):
 
 @user_router.callback_query(F.data == MAIN_MENU_OPTIONS.get("portfolio"))
 async def portfolio_info(callback: CallbackQuery, session: AsyncSession):
-    portlio_url = await company_info_crud.get_portfolio(session)
+    portlio_url = await portfolio_crud.get_portfolio(session)
     await callback.message.edit_text(
         PORTFOLIO_MENU_TEXT,
         reply_markup=await get_inline_keyboard(
@@ -159,8 +159,8 @@ async def support_menu(callback: CallbackQuery):
 
 @user_router.callback_query(
     or_f(
-        F.data == SUPPORT_OPTIONS.get("faq"),
-        F.data == SUPPORT_OPTIONS.get("troubleshooting"),
+        F.data == SUPPORT_OPTIONS.get("general_questions"),
+        F.data == SUPPORT_OPTIONS.get("problems_with_products"),
     )
 )
 async def info_faq(
@@ -201,9 +201,8 @@ async def portfolio_other_projects(
     """Получить список других проектов компании."""
 
     await state.clear()
-
     projects = await portfolio_crud.get_multi(session)
-    projects_names = [project.project_name for project in projects]
+    projects_names = [project.name for project in projects]
     urls = [project.url for project in projects]
 
     await callback.message.edit_text(
@@ -255,7 +254,7 @@ async def product_category(
     urls = [category.url for category in categories]
 
     await callback.message.edit_text(
-        f"{product.response}",
+        f"{product.description}",
         reply_markup=await get_inline_keyboard(
             categories_by_name,
             urls=urls,

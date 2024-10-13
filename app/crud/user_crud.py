@@ -27,7 +27,7 @@ class UserCRUD(CRUDBase):
         """Получить пользователя по его tg_id."""
 
         user = await session.execute(
-            select(self.model).where(self.model.telegram_id == tg_id)
+            select(self.model).where(self.model.tg_id == tg_id)
         )
 
         return user.scalars().first()

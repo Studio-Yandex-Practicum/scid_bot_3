@@ -7,16 +7,22 @@ from models.models import CheckCompanyPortfolio
 
 
 class PortfolioProjectsCRUD(CRUDBase):
-    async def get_by_project_name(
-        self,
-        project_name: str,
-        session: AsyncSession,
-    ):
-        """Получить проект портфолио по тексту названия."""
-        portfolio_project = await session.execute(
-            select(self.model).where(self.model.name == project_name)
+    async def get_portfolio(self, session: AsyncSession):
+        """Получить объект в котором хранится ссылка на портфолио."""
+        portfolio_obj = await session.execute(
+            select(self.model).where(self.model.id == 1)
         )
-        return portfolio_project.scalars().first()
+        return portfolio_obj.scalars().first()
+
+    async def get_multi(self, session: AsyncSession):
+        """
+        Получить список всех объектов модели из БД,
+        кроме основного портфолио.
+        """
+        db_objs = await session.execute(
+            select(self.model).where(self.model.id != 1)
+        )
+        return db_objs.scalars().all()
 
 
 portfolio_crud = PortfolioProjectsCRUD(CheckCompanyPortfolio)

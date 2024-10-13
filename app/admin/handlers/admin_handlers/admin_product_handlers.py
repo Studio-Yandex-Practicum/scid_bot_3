@@ -9,12 +9,17 @@ from .admin import SectionState
 from crud.category_product import category_product_crud
 from crud.product_crud import product_crud
 from admin.filters.filters import ChatTypeFilter, IsAdmin
-from admin.keyboards.keyboards import (
-    get_inline_confirmation,
-    get_inline_keyboard,
+from admin.admin_managers import (
+    DeleteManager,
+    DeleteState,
+    CreateState,
+    CreateManager,
+    UpdateManager,
+    UpdateState,
 )
 
 from admin.admin_settings import (
+    ADMIN_BASE_OPTIONS,
     MAIN_MENU_OPTIONS,
 )
 
@@ -23,21 +28,24 @@ product_router.message.filter(ChatTypeFilter(["private"]), IsAdmin())
 
 PREVIOUS_MENU = MAIN_MENU_OPTIONS.get("products")
 
+product_create_manager = CreateManager(product_crud, PREVIOUS_MENU)
+product_update_manager = UpdateManager(product_crud, PREVIOUS_MENU)
+product_delete_manager = DeleteManager(product_crud, PREVIOUS_MENU)
 
-class AddProduct(StatesGroup):
-    title = State()
-    response = State()
-
-
-class UpdateProduct(StatesGroup):
-    select = State()
-    title = State()
-    response = State()
-    confirm = State()
+# class AddProduct(StatesGroup):
+#     title = State()
+#     response = State()
 
 
-class DeleteProduct(AddProduct):
-    confirm = State()
+# class UpdateProduct(StatesGroup):
+#     select = State()
+#     title = State()
+#     response = State()
+#     confirm = State()
+
+
+# class DeleteProduct(AddProduct):
+#     confirm = State()
 
 
 class AddProductInfo(StatesGroup):
@@ -49,47 +57,27 @@ class AddProductInfo(StatesGroup):
     media_description = State()
 
 
-async def get_products_list(session: AsyncSession):
-    """Получить список названий проектов для портфолио."""
-
-    return [project.title for project in await product_crud.get_multi(session)]
-
-
-@product_router.callback_query(SectionState.product, F.data == "Добавить")
+@product_router.callback_query(
+    SectionState.product, F.data == ADMIN_BASE_OPTIONS.get("create")
+)
 async def add_product(callback: CallbackQuery, state: FSMContext):
     """Добавить название."""
-
-    await callback.message.answer("Введите название проекта или услуги")
-    await state.set_state(AddProduct.title)
+    await product_create_manager.add_obj_name(callback, state)
 
 
-@product_router.message(AddProduct.title, F.text)
+@product_router.message(CreateState.name, F.text)
 async def add_product_description(message: Message, state: FSMContext):
     """Добавить описание."""
-
-    await state.update_data(title=message.text)
-    await message.answer("Добавьте описание к продукту или услуге")
-    await state.set_state(AddProduct.response)
+    await product_create_manager.add_obj_description(message, state)
 
 
-@product_router.message(AddProduct.response, F.text)
+@product_router.message(CreateState.description, F.text)
 async def creeate_product(
     message: Message, state: FSMContext, session: AsyncSession
 ):
     """Создать продкет в БД."""
 
-    await state.update_data(response=message.text)
-    data = await state.get_data()
-
-    await product_crud.create(data, session)
-    await message.answer(
-        "Продукт создан! Хотите добавить к нему дополнительну информацию?",
-        reply_markup=await get_inline_confirmation(
-            option="Да", cancel_option=PREVIOUS_MENU
-        ),
-    )
-
-    await state.set_state(AddProductInfo.product_id)
+    await product_create_manager.add_obj_to_db(message, state, session)
 
 
 @product_router.callback_query(AddProductInfo.product_id, F.data == "Да")

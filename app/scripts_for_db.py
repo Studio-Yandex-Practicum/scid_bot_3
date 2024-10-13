@@ -1,7 +1,7 @@
 '''
 Скрипт для ветки узнать о продуктах и услугах:
 
-INSERT INTO ProductCategory (title, response) VALUES
+INSERT INTO ProductCategory (name, response) VALUES
     ('Разработка сайтов', 'Текст для разработки сайтов'),
     ('Создание порталов', 'Текст для создания порталов'),
     ('Разработка мобильных приложений', 'Текст для мобильных приложений'),
@@ -36,7 +36,7 @@ VALUES
 '''
 Скрипт тестовыхх данных для ветки посмотреть портфолио
 
-INSERT INTO checkcompanyportfolio (project_name, url) VALUES
+INSERT INTO checkcompanyportfolio (name, url) VALUES
 ('Project Alpha', 'https://example.com/project-alpha'),
 ('Project Beta', 'https://example.com/project-beta'),
 ('Project Gamma', 'https://example.com/project-gamma'),

@@ -4,10 +4,6 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from models.models import InformationAboutCompany
-# from core.settings import PORTFOLIO_DEFAULT_DATA
-
-
-PORTFOLIO_DEFAULT_DATA = {"name": "Портфолио", "url": "https://scid.ru/cases"}
 
 
 class AboutCRUD(CRUDBase):
@@ -21,15 +17,6 @@ class AboutCRUD(CRUDBase):
             select(self.model).where(self.model.name == about_name)
         )
         return db_obj.scalars().first()
-
-    async def get_portfolio(self, session: AsyncSession):
-        """Получить объект в котором хранится ссылка на портфолио."""
-        portfolio_obj = await session.execute(
-            select(self.model).where(
-                self.model.name == PORTFOLIO_DEFAULT_DATA.get("name")
-            )
-        )
-        return portfolio_obj.scalars().first()
 
     async def get_multi(self, session: AsyncSession):
         """Получить список всех объектов модели из БД."""

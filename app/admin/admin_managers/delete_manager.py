@@ -8,7 +8,6 @@ from admin.keyboards.keyboards import (
     get_inline_confirmation,
     get_inline_keyboard,
 )
-from models.models import Info
 
 
 class DeleteState(StatesGroup):
@@ -75,13 +74,8 @@ class DeleteManager(BaseAdminManager):
         self.obj_to_delete = await self.model_crud.get_by_string(
             callback.data, session
         )
-        obj_data = (
-            self.obj_to_delete.question
-            if isinstance(self.obj_to_delete, Info)
-            else self.obj_to_delete.name
-        )
         await callback.message.edit_text(
-            f"Вы уверены, что хотите удалить эти данные?\n\n {obj_data}",
+            f"Вы уверены, что хотите удалить эти данные?\n\n {self.obj_to_delete.name}",
             reply_markup=await get_inline_confirmation(
                 cancel_option=self.back_option
             ),

@@ -7,7 +7,7 @@ from core.bot_setup import bot, dispatcher, check_token
 from bot.handlers import router as message_router
 from bot.callbacks import router as callback_router
 from bot.fsm_context import router as fsm_context_router
-from core.init_db import add_portfolio
+from core.init_db import add_portfolio, set_admin
 from admin.handlers.admin_handlers import admin_router
 from admin.handlers.user import user_router
 
@@ -44,6 +44,7 @@ async def main() -> None:
             DataBaseSession(session_pool=AsyncSessionLocal)
         )
         await add_portfolio()
+        await set_admin()
         await dispatcher.start_polling(bot)
 
     except Exception as e:

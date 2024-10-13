@@ -22,7 +22,7 @@ async def response_text_by_id(id: int, session: AsyncSession) -> str:
     """Возвращает ответ на выбранную категорию."""
 
     result = await session.execute(
-        select(ProductCategory.response).where(ProductCategory.id == id)
+        select(ProductCategory.description).where(ProductCategory.id == id)
     )
 
     return result.scalar()

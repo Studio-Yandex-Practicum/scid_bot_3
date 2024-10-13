@@ -48,6 +48,9 @@ ADMIN_CONTENT_OPTIONS = {
     "media": "Картинка",
 }
 ADMIN_CONTENT_BUTTONS = get_buttons(ADMIN_CONTENT_OPTIONS)
+
+ADMIN_QUESTION_OPTIONS = {"question": "Вопрос", "answer": "Ответ"}
+ADMIN_QUESTION_BUTTONS = get_buttons(ADMIN_QUESTION_OPTIONS)
 # Кнопки экранной клавиатуры
 BASE_BUTTONS = {
     "main_menu": "Главное меню",
@@ -70,11 +73,12 @@ MAIN_MENU_BUTTONS = get_buttons(MAIN_MENU_OPTIONS)
 # Техподдержка - кнопки и текст
 SUPPORT_MENU_TEXT = "Какой вид поддержки Вам нужен?"
 SUPPORT_OPTIONS = {
-    "faq": "Общие вопросы",
-    "troubleshooting": "Проблемы с продуктами",
+    "general_questions": "Общие вопросы",
+    "problems_with_products": "Проблемы с продуктами",
     "callback_request": "Запрос на обратный звонок",
 }
 SUPPROT_MENU_BUTTONS = get_buttons(SUPPORT_OPTIONS)
+
 
 # Информация о компании - кнопки и текст
 COMPANY_ABOUT = "Вот несколько вариантов информации о нашей компании. Что именно вас интересует?"

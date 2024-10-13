@@ -18,8 +18,9 @@ class CreateState(StatesGroup):
     select = State()
     name = State()
     url = State()
-    text = State()
+    description = State()
     media = State()
+
 
 class CreateManager(BaseAdminManager):
     """
@@ -121,7 +122,7 @@ class CreateManager(BaseAdminManager):
             next_state=CreateState.url,
         )
 
-    async def add_obj_text(self, message: Message, state: FSMContext):
+    async def add_obj_description(self, message: Message, state: FSMContext):
         """
         Добавить текст к объекту и перейти в
         следующее машинное состояние.
@@ -131,7 +132,7 @@ class CreateManager(BaseAdminManager):
             message,
             message_text,
             state,
-            next_state=CreateState.text,
+            next_state=CreateState.description,
         )
 
     async def add_obj_media(self, message: Message, state: FSMContext):
@@ -155,12 +156,12 @@ class CreateManager(BaseAdminManager):
             current_state = await state.get_state()
             if current_state == CreateState.url.state:
                 await state.update_data(url=message.text)
-            elif current_state == CreateState.text.state:
-                await state.update_data(text=message.text)
+            elif current_state == CreateState.description.state:
+                await state.update_data(description=message.text)
             elif current_state == CreateState.media.state:
                 await state.update_data(
                     media=message.photo[-1].file_id,
-                    text=message.caption,
+                    description=message.caption,
                 )
 
             data = await state.get_data()

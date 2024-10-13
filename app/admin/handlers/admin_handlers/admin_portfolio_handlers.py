@@ -1,254 +1,166 @@
 from aiogram import F, Router
 from aiogram.filters import and_f, or_f
 from aiogram.fsm.context import FSMContext
-from aiogram.fsm.state import State, StatesGroup
 from aiogram.types import CallbackQuery, Message
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from admin.handlers.admin_handlers.admin import SectionState
-from crud.about_crud import company_info_crud
 from crud.portfolio_projects_crud import portfolio_crud
 from admin.filters.filters import ChatTypeFilter, IsAdmin
-from admin.keyboards.keyboards import (
-    get_inline_confirmation,
-    get_inline_keyboard,
+from admin.admin_managers import (
+    DeleteManager,
+    DeleteState,
+    CreateState,
+    CreateManager,
+    UpdateManager,
+    UpdateState,
+    UpdatePortfolio,
 )
-
 from admin.admin_settings import (
+    ADMIN_UPDATE_OPTIONS,
     MAIN_MENU_OPTIONS,
     ADMIN_PORTFOLIO_OPTIONS,
     PORTFOLIO_MENU_OPTIONS,
+    ADMIN_BASE_OPTIONS,
 )
 
 portfolio_router = Router()
 portfolio_router.message.filter(ChatTypeFilter(["private"]), IsAdmin())
 
-
-class UpdatePortfolio(StatesGroup):
-    url = State()
-
-
-class AddProject(StatesGroup):
-    project_name = State()
-    url = State()
-
-
-class UpdateProject(StatesGroup):
-    select = State()
-    project_name = State()
-    url = State()
-    confirm = State()
-
-
-class DeleteProject(AddProject):
-    confirm = State()
-
-
 PREVIOUS_MENU = PORTFOLIO_MENU_OPTIONS.get("other_projects")
 
-
-async def get_portfolio_project_list(session: AsyncSession):
-    """Получить список названий проектов для портфолио."""
-    projects = [
-        project.project_name
-        for project in await portfolio_crud.get_multi(session)
-    ]
-    return projects
+portfolio_create_manager = CreateManager(portfolio_crud, PREVIOUS_MENU)
+portfolio_delete_manager = DeleteManager(portfolio_crud, PREVIOUS_MENU)
+portfolio_update_manager = UpdateManager(portfolio_crud, PREVIOUS_MENU)
+main_portfolio_url_update_manager = UpdatePortfolio(
+    MAIN_MENU_OPTIONS.get("portfolio")
+)
 
 
 @portfolio_router.callback_query(
-    SectionState.other_projects, F.data == "Добавить"
+    SectionState.other_projects, F.data == ADMIN_BASE_OPTIONS.get("create")
 )
 async def add_portfolio_project_name(
     callback: CallbackQuery, state: FSMContext
 ):
-    await callback.message.answer("Введите название проекта:")
-    await state.set_state(AddProject.project_name)
+    """Запустить процесс создания нового портфолио."""
+    await portfolio_create_manager.add_obj_name(callback, state)
 
 
-@portfolio_router.message(AddProject.project_name, F.text)
+@portfolio_router.message(CreateState.name, F.text)
 async def add_portfolio_project_url(message: Message, state: FSMContext):
-    await state.update_data(project_name=message.text)
-    await message.answer("Добавьте ссылку:")
-    await state.set_state(AddProject.url)
+    """Сохранить имя нового объекта в состояние."""
+    await portfolio_create_manager.add_obj_url(message, state)
 
 
-@portfolio_router.message(AddProject.url, F.text)
+@portfolio_router.message(CreateState.url, F.text)
 async def create_portfolio_project(
     message: Message, state: FSMContext, session: AsyncSession
 ):
-    await state.update_data(url=message.text)
-    data = await state.get_data()
-    await portfolio_crud.create(data, session)
-    await message.answer(
-        "Проект добавлен!",
-        reply_markup=await get_inline_keyboard(previous_menu=PREVIOUS_MENU),
-    )
-    await state.clear()
+    """Сохранить URL нового объекта в базу данных."""
+    await portfolio_create_manager.add_obj_to_db(message, state, session)
 
 
 @portfolio_router.callback_query(
-    SectionState.other_projects, F.data == "Удалить"
+    SectionState.other_projects, F.data == ADMIN_BASE_OPTIONS.get("delete")
 )
 async def portfolio_project_to_delete(
     callback: CallbackQuery, state: FSMContext, session: AsyncSession
 ):
-    await callback.message.answer(
-        "Какой проект Вы хотите удалить?",
-        reply_markup=await get_inline_keyboard(
-            options=await get_portfolio_project_list(session),
-            previous_menu=PREVIOUS_MENU,
-        ),
+    """Запустить процесс выбора объекта для удаления."""
+    await portfolio_delete_manager.select_obj_to_delete(
+        callback, state, session
     )
-    await state.set_state(DeleteProject.project_name)
 
 
-@portfolio_router.callback_query(DeleteProject.project_name, F.data)
+@portfolio_router.callback_query(DeleteState.select, F.data != PREVIOUS_MENU)
 async def confirm_delete(
     callback: CallbackQuery, state: FSMContext, session: AsyncSession
 ):
-    portfolio_project = await portfolio_crud.get_by_project_name(
-        callback.data, session
-    )
-    await callback.message.edit_text(
-        f"Вы уверены, что хотите удалить этот проект?\n\n {portfolio_project.project_name}",
-        reply_markup=await get_inline_confirmation(
-            option=portfolio_project.project_name, cancel_option=PREVIOUS_MENU
-        ),
-    )
-    await state.set_state(DeleteProject.confirm)
+    """Подтведить удаление выбранного объекта."""
+    await portfolio_delete_manager.confirm_delete(callback, state, session)
 
 
-@portfolio_router.callback_query(
-    DeleteProject.confirm, F.data != PREVIOUS_MENU
-)
+@portfolio_router.callback_query(DeleteState.confirm, F.data != PREVIOUS_MENU)
 async def delete_protfolio_project(
     callback: CallbackQuery, state: FSMContext, session: AsyncSession
 ):
-    portfolio_project = await portfolio_crud.get_by_project_name(
-        callback.data, session
-    )
-    await portfolio_crud.remove(portfolio_project, session)
-    await callback.message.edit_text(
-        "Проект удален!",
-        reply_markup=await get_inline_keyboard(previous_menu=PREVIOUS_MENU),
-    )
-    await state.clear()
+    """Удалить выбранный объект из базы данных."""
+    await portfolio_delete_manager.delete_obj(callback, state, session)
 
 
 @portfolio_router.callback_query(
-    SectionState.other_projects, F.data == "Изменить"
+    SectionState.other_projects, F.data == ADMIN_BASE_OPTIONS.get("update")
 )
 async def portfolio_project_to_update(
     callback: CallbackQuery, state: FSMContext, session: AsyncSession
 ):
-    await callback.message.edit_text(
-        "Какую информацию вы хотите отредактировать?",
-        reply_markup=await get_inline_keyboard(
-            options=await get_portfolio_project_list(session),
-            previous_menu=PREVIOUS_MENU,
-        ),
+    """Запустить процесс выбора объекта для обновления."""
+    await portfolio_update_manager.select_obj_to_update(
+        callback, state, session
     )
-    await state.set_state(UpdateProject.select)
 
 
 @portfolio_router.callback_query(
-    UpdateProject.select,
+    UpdateState.select,
     and_f(
-        F.data != "Название проекта",
-        F.data != "Адрес ссылки",
+        F.data != ADMIN_UPDATE_OPTIONS.get("name"),
+        F.data != ADMIN_UPDATE_OPTIONS.get("content"),
         F.data != PREVIOUS_MENU,
     ),
 )
 async def update_portfolio_project_choise(
-    callback: CallbackQuery, state: FSMContext
+    callback: CallbackQuery, session: AsyncSession
 ):
-    await state.update_data(select=callback.data)
-    await callback.message.edit_text(
-        "Что вы хотите отредактировать?",
-        reply_markup=await get_inline_keyboard(
-            ["Название проекта", "Адрес ссылки"], previous_menu=PREVIOUS_MENU
-        ),
-    )
+    """Обработать выбор данных для обновления."""
+    await portfolio_update_manager.select_data_to_update(callback, session)
 
 
 @portfolio_router.callback_query(
-    UpdateProject.select, F.data == "Название проекта"
+    UpdateState.select, F.data == ADMIN_UPDATE_OPTIONS.get("name")
 )
-async def about_name_update(
+async def portfolio_name_update(
     callback: CallbackQuery,
     state: FSMContext,
 ):
-    about_name = await state.get_data()
-    about_name_text = about_name.get("select")
-    await callback.message.answer(
-        f"Сейчас у проекта такое название:\n\n {about_name_text}\n\n Введите новое название"
-    )
-    await state.set_state(UpdateProject.project_name)
+    """Обновить имя объекта."""
+    await portfolio_update_manager.change_obj_name(callback, state)
 
 
 @portfolio_router.callback_query(
-    UpdateProject.select, F.data == "Адрес ссылки"
+    UpdateState.select, F.data == ADMIN_UPDATE_OPTIONS.get("content")
 )
-async def about_url_update(
-    callback: CallbackQuery, state: FSMContext, session: AsyncSession
-):
-    about_name_data = await state.get_data()
-    about_name_text = about_name_data.get("select")
-    about_info = await portfolio_crud.get_by_project_name(
-        about_name_text, session
-    )
-    await callback.message.answer(
-        f"Сейчас у ссылки такой адрес:\n\n {about_info.url}\n\n Введите новое название"
-    )
-    await state.set_state(UpdateProject.url)
+async def about_url_update(callback: CallbackQuery, state: FSMContext):
+    """Обновить содержимое объекта."""
+    await portfolio_update_manager.change_obj_content(callback, state)
 
 
-@portfolio_router.message(
-    or_f(UpdateProject.project_name, UpdateProject.url), F.text
-)
+@portfolio_router.message(or_f(UpdateState.name, UpdateState.url), F.text)
 async def update_about_info(
     message: Message, state: FSMContext, session: AsyncSession
 ):
-    current_state = await state.get_state()
-    old_data = await state.get_data()
-    old_portfolio_data = await portfolio_crud.get_by_project_name(
-        old_data.get("select"), session
-    )
-    if current_state == UpdateProject.project_name:
-        await state.update_data(project_name=message.text)
-    elif current_state == UpdateProject.url:
-        await state.update_data(url=message.text)
-    update_data = await state.get_data()
-    await portfolio_crud.update(old_portfolio_data, update_data, session)
-    await message.answer(
-        "Информация обновлена!",
-        reply_markup=await get_inline_keyboard(previous_menu=PREVIOUS_MENU),
-    )
-    await state.clear()
+    """Обновить объект в базе данных на основе нового содержимого."""
+    await portfolio_update_manager.update_obj_in_db(message, state, session)
 
 
 @portfolio_router.callback_query(
     SectionState.portfolio,
     F.data == ADMIN_PORTFOLIO_OPTIONS.get("change_url"),
 )
-async def change_portfolio_url(callback: CallbackQuery, state: FSMContext):
-    await callback.message.answer("Введите новый адрес ссылки на портфолио")
-    await state.set_state(UpdatePortfolio.url)
+async def change_portfolio_url(
+    callback: CallbackQuery, state: FSMContext, session: AsyncSession
+):
+    """Обновить адрес ссылки основного портфолио."""
+    await main_portfolio_url_update_manager.update_main_portfolio_url(
+        callback, state, session
+    )
 
 
-@portfolio_router.message(UpdatePortfolio.url, F.text)
+@portfolio_router.message(UpdateState.portolio, F.text)
 async def update_portfolio_button(
     message: Message, state: FSMContext, session: AsyncSession
 ):
-    await state.update_data(url=message.text)
-    updated_data = await state.get_data()
-    portfolio = await company_info_crud.get_portfolio(session)
-    await company_info_crud.update(portfolio, updated_data, session)
-    await message.answer(
-        "Изменения внесены!",
-        reply_markup=await get_inline_keyboard(
-            previous_menu=MAIN_MENU_OPTIONS.get("portfolio")
-        ),
+    """Обновить адрес ссылки основного портфолио в базе данных."""
+    await main_portfolio_url_update_manager.update_obj_in_db(
+        message, state, session
     )
-    await state.clear()

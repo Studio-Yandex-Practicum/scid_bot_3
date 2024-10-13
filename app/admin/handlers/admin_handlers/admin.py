@@ -39,8 +39,8 @@ class FeedbackState(StatesGroup):
 class SectionState(StatesGroup):
     """State для определения раздела, в который вносятся измения."""
 
-    faq = State()
-    troubleshooting = State()
+    general_questions = State()
+    problems_with_products = State()
     portfolio = State()
     other_projects = State()
     about = State()
@@ -52,10 +52,10 @@ class SectionState(StatesGroup):
     def get_condition(cls, menu_text: str):
         """Выбрать категорию для раздела."""
 
-        if menu_text == SUPPORT_OPTIONS.get("faq"):
-            return cls.faq
-        elif menu_text == SUPPORT_OPTIONS.get("troubleshooting"):
-            return cls.troubleshooting
+        if menu_text == SUPPORT_OPTIONS.get("general_questions"):
+            return cls.general_questions
+        elif menu_text == SUPPORT_OPTIONS.get("problems_with_products"):
+            return cls.problems_with_products
         elif menu_text == SUPPORT_OPTIONS.get("callback_request"):
             return cls.callback_request
         elif menu_text == MAIN_MENU_OPTIONS.get("company_bio"):

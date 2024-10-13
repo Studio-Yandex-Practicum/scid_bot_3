@@ -11,14 +11,14 @@ from core.db import Base
 
 
 class RoleEnum(str, Enum):
-    USER = 'U'
-    ADMIN = 'A'
-    MANAGER = 'M'
+    USER = "Пользователь"
+    ADMIN = "Админ"
+    MANAGER = "Mенеджер"
 
 
 class QuestionEnum(str, Enum):
-    GENERAL_QUESTIONS = 'Общие вопросы'
-    PROBLEMS_WITH_PRODUCTS = 'Проблемы с продуктами'
+    GENERAL_QUESTIONS = "Общие вопросы"
+    PROBLEMS_WITH_PRODUCTS = "Проблемы с продуктами"
 
 
 class User(Base):
@@ -49,7 +49,7 @@ class ProductCategory(Base):
 
     name: Mapped[str] = mapped_column(pgsql_types.VARCHAR(150))
 
-    response: Mapped[str] = mapped_column(pgsql_types.TEXT)
+    description: Mapped[str] = mapped_column(pgsql_types.TEXT)
 
     categories = relationship(
         "CategoryType",
@@ -64,7 +64,7 @@ class CategoryType(Base):
     name: Mapped[str] = mapped_column(pgsql_types.VARCHAR(150), nullable=False)
 
     product_id: Mapped[int] = mapped_column(
-        ForeignKey('productcategory.id', ondelete='CASCADE'),
+        ForeignKey("productcategory.id", ondelete="CASCADE"),
         nullable=False,
         index=True,
     )
@@ -72,6 +72,8 @@ class CategoryType(Base):
     url: Mapped[str] = mapped_column(pgsql_types.VARCHAR(128))
 
     media: Mapped[str] = mapped_column(pgsql_types.VARCHAR(128), nullable=True)
+
+    description: Mapped[str] = mapped_column(pgsql_types.TEXT)
 
     product_category = relationship(
         "ProductCategory", back_populates="categories"
@@ -89,9 +91,7 @@ class InformationAboutCompany(Base):
 class CheckCompanyPortfolio(Base):
     """Бд модель информации о проектах."""
 
-    name: Mapped[str] = mapped_column(
-        pgsql_types.VARCHAR(48), nullable=False
-    )
+    name: Mapped[str] = mapped_column(pgsql_types.VARCHAR(48), nullable=False)
 
     url: Mapped[str] = mapped_column(pgsql_types.VARCHAR(128))
 
@@ -101,7 +101,7 @@ class Info(Base):
 
     question_type: Mapped[QuestionEnum] = mapped_column(
         pgsql_types.ENUM(
-            QuestionEnum, name='question_enum', create_type=False
+            QuestionEnum, name="question_enum", create_type=False
         ),
         nullable=False,
     )
