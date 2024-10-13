@@ -6,7 +6,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.sql import func
 import sqlalchemy.dialects.postgresql as pgsql_types
 
-from core.db import Base
+from app.core.db import Base
 
 
 class RoleEnum(str, Enum):

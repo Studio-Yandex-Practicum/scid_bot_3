@@ -71,7 +71,6 @@ async def process_description(
     logger.info(f'Пользователь {message.from_user.id} ввел текст.')
 
     feedback_data = await state.get_data()
-    print(feedback_data)
     await create_feedback(feedback_data, session)
 
     logger.info(f'Запись создана в БД с ID: {feedback_data.id}.')
