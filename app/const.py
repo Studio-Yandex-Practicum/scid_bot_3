@@ -1,11 +1,26 @@
 import os
-
 from dotenv import load_dotenv
 
+# Загружаем переменные окружения из файла .env
 load_dotenv()
 
-TELEGRAM_CHAT_IDS = os.getenv("TELEGRAM_CHAT_IDS").split(", ")
-admin_list = [int(admin_id) for admin_id in TELEGRAM_CHAT_IDS]
+# Получаем TELEGRAM_CHAT_IDS из переменных окружения
+chat_ids = os.getenv("TELEGRAM_CHAT_IDS")
+if chat_ids:
+    try:
+        TELEGRAM_CHAT_IDS = [int(admin_id.strip()) for admin_id in chat_ids.split(
+            ",") if admin_id.strip().isdigit()]
+    except ValueError as e:
+        print(f"Ошибка при обработке TELEGRAM_CHAT_IDS: {e}")
+        TELEGRAM_CHAT_IDS = []
+else:
+    TELEGRAM_CHAT_IDS = []
+
+# Если список пуст, предупреждаем пользователя (только для тестов)
+if not TELEGRAM_CHAT_IDS:
+    print("Предупреждение: TELEGRAM_CHAT_IDS не были заданы или заданы некорректно.")
+
+admin_list = TELEGRAM_CHAT_IDS
 
 
 def get_buttons(menu: dict[str, str]) -> list[str]:

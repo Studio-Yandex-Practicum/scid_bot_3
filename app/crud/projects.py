@@ -1,5 +1,5 @@
 from sqlalchemy.ext.asyncio import AsyncSession
-from models.models import (
+from app.models.models import (
     CheckCompanyPortfolio, ProductCategory,
     CategoryType
 )
