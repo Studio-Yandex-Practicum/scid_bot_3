@@ -39,10 +39,6 @@ class User(Base):
         nullable=False,
     )
 
-    feedbacks = relationship(
-        "Feedback", back_populates="author", cascade="all, delete"
-    )
-
 
 class ProductCategory(Base):
     """БД модель продуктов и услуг."""
@@ -140,26 +136,16 @@ class ContactManager(Base):
         pgsql_types.TIMESTAMP(timezone=True), nullable=True
     )
 
-    feedbacks = relationship(
-        "Feedback", back_populates="contact_manager", cascade="all, delete"
-    )
-
 
 class Feedback(Base):
+    """БД модель для отзывов."""
+
     user: Mapped[int] = mapped_column(
         ForeignKey("user.id", ondelete="CASCADE"), nullable=False
-    )
-    contact_manager_id: Mapped[int] = mapped_column(
-        ForeignKey("contactmanager.id", ondelete="CASCADE"), nullable=False
     )
     feedback_text: Mapped[str] = mapped_column(
         pgsql_types.TEXT, nullable=False
     )
     feedback_date: Mapped[datetime] = mapped_column(
         pgsql_types.TIMESTAMP, default=datetime.now
-    )
-    unread: Mapped[bool] = mapped_column(pgsql_types.BOOLEAN, default=True)
-    author = relationship("User", back_populates="feedbacks")
-    contact_manager = relationship(
-        "ContactManager", back_populates="feedbacks"
     )

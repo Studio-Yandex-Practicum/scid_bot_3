@@ -20,6 +20,7 @@ GREETINGS = (
     "Воспользуйтесь экранной клавиатурой для выбора опции."
 )
 
+
 # Кнопки админа
 ADMIN_BASE_OPTIONS = {
     "create": "Добавить",
@@ -48,9 +49,14 @@ ADMIN_CONTENT_OPTIONS = {
     "media": "Картинка",
 }
 ADMIN_CONTENT_BUTTONS = get_buttons(ADMIN_CONTENT_OPTIONS)
-
 ADMIN_QUESTION_OPTIONS = {"question": "Вопрос", "answer": "Ответ"}
 ADMIN_QUESTION_BUTTONS = get_buttons(ADMIN_QUESTION_OPTIONS)
+ADMIN_SPECIAL_OPTIONS = {
+    "manager_request": "Запросы на обратный звонок",
+    "support_request": "Запросы на техподдержку",
+    "Feedbacks": "Отзывы",
+}
+ADMIN_SPECIAL_BUTTONS = get_buttons(ADMIN_SPECIAL_OPTIONS)
 # Кнопки экранной клавиатуры
 BASE_BUTTONS = {
     "main_menu": "Главное меню",
@@ -66,7 +72,7 @@ MAIN_MENU_OPTIONS = {
     "products": "Продукты и услуги",
     "support": "Техническая поддержка",
     "portfolio": "Портфолио",
-    "request_callback": "Связаться с менеджером",
+    "admin_special": "Дополнительно",
 }
 MAIN_MENU_BUTTONS = get_buttons(MAIN_MENU_OPTIONS)
 
@@ -106,3 +112,4 @@ PHONE_NUMBER_LEN = 25
 PHONE_NUMBER_REGEX = r"(\+\d{5,25}$|\d{5,25}$)"
 USER_CALLBACK_PAGINATION = 5
 FEEDBACK_PAGINATION = 5
+DATETIME_FORMAT = '%d-%m-%Y %H:%M'

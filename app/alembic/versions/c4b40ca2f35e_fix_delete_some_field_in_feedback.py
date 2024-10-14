@@ -1,8 +1,8 @@
-"""fix shipping close add nullable true
+"""fix delete some field in feedback
 
-Revision ID: b6f7d68b3c6b
+Revision ID: c4b40ca2f35e
 Revises: 
-Create Date: 2024-10-14 10:31:13.807609
+Create Date: 2024-10-14 11:16:32.374280
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
-revision: str = 'b6f7d68b3c6b'
+revision: str = 'c4b40ca2f35e'
 down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -77,12 +77,9 @@ def upgrade() -> None:
     op.create_index(op.f('ix_categorytype_product_id'), 'categorytype', ['product_id'], unique=False)
     op.create_table('feedback',
     sa.Column('user', sa.Integer(), nullable=False),
-    sa.Column('contact_manager_id', sa.Integer(), nullable=False),
     sa.Column('feedback_text', sa.TEXT(), nullable=False),
     sa.Column('feedback_date', postgresql.TIMESTAMP(), nullable=False),
-    sa.Column('unread', sa.BOOLEAN(), nullable=False),
     sa.Column('id', sa.Integer(), nullable=False),
-    sa.ForeignKeyConstraint(['contact_manager_id'], ['contactmanager.id'], ondelete='CASCADE'),
     sa.ForeignKeyConstraint(['user'], ['user.id'], ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('id')
     )
