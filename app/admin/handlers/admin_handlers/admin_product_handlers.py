@@ -11,7 +11,7 @@ from bot.exceptions import message_exception_handler
 
 from .admin import SectionState
 from crud.product_crud import product_crud
-from admin.filters.filters import ChatTypeFilter, IsAdmin
+from admin.filters.filters import ChatTypeFilter, IsManagerOrAdmin
 from admin.admin_managers import (
     CreateManager,
     UpdateManager,
@@ -49,7 +49,7 @@ class ProductDeleteState(StatesGroup):
 
 
 product_router = Router()
-product_router.message.filter(ChatTypeFilter(["private"]), IsAdmin())
+product_router.message.filter(ChatTypeFilter(["private"]), IsManagerOrAdmin())
 
 PREVIOUS_MENU = MAIN_MENU_OPTIONS.get("products")
 
@@ -217,4 +217,3 @@ async def update_about_info(
     logger.info(
         f"Пользователь {message.from_user.id} внес изменения продукта в БД."
     )
-

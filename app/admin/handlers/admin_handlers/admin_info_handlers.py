@@ -14,7 +14,7 @@ from admin.admin_managers import (
     QuestionDeleteManager,
     DeleteQuestionStates,
 )
-from admin.filters.filters import ChatTypeFilter, IsAdmin
+from admin.filters.filters import ChatTypeFilter, IsManagerOrAdmin
 from admin.handlers.admin_handlers.admin import SectionState
 from admin.admin_settings import (
     ADMIN_BASE_OPTIONS,
@@ -30,15 +30,14 @@ GENERAL_QEUSTIONS_MENU = SUPPORT_OPTIONS.get("general_questions")
 
 
 info_router = Router()
-info_router.message.filter(ChatTypeFilter(["private"]), IsAdmin())
+info_router.message.filter(ChatTypeFilter(["private"]), IsManagerOrAdmin())
 
 question_create_manager = QuestionCreateManager()
 question_update_manager = QuestionUpdateManager()
 question_delete_manager = QuestionDeleteManager()
 
-@message_exception_handler(
-    log_error_text='Ошибка при добавлении вопроса'
-)
+
+@message_exception_handler(log_error_text='Ошибка при добавлении вопроса')
 @info_router.callback_query(
     or_f(SectionState.general_questions, SectionState.problems_with_products),
     F.data == ADMIN_BASE_OPTIONS.get("create"),
@@ -70,7 +69,9 @@ async def add_question_answer(
 ):
     """Добавить ответ на вопрос в БД."""
     await question_create_manager.add_question_to_db(message, state, session)
-    logger.info(f'Пользователь {message.from_user.id} добавил ответ на вопрос в БД.')
+    logger.info(
+        f'Пользователь {message.from_user.id} добавил ответ на вопрос в БД.'
+    )
 
 
 @message_exception_handler(
@@ -90,7 +91,9 @@ async def question_to_delete(
         next_state=DeleteQuestionStates.select,
         session=session,
     )
-    logger.info(f'Пользователь {callback.from_user.id} выбрал вопрос для удаления.')
+    logger.info(
+        f'Пользователь {callback.from_user.id} выбрал вопрос для удаления.'
+    )
 
 
 @message_exception_handler(
@@ -105,12 +108,12 @@ async def confirm_delete_question(
 ):
     """Подтвердить удаление вопроса."""
     await question_delete_manager.confirm_delete(callback, state, session)
-    logger.info(f'Пользователь {callback.from_user.id} подтвердил удаление вопроса.')
+    logger.info(
+        f'Пользователь {callback.from_user.id} подтвердил удаление вопроса.'
+    )
 
 
-@message_exception_handler(
-    log_error_text='Ошибка при удалении вопроса из БД'
-)
+@message_exception_handler(log_error_text='Ошибка при удалении вопроса из БД')
 @info_router.callback_query(
     DeleteQuestionStates.confirm,
     and_f(F.data != PROBLEMS_MENU, F.data != GENERAL_QEUSTIONS_MENU),
@@ -140,7 +143,9 @@ async def update_question(
         next_state=UpdateQuestionStates.select,
         session=session,
     )
-    logger.info(f'Пользователь {callback.from_user.id} выбрал вопрос для обновления.')
+    logger.info(
+        f'Пользователь {callback.from_user.id} выбрал вопрос для обновления.'
+    )
 
 
 @message_exception_handler(
@@ -160,7 +165,9 @@ async def update_question_choice(
 ):
     """Обработать выбор данных для обновления вопроса."""
     await question_update_manager.update_data_type(callback, session)
-    logger.info(f'Пользователь {callback.from_user.id} выбрал данные для обновления вопроса.')
+    logger.info(
+        f'Пользователь {callback.from_user.id} выбрал данные для обновления вопроса.'
+    )
 
 
 @message_exception_handler(
@@ -185,7 +192,9 @@ async def update_question_text(callback: CallbackQuery, state: FSMContext):
 async def update_question_answer(callback: CallbackQuery, state: FSMContext):
     """Обновить ответ на вопрос."""
     await question_update_manager.update_answer(callback, state)
-    logger.info(f'Пользователь {callback.from_user.id} обновил ответ на вопрос.')
+    logger.info(
+        f'Пользователь {callback.from_user.id} обновил ответ на вопрос.'
+    )
 
 
 @message_exception_handler(
@@ -201,4 +210,6 @@ async def update_question_data(
     await question_update_manager.update_question_in_db(
         message, state, session
     )
-    logger.info(f'Пользователь {message.from_user.id} обновил данные вопроса в БД.')
+    logger.info(
+        f'Пользователь {message.from_user.id} обновил данные вопроса в БД.'
+    )

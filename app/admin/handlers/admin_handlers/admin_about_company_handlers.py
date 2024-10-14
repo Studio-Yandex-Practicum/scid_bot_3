@@ -10,7 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from .admin import SectionState
 from bot.exceptions import message_exception_handler
 from crud.about_crud import company_info_crud
-from admin.filters.filters import ChatTypeFilter, IsAdmin
+from admin.filters.filters import ChatTypeFilter, IsManagerOrAdmin
 from admin.admin_managers import (
     DeleteManager,
     DeleteState,
@@ -31,7 +31,7 @@ logger = logging.getLogger(__name__)
 PREVIOUS_MENU = MAIN_MENU_OPTIONS.get("company_bio")
 
 about_router = Router()
-about_router.message.filter(ChatTypeFilter(["private"]), IsAdmin())
+about_router.message.filter(ChatTypeFilter(["private"]), IsManagerOrAdmin())
 
 about_create_manager = CreateManager(company_info_crud, PREVIOUS_MENU)
 about_delete_manager = DeleteManager(company_info_crud, PREVIOUS_MENU)

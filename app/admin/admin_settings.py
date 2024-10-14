@@ -54,9 +54,22 @@ ADMIN_QUESTION_BUTTONS = get_buttons(ADMIN_QUESTION_OPTIONS)
 ADMIN_SPECIAL_OPTIONS = {
     "manager_request": "Запросы на обратный звонок",
     "support_request": "Запросы на техподдержку",
-    "Feedbacks": "Отзывы",
+    "feedbacks": "Отзывы",
 }
 ADMIN_SPECIAL_BUTTONS = get_buttons(ADMIN_SPECIAL_OPTIONS)
+SUPERUSER_SPECIAL_OPTIONS = {
+    "manager_request": "Запросы на обратный звонок",
+    "support_request": "Запросы на техподдержку",
+    "feedbacks": "Отзывы",
+    "promotion": "Управление персоналом",
+}
+SUPERUSER_SPECIAL_BUTTONS = get_buttons(ADMIN_SPECIAL_OPTIONS)
+SUPERUSER_PROMOTION_OPTIONS = {
+    "manager_list": "Список менеджеров",
+    "promote": "Добавить менеджера",
+    "demote": "Убрать менеджера",
+}
+SUPERUSER_PROMOTION_BUTTONS = get_buttons(SUPERUSER_PROMOTION_OPTIONS)
 # Кнопки экранной клавиатуры
 BASE_BUTTONS = {
     "main_menu": "Главное меню",

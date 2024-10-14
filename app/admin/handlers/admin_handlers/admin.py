@@ -4,7 +4,7 @@ from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
 
 
-from admin.filters.filters import ChatTypeFilter, IsAdmin
+from admin.filters.filters import ChatTypeFilter, IsManagerOrAdmin
 from admin.keyboards.keyboards import (
     get_inline_keyboard,
 )
@@ -21,7 +21,9 @@ from admin.admin_settings import (
 
 
 admin_main_router = Router()
-admin_main_router.message.filter(ChatTypeFilter(["private"]), IsAdmin())
+admin_main_router.message.filter(
+    ChatTypeFilter(["private"]), IsManagerOrAdmin()
+)
 
 
 class UserState(StatesGroup):

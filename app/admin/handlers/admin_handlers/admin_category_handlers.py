@@ -8,7 +8,7 @@ from aiogram.types import CallbackQuery, Message
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from admin.handlers.admin_handlers.admin import SectionState
-from admin.filters.filters import ChatTypeFilter, IsAdmin
+from admin.filters.filters import ChatTypeFilter, IsManagerOrAdmin
 from admin.admin_managers import (
     CreateCategoryManager,
     UpdateCategoryManager,
@@ -32,7 +32,7 @@ from crud.product_crud import product_crud
 logger = logging.getLogger(__name__)
 
 category_router = Router()
-category_router.message.filter(ChatTypeFilter(["private"]), IsAdmin())
+category_router.message.filter(ChatTypeFilter(["private"]), IsManagerOrAdmin())
 
 PREVIOUS_MENU = "Назад"
 
@@ -324,4 +324,3 @@ async def update_about_info(
     logger.info(
         f"Пользователь {message.from_user.id} обновил информацию о категории в БД."
     )
-

@@ -4,7 +4,7 @@ from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from admin.filters.filters import ChatTypeFilter, IsAdmin
+from admin.filters.filters import ChatTypeFilter, IsManagerOrAdmin
 from admin.keyboards.keyboards import (
     get_inline_keyboard,
 )
@@ -23,14 +23,15 @@ from crud.request_to_manager import (
     get_request,
 )
 
+admin_special_router = Router()
+admin_special_router.message.filter(
+    ChatTypeFilter(["private"]), IsManagerOrAdmin()
+)
+
 
 class RequestState(StatesGroup):
     manager_request = State()
     support_request = State()
-
-
-admin_special_router = Router()
-admin_special_router.message.filter(ChatTypeFilter(["private"]), IsAdmin())
 
 
 async def get_state_name(state: str) -> str:

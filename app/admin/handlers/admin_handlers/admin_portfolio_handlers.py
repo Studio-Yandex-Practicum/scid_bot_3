@@ -9,7 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from admin.handlers.admin_handlers.admin import SectionState
 from bot.exceptions import message_exception_handler
 from crud.portfolio_projects_crud import portfolio_crud
-from admin.filters.filters import ChatTypeFilter, IsAdmin
+from admin.filters.filters import ChatTypeFilter, IsManagerOrAdmin
 from admin.admin_managers import (
     DeleteManager,
     DeleteState,
@@ -30,7 +30,9 @@ from admin.admin_settings import (
 logger = logging.getLogger(__name__)
 
 portfolio_router = Router()
-portfolio_router.message.filter(ChatTypeFilter(["private"]), IsAdmin())
+portfolio_router.message.filter(
+    ChatTypeFilter(["private"]), IsManagerOrAdmin()
+)
 
 PREVIOUS_MENU = PORTFOLIO_MENU_OPTIONS.get("other_projects")
 
