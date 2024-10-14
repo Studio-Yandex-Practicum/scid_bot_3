@@ -1,4 +1,13 @@
 '''
+Скрипт тестовых данных для ветки информация о компании:
+
+INSERT INTO InformationAboutCompany (name, url)
+VALUES
+    ('Презентация компании', 'https://scid.ru/'),
+    ('Карточка компании', 'https://scid.ru/contacts');
+'''
+
+'''
 Скрипт для ветки узнать о продуктах и услугах:
 
 INSERT INTO ProductCategory (title, response) VALUES

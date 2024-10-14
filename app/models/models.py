@@ -1,13 +1,18 @@
 from datetime import datetime
+from enum import Enum
 
 from sqlalchemy import ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.sql import func
 import sqlalchemy.dialects.postgresql as pgsql_types
 
+<<<<<<< HEAD
 from enum import Enum
 
 from app.core.base import Base
+=======
+from core.db import Base
+>>>>>>> upstream/dev
 
 
 class RoleEnum(str, Enum):
