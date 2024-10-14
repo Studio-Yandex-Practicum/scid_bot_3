@@ -137,9 +137,7 @@ class ContactManager(Base):
     )
 
     shipping_date_close: Mapped[datetime] = mapped_column(
-        pgsql_types.TIMESTAMP(timezone=True),
-        server_default=func.now(),
-        nullable=False,
+        pgsql_types.TIMESTAMP(timezone=True), nullable=True
     )
 
     feedbacks = relationship(

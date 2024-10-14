@@ -4,7 +4,7 @@ from re import match
 def is_valid_name(name: str) -> bool:
     """Проверяет, что имя содержит только буквы."""
 
-    return bool(match(r"^[A-Za-zА-Яа-яЁё]+$", name))
+    return bool(match(r"^[A-Za-zА-Яа-яЁё ]+$", name))
 
 
 def is_valid_phone_number(phone_number: str) -> bool:

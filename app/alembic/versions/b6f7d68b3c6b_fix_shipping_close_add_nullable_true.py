@@ -1,8 +1,8 @@
-"""add nullable True for category type content
+"""fix shipping close add nullable true
 
-Revision ID: ce91f683ad23
+Revision ID: b6f7d68b3c6b
 Revises: 
-Create Date: 2024-10-13 23:29:19.198485
+Create Date: 2024-10-14 10:31:13.807609
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
-revision: str = 'ce91f683ad23'
+revision: str = 'b6f7d68b3c6b'
 down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -32,7 +32,7 @@ def upgrade() -> None:
     sa.Column('need_support', sa.BOOLEAN(), nullable=False),
     sa.Column('need_contact_with_manager', sa.BOOLEAN(), nullable=False),
     sa.Column('shipping_date', postgresql.TIMESTAMP(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
-    sa.Column('shipping_date_close', postgresql.TIMESTAMP(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
+    sa.Column('shipping_date_close', postgresql.TIMESTAMP(timezone=True), nullable=True),
     sa.Column('id', sa.Integer(), nullable=False),
     sa.PrimaryKeyConstraint('id')
     )
