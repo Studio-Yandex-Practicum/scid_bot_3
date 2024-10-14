@@ -55,6 +55,7 @@ class CreateCategoryManager(CreateManager):
         Добавить название объекта и перейти в
         следующее машинное состояние.
         """
+        await callback.message.delete()
         await state.update_data(product_id=product_id)
         await callback.message.answer(
             "Введите название:",

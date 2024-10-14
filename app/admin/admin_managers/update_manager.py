@@ -135,8 +135,8 @@ class UpdateManager(BaseAdminManager):
                 "description" in obj_fields and self.obj_to_update.description
             ):
                 message_text = (
-                    f"Текущий текст: \n\n {self.obj_to_update.description} \n\n"
-                    "Введите новый:"
+                    f"Текущее описание: \n\n {self.obj_to_update.description} \n\n"
+                    "Введите новое:"
                 )
                 await state.set_state(self.states_group.description)
             await callback.message.edit_text(

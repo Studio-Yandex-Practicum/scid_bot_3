@@ -72,6 +72,7 @@ class QuestionCreateManager(QuestionBaseManager):
         Добавить текст вопроса и перейти в
         следующее машинное состояние.
         """
+        await callback.message.delete()
         await state.update_data(
             question_type=await self.set_question_type(state)
         )

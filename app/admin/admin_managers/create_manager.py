@@ -87,6 +87,7 @@ class CreateManager(BaseAdminManager):
         Добавить название объекта и перейти в
         следующее машинное состояние.
         """
+        await callback.message.delete()
         await callback.message.answer(
             "Введите название:",
             reply_markup=await get_inline_keyboard(
@@ -154,7 +155,7 @@ class CreateManager(BaseAdminManager):
         Добавить текст к объекту и перейти в
         следующее машинное состояние.
         """
-        message_text = "Введите текст:"
+        message_text = "Введите описание:"
         await self.prompt_for_input(
             message,
             message_text,
@@ -170,7 +171,7 @@ class CreateManager(BaseAdminManager):
         следующее машинное состояние.
         """
         await callback.message.answer(
-            "Введите текст:",
+            "Введите описание:",
             reply_markup=await get_inline_keyboard(
                 previous_menu=self.back_option
             ),
