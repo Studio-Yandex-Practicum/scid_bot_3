@@ -66,8 +66,9 @@ async def get_manager_list(callback: CallbackQuery, session: AsyncSession):
     """Получить список менеджеров."""
     manager_list = await user_crud.get_manager_list(session)
     managers_tg_ids = [manager.tg_id + "\n\n" for manager in manager_list]
+    managers = "".join(managers_tg_ids) if managers_tg_ids else "Список пуст!"
     await callback.message.edit_text(
-        *managers_tg_ids,
+        managers,
         reply_markup=await get_inline_keyboard(previous_menu=PREVIOUS_MENU),
     )
 

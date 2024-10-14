@@ -149,3 +149,4 @@ class Feedback(Base):
     feedback_date: Mapped[datetime] = mapped_column(
         pgsql_types.TIMESTAMP, default=datetime.now
     )
+    rating: Mapped[int] = mapped_column(pgsql_types.INTEGER, nullable=False)

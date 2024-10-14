@@ -63,7 +63,7 @@ SUPERUSER_SPECIAL_OPTIONS = {
     "feedbacks": "Отзывы",
     "promotion": "Управление персоналом",
 }
-SUPERUSER_SPECIAL_BUTTONS = get_buttons(ADMIN_SPECIAL_OPTIONS)
+SUPERUSER_SPECIAL_BUTTONS = get_buttons(SUPERUSER_SPECIAL_OPTIONS)
 SUPERUSER_PROMOTION_OPTIONS = {
     "manager_list": "Список менеджеров",
     "promote": "Добавить менеджера",
