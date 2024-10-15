@@ -1,10 +1,5 @@
-from aiogram.types import (
-    InlineKeyboardButton,
-    InlineKeyboardMarkup,
-    ReplyKeyboardMarkup,
-    KeyboardButton,
-)
-from aiogram.utils.keyboard import InlineKeyboardBuilder, ReplyKeyboardBuilder
+from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
+from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 
 class InlineKeyboardManager:
@@ -97,24 +92,6 @@ async def get_inline_keyboard(
         previous_menu=previous_menu,
         admin_update_menu=admin_update_menu,
     ).create_keyboard()
-
-
-async def get_reply_keyboard(
-    options: list[str] | str | None = None,
-    size: tuple[int] = (1,),
-) -> ReplyKeyboardMarkup:
-    """Создать экранную клавиатуру."""
-
-    keyboard = ReplyKeyboardBuilder()
-
-    if options:
-        if isinstance(options, list):
-            for option in options:
-                keyboard.add(KeyboardButton(text=option, callback_data=option))
-        else:
-            keyboard.add(KeyboardButton(text=options))
-
-    return keyboard.adjust(*size).as_markup()
 
 
 async def get_delete_message_keyboard() -> InlineKeyboardMarkup:

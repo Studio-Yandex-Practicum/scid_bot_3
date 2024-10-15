@@ -20,6 +20,7 @@ from admin.admin_settings import (
     SUPERUSER_SPECIAL_BUTTONS,
     SUPERUSER_SPECIAL_OPTIONS,
 )
+from bot.exceptions import message_exception_handler
 from models.models import User, RoleEnum
 from crud.request_to_manager import get_manager_stats
 from crud.user_crud import user_crud
@@ -58,6 +59,9 @@ async def check_user_tg_id_data(
     return user, message_text
 
 
+@message_exception_handler(
+    log_error_text="Ошибка при открытии меню суперпользователя"
+)
 @superuser_router.callback_query(
     F.data == MAIN_MENU_OPTIONS.get("admin_special")
 )
@@ -72,8 +76,14 @@ async def get_admin_special_options(
             SUPERUSER_SPECIAL_BUTTONS, previous_menu=MAIN_MENU_TEXT
         ),
     )
+    logger.info(
+        f"Пользователь {callback.from_user.id} открыл меню суперпользователя."
+    )
 
 
+@message_exception_handler(
+    log_error_text="Ошибка при переходе в меню управления персоналом"
+)
 @superuser_router.callback_query(
     F.data == SUPERUSER_SPECIAL_OPTIONS.get("promotion")
 )
@@ -86,8 +96,14 @@ async def get_superuser_options(callback: CallbackQuery):
             previous_menu=PREVIOUS_MENU,
         ),
     )
+    logger.info(
+        f"Пользователь {callback.from_user.id} открыл меню управления персоналом."
+    )
 
 
+@message_exception_handler(
+    log_error_text="Ошибка при получении списка менеджеров"
+)
 @superuser_router.callback_query(
     F.data == SUPERUSER_PROMOTION_OPTIONS.get("manager_list")
 )
@@ -107,11 +123,17 @@ async def get_manager_list(
         ),
     )
     await state.set_state(manager)
+    logger.info(
+        f"Пользователь {callback.from_user.id} запросил список менеджеров."
+    )
 
 
+@message_exception_handler(
+    log_error_text="Ошибка при получении информации о менеджере"
+)
 @superuser_router.callback_query(manager, F.data.isnumeric())
 async def get_manager(callback: CallbackQuery, session: AsyncSession):
-    """Получить информацио о менеджере."""
+    """Получить информацию о менеджере."""
     manager = await user_crud.get_user_by_tg_id(callback.data, session)
     cases_count, last_case_closed = await get_manager_stats(
         callback.data, session
@@ -122,7 +144,7 @@ async def get_manager(callback: CallbackQuery, session: AsyncSession):
             f"{last_case_closed.shipping_date_close.strftime(DATETIME_FORMAT)}"
         )
         if last_case_closed
-        else "закртых заявок пока нет."
+        else "закрытых заявок пока нет."
     )
     message_text = (
         f"Менеджер {manager.name}\n\n "
@@ -134,8 +156,14 @@ async def get_manager(callback: CallbackQuery, session: AsyncSession):
         message_text,
         reply_markup=await get_inline_keyboard(previous_menu=PREVIOUS_MENU),
     )
+    logger.info(
+        f"Пользователь {callback.from_user.id} запросил информацию о менеджере {manager.name}."
+    )
 
 
+@message_exception_handler(
+    log_error_text="Ошибка при вводе Telegram ID для смены роли"
+)
 @superuser_router.callback_query(
     or_f(
         F.data == SUPERUSER_PROMOTION_OPTIONS.get("promote"),
@@ -152,8 +180,14 @@ async def get_user_id_for_action(callback: CallbackQuery, state: FSMContext):
         "Введите id телеграм-пользователя:",
         reply_markup=await get_inline_keyboard(previous_menu=PREVIOUS_MENU),
     )
+    logger.info(
+        f"Пользователь {callback.from_user.id} выбрал действие для смены роли."
+    )
 
 
+@message_exception_handler(
+    log_error_text="Ошибка при понижении роли пользователя"
+)
 @superuser_router.message(RoleState.demote, F.text.isnumeric())
 async def demote_to_user(message: Message, session: AsyncSession):
     """Проверить пользователя и присвоить ему роль USER."""
@@ -162,15 +196,19 @@ async def demote_to_user(message: Message, session: AsyncSession):
         message_text = error_text
     else:
         message_text = (
-            f"Позльователь {message.text} теперь просто пользователь!"
+            f"Пользователь {message.text} теперь просто пользователь!"
         )
         await user_crud.demote_to_user(user, session)
     await message.answer(
         message_text,
         reply_markup=await get_inline_keyboard(previous_menu=PREVIOUS_MENU),
     )
+    logger.info(f"Пользователь {message.text} понижен до роли USER.")
 
 
+@message_exception_handler(
+    log_error_text="Ошибка при добавлении имени для менеджера"
+)
 @superuser_router.message(RoleState.promote, F.text.isnumeric())
 async def add_name_to_manager(message: Message, state: FSMContext):
     """Добавить имя для менеджера."""
@@ -180,8 +218,12 @@ async def add_name_to_manager(message: Message, state: FSMContext):
         "Введите имя для менеджера",
         reply_markup=await get_inline_keyboard(previous_menu=PREVIOUS_MENU),
     )
+    logger.info(
+        f"Пользователь {message.text} готовится к назначению роли менеджера."
+    )
 
 
+@message_exception_handler(log_error_text="Ошибка при назначении менеджера")
 @superuser_router.message(RoleState.name, F.text)
 async def check_user_and_make_him_manager(
     message: Message, state: FSMContext, session: AsyncSession
@@ -200,8 +242,11 @@ async def check_user_and_make_him_manager(
     else:
         await user_crud.promote_to_manager(user, message.text, session)
         await message.answer(
-            "Менеджер добален!",
+            "Менеджер добавлен!",
             reply_markup=await get_inline_keyboard(
                 previous_menu=PREVIOUS_MENU
             ),
+        )
+        logger.info(
+            f"Пользователь {user_tg_id} назначен менеджером с именем {message.text}."
         )

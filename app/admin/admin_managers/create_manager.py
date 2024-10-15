@@ -35,6 +35,7 @@ class CreateManager(BaseAdminManager):
     Attributes:
         model_crud (CRUDBase): Объект для выполнения операций CRUD с моделью.
         back_option (str): Данные для возврата в меню.
+        staes_group (StaesGroup): Набор машинных состояний
 
     Methods:
         select_data_type(callback: CallbackQuery, state: FSMContext):

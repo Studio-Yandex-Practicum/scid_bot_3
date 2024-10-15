@@ -29,6 +29,10 @@ class DeleteQuestionStates(StatesGroup):
 
 
 class QuestionBaseManager(ABC):
+    """
+    Базовый класс для управления вопросами.
+    Определяет основные методы для работы с вопросами и их типами.
+    """
 
     async def set_question_type(self, state: FSMContext):
         state = await state.get_state()
@@ -38,6 +42,10 @@ class QuestionBaseManager(ABC):
 
 
 class QuestionUpdateDeleteBase(QuestionBaseManager, ABC):
+    """
+    Базовый класс для управления обновлением и удалением вопросов.
+    """
+
     async def get_question_list(self, session: AsyncSession):
         return [
             question.question
@@ -65,6 +73,10 @@ class QuestionUpdateDeleteBase(QuestionBaseManager, ABC):
 
 
 class QuestionCreateManager(QuestionBaseManager):
+    """
+    Менеджер для создания вопросов.
+    """
+
     async def add_question_text(
         self, callback: CallbackQuery, state: FSMContext
     ):
@@ -121,6 +133,10 @@ class QuestionCreateManager(QuestionBaseManager):
 
 
 class QuestionUpdateManager(QuestionUpdateDeleteBase):
+    """
+    Менеджер для обновления вопросов.
+    """
+
     async def update_data_type(
         self, callback: CallbackQuery, session: AsyncSession
     ):
@@ -172,6 +188,9 @@ class QuestionUpdateManager(QuestionUpdateDeleteBase):
 
 
 class QuestionDeleteManager(QuestionUpdateDeleteBase):
+    """
+    Менеджер для удаления вопросов.
+    """
 
     async def confirm_delete(
         self,

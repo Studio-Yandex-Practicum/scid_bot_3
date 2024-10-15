@@ -31,6 +31,7 @@ class DeleteManager(BaseAdminManager):
     Attributes:
         model_crud (CRUDBase): Объект для выполнения операций CRUD с моделью.
         back_option (str): Данные для возврата в меню.
+        staes_group (StaesGroup): Набор машинных состояний
 
 
     Methods:
