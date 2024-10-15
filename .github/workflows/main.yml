@@ -46,7 +46,7 @@ jobs:
           key: ${{ secrets.SSH_KEY }}
           passphrase: ${{ secrets.SSH_PASSPHRASE }}
           script: |
-            cd scid3
+            cd scid_bot
             sudo docker compose -f docker-compose.yml pull
             sudo docker compose -f docker-compose.yml down
             sudo docker compose -f docker-compose.yml up -d
