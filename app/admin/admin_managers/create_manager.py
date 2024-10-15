@@ -3,15 +3,15 @@ from aiogram.fsm.state import State, StatesGroup
 from aiogram.types import CallbackQuery, Message
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from crud.base_crud import CRUDBase
-
-from .base_manager import (
-    BaseAdminManager,
-)
+from admin.handlers.validators import validate_url
 from admin.keyboards.keyboards import (
     get_inline_keyboard,
 )
 from admin.admin_settings import ADMIN_CONTENT_BUTTONS
+from .base_manager import (
+    BaseAdminManager,
+)
+from crud.base_crud import CRUDBase
 
 
 class CreateState(StatesGroup):
@@ -183,7 +183,10 @@ class CreateManager(BaseAdminManager):
         Добавить картинку к объекту и перейти в
         следующее машинное состояние.
         """
-        message_text = "Добавьте картинку и текст к ней:"
+        message_text = (
+            "Добавьте картинку и текст к ней. "
+            "Длина текста не должна превышать 2200 символов:"
+        )
         await self.prompt_for_input(
             message,
             message_text,
@@ -213,6 +216,14 @@ class CreateManager(BaseAdminManager):
         try:
             current_state = await state.get_state()
             if current_state == self.states_group.url.state:
+                if not validate_url(message.text):
+                    await message.answer(
+                        ("Некорректный URL. Попробуйте добавить заново."),
+                        reply_markup=await get_inline_keyboard(
+                            previous_menu=self.back_option
+                        ),
+                    )
+                    return
                 await state.update_data(url=message.text)
             elif current_state == self.states_group.description.state:
                 await state.update_data(description=message.text)

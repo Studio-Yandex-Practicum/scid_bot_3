@@ -28,6 +28,10 @@ class User(Base):
         pgsql_types.BIGINT, nullable=False, unique=True
     )
 
+    name: Mapped[str] = mapped_column(
+        pgsql_types.VARCHAR(32), default="Аноним"
+    )
+
     role: Mapped[RoleEnum] = mapped_column(
         pgsql_types.ENUM(RoleEnum, name="role_enum", create_type=False),
         default=RoleEnum.USER,
@@ -37,6 +41,9 @@ class User(Base):
         pgsql_types.TIMESTAMP(timezone=True),
         server_default=func.now(),
         nullable=False,
+    )
+    closed_requests: Mapped[list["ContactManager"]] = relationship(
+        "ContactManager", back_populates="manager"
     )
 
 
@@ -134,6 +141,14 @@ class ContactManager(Base):
 
     shipping_date_close: Mapped[datetime] = mapped_column(
         pgsql_types.TIMESTAMP(timezone=True), nullable=True
+    )
+
+    manager_id: Mapped[int] = mapped_column(
+        pgsql_types.BIGINT, ForeignKey('user.tg_id'), nullable=True
+    )
+
+    manager: Mapped[User] = relationship(
+        "User", back_populates="closed_requests"
     )
 
 

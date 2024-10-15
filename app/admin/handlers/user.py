@@ -1,23 +1,17 @@
 from aiogram import F, Router
 from aiogram.fsm.context import FSMContext
-from aiogram.types import CallbackQuery, Message
-from aiogram.filters import CommandStart, or_f
+from aiogram.types import CallbackQuery
+from aiogram.filters import or_f
 from aiogram.fsm.state import State, StatesGroup
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from crud.category_product import category_product_crud
-from admin.filters.filters import ChatTypeFilter
 from admin.admin_settings import (
-    ADMIN_BASE_BUTTONS,
     PORTFOLIO_DEFAULT_DATA,
     PORTFOLIO_MENU_TEXT,
     PORTFOLIO_OTHER_PROJECTS_TEXT,
     PRODUCT_LIST_TEXT,
-    admin_list,
     BASE_BUTTONS,
-    BASE_KEYBOARD_BUTTONS,
     MAIN_MENU_OPTIONS,
-    GREETINGS,
     MAIN_MENU_BUTTONS,
     COMPANY_ABOUT,
     PORTFOLIO_BUTTONS,
@@ -26,12 +20,12 @@ from admin.admin_settings import (
     SUPPORT_MENU_TEXT,
     SUPPROT_MENU_BUTTONS,
 )
+from admin.filters.filters import ChatTypeFilter
 from admin.keyboards.keyboards import (
     get_inline_keyboard,
-    get_reply_keyboard,
     get_delete_message_keyboard,
 )
-
+from crud.category_product import category_product_crud
 from crud.info_crud import info_crud
 from crud.about_crud import company_info_crud
 from crud.portfolio_projects_crud import portfolio_crud
@@ -39,7 +33,9 @@ from crud.product_crud import product_crud
 
 
 user_router = Router()
-user_router.message.filter(ChatTypeFilter(["private"]))
+user_router.message.filter(
+    ChatTypeFilter(["private"]),
+)
 
 
 class QuestionAnswer(StatesGroup):
@@ -54,39 +50,6 @@ class ProductCategory(StatesGroup):
 @user_router.callback_query(F.data == "delete")
 async def delete_message(callback: CallbackQuery):
     await callback.message.delete()
-
-
-@user_router.message(CommandStart())
-async def start_cmd(message: Message):
-    """Получить основную экранную клавиатуру."""
-
-    if message.from_user.id in admin_list:
-        await message.answer(
-            GREETINGS,
-            reply_markup=await get_reply_keyboard(
-                ADMIN_BASE_BUTTONS, size=(1, 2)
-            ),
-        )
-    else:
-        await message.answer(
-            GREETINGS,
-            reply_markup=await get_reply_keyboard(
-                BASE_KEYBOARD_BUTTONS, size=(1, 2)
-            ),
-        )
-
-
-@user_router.message(F.text == BASE_BUTTONS.get("main_menu"))
-async def main_menu(message: Message, state: FSMContext):
-    """Получить основное меню бота после команды с экранной клавиатуры."""
-
-    await message.answer(
-        BASE_BUTTONS.get("main_menu"),
-        reply_markup=await get_inline_keyboard(MAIN_MENU_BUTTONS),
-    )
-
-    await message.delete()
-    await state.clear()
 
 
 @user_router.callback_query(F.data == BASE_BUTTONS.get("main_menu"))

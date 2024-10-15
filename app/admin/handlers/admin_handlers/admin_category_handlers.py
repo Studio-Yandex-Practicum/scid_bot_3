@@ -33,6 +33,7 @@ logger = logging.getLogger(__name__)
 
 category_router = Router()
 category_router.message.filter(ChatTypeFilter(["private"]), IsManagerOrAdmin())
+category_router.callback_query.filter(IsManagerOrAdmin())
 
 PREVIOUS_MENU = "Назад"
 

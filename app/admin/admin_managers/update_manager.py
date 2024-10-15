@@ -2,9 +2,8 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
 from aiogram.fsm.state import State, StatesGroup
 from sqlalchemy.ext.asyncio import AsyncSession
-from crud.base_crud import CRUDBase
-from crud.portfolio_projects_crud import portfolio_crud
 
+from admin.handlers.validators import validate_url
 from .base_manager import (
     BaseAdminManager,
 )
@@ -12,6 +11,8 @@ from admin.keyboards.keyboards import (
     get_inline_keyboard,
 )
 from admin.admin_settings import ADMIN_UPDATE_BUTTONS
+from crud.base_crud import CRUDBase
+from crud.portfolio_projects_crud import portfolio_crud
 
 
 class UpdateState(StatesGroup):
@@ -152,7 +153,10 @@ class UpdateManager(BaseAdminManager):
                 caption=self.obj_to_update.description,
             )
             await callback.message.answer(
-                "Добавьте новую картинку и описание",
+                (
+                    "Добавьте картинку и текст к ней. "
+                    "Длина текста не должна превышать 2200 символов:"
+                ),
                 reply_markup=await get_inline_keyboard(
                     previous_menu=self.back_option
                 ),
@@ -168,6 +172,14 @@ class UpdateManager(BaseAdminManager):
         if current_state == self.states_group.name.state:
             await state.update_data(name=message.text)
         elif current_state == self.states_group.url.state:
+            if not validate_url(message.text):
+                await message.answer(
+                    ("Некорректный URL. Попробуйте добавить заново."),
+                    reply_markup=await get_inline_keyboard(
+                        previous_menu=self.back_option
+                    ),
+                )
+                return
             await state.update_data(url=message.text)
         elif current_state == self.states_group.description.state:
             await state.update_data(description=message.text)
@@ -208,8 +220,9 @@ class UpdatePortfolio:
             Вносит изменения в объект в БД и сбрасывает состояние.
     """
 
-    def __init__(self, back_option: str) -> None:
+    def __init__(self, back_option: str, states_group: StatesGroup) -> None:
         self.back_option = back_option
+        self.states_group = states_group
 
     async def update_main_portfolio_url(
         self, callback: CallbackQuery, state: FSMContext, session: AsyncSession
@@ -220,7 +233,7 @@ class UpdatePortfolio:
             f"Текущий адрес ссылки: \n\n {self.obj_to_update.url} \n\n"
             "Введите новый:"
         )
-        await state.set_state(self.states_group.portolio)
+        await state.set_state(self.states_group.portfolio)
         await callback.message.edit_text(
             message_text,
             reply_markup=await get_inline_keyboard(

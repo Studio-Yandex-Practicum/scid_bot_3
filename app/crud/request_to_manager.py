@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy import select, and_
+from sqlalchemy import select, and_, desc, func
 from sqlalchemy.ext.asyncio import AsyncSession
 from models.models import ContactManager
 
@@ -58,7 +58,9 @@ async def get_all_manager_requests(session: AsyncSession):
     return support_requests.scalars().all()
 
 
-async def close_case(request_id: int, session: AsyncSession):
+async def close_case(
+    manager_id: int, request_id: int, session: AsyncSession
+) -> tuple:
     """Закрыть заявку."""
     case_to_close = await get_request(request_id, session)
     if case_to_close.need_contact_with_manager:
@@ -66,7 +68,29 @@ async def close_case(request_id: int, session: AsyncSession):
     elif case_to_close.need_support:
         setattr(case_to_close, "need_support", False)
     setattr(case_to_close, "shipping_date_close", datetime.now())
+    setattr(case_to_close, "manager_id", manager_id)
     session.add(case_to_close)
     await session.commit()
     await session.refresh(case_to_close)
     return case_to_close
+
+
+async def get_manager_stats(manager_id: int, session: AsyncSession):
+    """Получить статистику по работае менеджера."""
+    closed_requests_count = await session.execute(
+        select(func.count())
+        .select_from(ContactManager)
+        .where(ContactManager.manager_id == manager_id)
+    )
+
+    last_closed_requests = await session.execute(
+        select(ContactManager)
+        .where(ContactManager.manager_id == manager_id)
+        .order_by(desc(ContactManager.shipping_date_close))
+        .limit(1)
+    )
+
+    return (
+        closed_requests_count.scalar_one(),
+        last_closed_requests.scalar_one_or_none(),
+    )

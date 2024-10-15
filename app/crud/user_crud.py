@@ -48,9 +48,12 @@ class UserCRUD(CRUDBase):
         )
         return manager_list.scalars().all()
 
-    async def promote_to_manager(self, user: User, session: AsyncSession):
+    async def promote_to_manager(
+        self, user: User, name: str, session: AsyncSession
+    ):
         """Назначить пользователя менеджером."""
         setattr(user, "role", RoleEnum.MANAGER)
+        setattr(user, "name", name)
         session.add(user)
         await session.commit()
         await session.refresh(user)

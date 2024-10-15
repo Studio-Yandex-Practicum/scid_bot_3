@@ -24,6 +24,7 @@ admin_main_router = Router()
 admin_main_router.message.filter(
     ChatTypeFilter(["private"]), IsManagerOrAdmin()
 )
+admin_main_router.callback_query.filter(IsManagerOrAdmin())
 
 
 class UserState(StatesGroup):

@@ -32,6 +32,7 @@ PREVIOUS_MENU = MAIN_MENU_OPTIONS.get("company_bio")
 
 about_router = Router()
 about_router.message.filter(ChatTypeFilter(["private"]), IsManagerOrAdmin())
+about_router.callback_query.filter(IsManagerOrAdmin())
 
 about_create_manager = CreateManager(company_info_crud, PREVIOUS_MENU)
 about_delete_manager = DeleteManager(company_info_crud, PREVIOUS_MENU)

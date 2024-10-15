@@ -3,6 +3,7 @@ import logging
 from aiogram import F, Router
 from aiogram.filters import and_f, or_f
 from aiogram.fsm.context import FSMContext
+from aiogram.fsm.state import State, StatesGroup
 from aiogram.types import CallbackQuery, Message
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -12,11 +13,8 @@ from crud.portfolio_projects_crud import portfolio_crud
 from admin.filters.filters import ChatTypeFilter, IsManagerOrAdmin
 from admin.admin_managers import (
     DeleteManager,
-    DeleteState,
-    CreateState,
     CreateManager,
     UpdateManager,
-    UpdateState,
     UpdatePortfolio,
 )
 from admin.admin_settings import (
@@ -33,14 +31,39 @@ portfolio_router = Router()
 portfolio_router.message.filter(
     ChatTypeFilter(["private"]), IsManagerOrAdmin()
 )
+portfolio_router.callback_query(IsManagerOrAdmin())
 
 PREVIOUS_MENU = PORTFOLIO_MENU_OPTIONS.get("other_projects")
 
-portfolio_create_manager = CreateManager(portfolio_crud, PREVIOUS_MENU)
-portfolio_delete_manager = DeleteManager(portfolio_crud, PREVIOUS_MENU)
-portfolio_update_manager = UpdateManager(portfolio_crud, PREVIOUS_MENU)
+
+class PortfolioCreateState(StatesGroup):
+    name = State()
+    url = State()
+
+
+class PortfolioDeleteState(StatesGroup):
+    select = State()
+    confirm = State()
+
+
+class PortfolioUpdateState(StatesGroup):
+    select = State()
+    name = State()
+    url = State()
+    portfolio = State()
+
+
+portfolio_create_manager = CreateManager(
+    portfolio_crud, PREVIOUS_MENU, PortfolioCreateState()
+)
+portfolio_delete_manager = DeleteManager(
+    portfolio_crud, PREVIOUS_MENU, PortfolioDeleteState()
+)
+portfolio_update_manager = UpdateManager(
+    portfolio_crud, PREVIOUS_MENU, PortfolioUpdateState
+)
 main_portfolio_url_update_manager = UpdatePortfolio(
-    MAIN_MENU_OPTIONS.get("portfolio")
+    MAIN_MENU_OPTIONS.get("portfolio"), PortfolioUpdateState()
 )
 
 
@@ -63,7 +86,7 @@ async def add_portfolio_project_name(
 @message_exception_handler(
     log_error_text="Ошибка при сохранении имени нового объекта портфолио"
 )
-@portfolio_router.message(CreateState.name, F.text)
+@portfolio_router.message(PortfolioCreateState.name, F.text)
 async def add_portfolio_project_url(message: Message, state: FSMContext):
     """Сохранить имя нового объекта в состояние."""
     await portfolio_create_manager.add_obj_url(message, state)
@@ -75,7 +98,7 @@ async def add_portfolio_project_url(message: Message, state: FSMContext):
 @message_exception_handler(
     log_error_text="Ошибка при сохранении URL нового объекта в БД"
 )
-@portfolio_router.message(CreateState.url, F.text)
+@portfolio_router.message(PortfolioCreateState.url, F.text)
 async def create_portfolio_project(
     message: Message, state: FSMContext, session: AsyncSession
 ):
@@ -107,7 +130,9 @@ async def portfolio_project_to_delete(
 @message_exception_handler(
     log_error_text="Ошибка при подтверждении удаления проекта"
 )
-@portfolio_router.callback_query(DeleteState.select, F.data != PREVIOUS_MENU)
+@portfolio_router.callback_query(
+    PortfolioDeleteState.select, F.data != PREVIOUS_MENU
+)
 async def confirm_delete(
     callback: CallbackQuery, state: FSMContext, session: AsyncSession
 ):
@@ -119,7 +144,9 @@ async def confirm_delete(
 
 
 @message_exception_handler(log_error_text="Ошибка при удалении проекта из БД")
-@portfolio_router.callback_query(DeleteState.confirm, F.data != PREVIOUS_MENU)
+@portfolio_router.callback_query(
+    PortfolioDeleteState.confirm, F.data != PREVIOUS_MENU
+)
 async def delete_portfolio_project(
     callback: CallbackQuery, state: FSMContext, session: AsyncSession
 ):
@@ -150,7 +177,7 @@ async def portfolio_project_to_update(
     log_error_text="Ошибка при выборе данных для обновления"
 )
 @portfolio_router.callback_query(
-    UpdateState.select,
+    PortfolioUpdateState.select,
     and_f(
         F.data != ADMIN_UPDATE_OPTIONS.get("name"),
         F.data != ADMIN_UPDATE_OPTIONS.get("content"),
@@ -171,7 +198,7 @@ async def update_portfolio_project_choice(
     log_error_text="Ошибка при обновлении имени объекта"
 )
 @portfolio_router.callback_query(
-    UpdateState.select, F.data == ADMIN_UPDATE_OPTIONS.get("name")
+    PortfolioUpdateState.select, F.data == ADMIN_UPDATE_OPTIONS.get("name")
 )
 async def portfolio_name_update(
     callback: CallbackQuery,
@@ -188,7 +215,7 @@ async def portfolio_name_update(
     log_error_text="Ошибка при обновлении содержимого объекта"
 )
 @portfolio_router.callback_query(
-    UpdateState.select, F.data == ADMIN_UPDATE_OPTIONS.get("content")
+    PortfolioUpdateState.select, F.data == ADMIN_UPDATE_OPTIONS.get("content")
 )
 async def about_url_update(callback: CallbackQuery, state: FSMContext):
     """Обновить содержимое объекта."""
@@ -199,7 +226,9 @@ async def about_url_update(callback: CallbackQuery, state: FSMContext):
 
 
 @message_exception_handler(log_error_text="Ошибка при обновлении объекта в БД")
-@portfolio_router.message(or_f(UpdateState.name, UpdateState.url), F.text)
+@portfolio_router.message(
+    or_f(PortfolioUpdateState.name, PortfolioUpdateState.url), F.text
+)
 async def update_about_info(
     message: Message, state: FSMContext, session: AsyncSession
 ):
@@ -230,7 +259,7 @@ async def change_portfolio_url(
 @message_exception_handler(
     log_error_text="Ошибка при обновлении адреса ссылки основного портфолио в БД"
 )
-@portfolio_router.message(UpdateState.portolio, F.text)
+@portfolio_router.message(PortfolioUpdateState.portfolio, F.text)
 async def update_portfolio_button(
     message: Message, state: FSMContext, session: AsyncSession
 ):

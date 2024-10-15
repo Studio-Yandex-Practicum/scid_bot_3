@@ -31,6 +31,7 @@ GENERAL_QEUSTIONS_MENU = SUPPORT_OPTIONS.get("general_questions")
 
 info_router = Router()
 info_router.message.filter(ChatTypeFilter(["private"]), IsManagerOrAdmin())
+info_router.callback_query.filter(IsManagerOrAdmin())
 
 question_create_manager = QuestionCreateManager()
 question_update_manager = QuestionUpdateManager()

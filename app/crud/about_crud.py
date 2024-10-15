@@ -18,12 +18,5 @@ class AboutCRUD(CRUDBase):
         )
         return db_obj.scalars().first()
 
-    async def get_multi(self, session: AsyncSession):
-        """Получить список всех объектов модели из БД."""
-        db_objs = await session.execute(
-            select(self.model).where(self.model.id != 1)
-        )
-        return db_objs.scalars().all()
-
 
 company_info_crud = AboutCRUD(InformationAboutCompany)

@@ -1,3 +1,5 @@
+import logging
+
 from aiogram import Router, F
 from aiogram.types import CallbackQuery
 from aiogram.fsm.context import FSMContext
@@ -23,10 +25,13 @@ from crud.request_to_manager import (
     get_request,
 )
 
+logger = logging.getLogger(__name__)
+
 admin_special_router = Router()
 admin_special_router.message.filter(
     ChatTypeFilter(["private"]), IsManagerOrAdmin()
 )
+admin_special_router.callback_query.filter(IsManagerOrAdmin())
 
 
 class RequestState(StatesGroup):
@@ -138,10 +143,15 @@ async def close_request(
         back_option = await get_state_name(current_state)
         fsm_data = await state.get_data()
         request_id = fsm_data.get("request_id")
-        await close_case(request_id, session)
+        await close_case(callback.from_user.id, request_id, session)
         await callback.message.edit_text(
             "Заявка закрыта!",
             reply_markup=await get_inline_keyboard(previous_menu=back_option),
         )
     except Exception as e:
         await callback.message.answer(f"Произошла ошибка: {e}")
+
+
+@admin_special_router.callback_query(F.data == ADMIN_SPECIAL_OPTIONS.get("feedbacks"))
+async def get_feedbacks(callback: CallbackQuery, session: AsyncSession)
+    ...

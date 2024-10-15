@@ -27,6 +27,10 @@ from admin.admin_settings import (
 logger = logging.getLogger(__name__)
 
 
+product_router = Router()
+product_router.message.filter(ChatTypeFilter(["private"]), IsManagerOrAdmin())
+product_router.callback_query.filter(IsManagerOrAdmin())
+
 class ProductCreateState(StatesGroup):
     select = State()
     name = State()
@@ -47,9 +51,6 @@ class ProductDeleteState(StatesGroup):
     select = State()
     confirm = State()
 
-
-product_router = Router()
-product_router.message.filter(ChatTypeFilter(["private"]), IsManagerOrAdmin())
 
 PREVIOUS_MENU = MAIN_MENU_OPTIONS.get("products")
 
