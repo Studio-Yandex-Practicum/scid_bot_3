@@ -3,7 +3,7 @@ on:
   push:
     branches:
       - master
-      - dev
+      - dev  # закомментить перед выходом в прод
   pull_request:
     branches:
       - dev
@@ -37,7 +37,7 @@ jobs:
           key: ${{ secrets.SSH_KEY }}
           passphrase: ${{ secrets.SSH_PASSPHRASE }}
           source: "docker-compose.yml"
-          target: "scid3"
+          target: "scid_bot"
       - name: Executing remote ssh commands to deploy
         uses: appleboy/ssh-action@master
         with:
