@@ -12,6 +12,7 @@ from admin.keyboards.keyboards import (
     get_inline_confirmation_keyboard,
     get_inline_keyboard,
 )
+
 # from settings import MAIN_MENU_OPTIONS
 
 MAIN_MENU_OPTIONS = {
@@ -59,9 +60,7 @@ async def add_info_name(message: Message, state: FSMContext):
 
 
 @about_router.message(AddAboutInfo.url, F.text)
-async def add_about_data(
-    message: Message, state: FSMContext, session: AsyncSession
-):
+async def add_about_data(message: Message, state: FSMContext, session: AsyncSession):
     await state.update_data(url=message.text)
     data = await state.get_data()
     await company_info_crud.create(data, session)
@@ -80,9 +79,7 @@ async def about_info_to_delete(
     info_list = [info.name for info in about_data]
     await callback.message.answer(
         "Какую информацию вы хотите удалить?",
-        reply_markup=await get_inline_keyboard(
-            info_list, previous_menu=PREVIOUS_MENU
-        ),
+        reply_markup=await get_inline_keyboard(info_list, previous_menu=PREVIOUS_MENU),
     )
     await state.set_state(DeleteAboutInfo.name)
 
@@ -91,9 +88,7 @@ async def about_info_to_delete(
 async def confirm_delete_info(
     callback: CallbackQuery, state: FSMContext, session: AsyncSession
 ):
-    about_data = await company_info_crud.get_by_about_name(
-        callback.data, session
-    )
+    about_data = await company_info_crud.get_by_about_name(callback.data, session)
     await callback.message.edit_text(
         f"Вы уверены, что хотите удалить эту информацию?\n\n {about_data.name}",
         reply_markup=await get_inline_confirmation_keyboard(
@@ -107,9 +102,7 @@ async def confirm_delete_info(
 async def delete_about_info(
     callback: CallbackQuery, state: FSMContext, session: AsyncSession
 ):
-    about_data = await company_info_crud.get_by_about_name(
-        callback.data, session
-    )
+    about_data = await company_info_crud.get_by_about_name(callback.data, session)
     await company_info_crud.remove(about_data, session)
     await callback.message.edit_text(
         "Информация удалена!",
@@ -126,9 +119,7 @@ async def about_info_to_update(
     info_list = [info.name for info in about_data]
     await callback.message.edit_text(
         "Какую информацию вы хотите отредактировать?",
-        reply_markup=await get_inline_keyboard(
-            info_list, previous_menu=PREVIOUS_MENU
-        ),
+        reply_markup=await get_inline_keyboard(info_list, previous_menu=PREVIOUS_MENU),
     )
     await state.set_state(UpdateAboutInfo.select)
 
@@ -151,9 +142,7 @@ async def update_info_choise(callback: CallbackQuery, state: FSMContext):
     )
 
 
-@about_router.callback_query(
-    UpdateAboutInfo.select, F.data == "Название ссылки"
-)
+@about_router.callback_query(UpdateAboutInfo.select, F.data == "Название ссылки")
 async def about_name_update(
     callback: CallbackQuery, state: FSMContext, session: AsyncSession
 ):
@@ -171,9 +160,7 @@ async def about_url_update(
 ):
     about_name_data = await state.get_data()
     about_name_text = about_name_data.get("select")
-    about_info = await company_info_crud.get_by_about_name(
-        about_name_text, session
-    )
+    about_info = await company_info_crud.get_by_about_name(about_name_text, session)
     await callback.message.answer(
         f"Сейчас у ссылки такой адрес:\n\n {about_info.url}\n\n Введите новое название"
     )
@@ -181,9 +168,7 @@ async def about_url_update(
 
 
 @about_router.message(or_f(UpdateAboutInfo.name, UpdateAboutInfo.url), F.text)
-async def update_about_info(
-    message: Message, state: FSMContext, session: AsyncSession
-):
+async def update_about_info(message: Message, state: FSMContext, session: AsyncSession):
     current_state = await state.get_state()
     old_data = await state.get_data()
     old_about_data = await company_info_crud.get_by_about_name(
