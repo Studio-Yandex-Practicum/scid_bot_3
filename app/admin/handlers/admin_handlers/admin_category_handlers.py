@@ -14,6 +14,7 @@ from admin.keyboards.keyboards import (
     get_inline_confirmation_keyboard,
     get_inline_keyboard,
 )
+
 # from settings import MAIN_MENU_OPTIONS, admin_list
 from const import admin_list
 
@@ -163,9 +164,7 @@ async def add_product_category_data(
     )
 
 
-@category_router.message(
-    or_f(AddCategory.media, UpdateCategory.media), F.photo
-)
+@category_router.message(or_f(AddCategory.media, UpdateCategory.media), F.photo)
 async def add_media_description(message: Message, state: FSMContext):
     """Добавить описание к картинке."""
     await state.update_data(media=message.photo[-1].file_id)
@@ -204,9 +203,7 @@ async def product_to_delete(
     callback: CallbackQuery, state: FSMContext, session: AsyncSession
 ):
     """Выбор продукта на удаление."""
-    categories = [
-        category.name for category in await get_category_list(state, session)
-    ]
+    categories = [category.name for category in await get_category_list(state, session)]
     await callback.message.edit_text(
         "Какой проект вы хотите удалить?",
         reply_markup=await get_inline_keyboard(
@@ -250,9 +247,7 @@ async def product_to_update(
     callback: CallbackQuery, state: FSMContext, session: AsyncSession
 ):
     """Выбор продукта для редактирования."""
-    categories = [
-        category.name for category in await get_category_list(state, session)
-    ]
+    categories = [category.name for category in await get_category_list(state, session)]
     await callback.message.edit_text(
         "Какую услугу вы хотите отредактировать?",
         reply_markup=await get_inline_keyboard(
@@ -266,9 +261,7 @@ async def product_to_update(
     UpdateCategory.select,
     and_f(F.data != "Название", F.data != "Содержание"),
 )
-async def update_portfolio_project_choise(
-    callback: CallbackQuery, state: FSMContext
-):
+async def update_portfolio_project_choise(callback: CallbackQuery, state: FSMContext):
     """Выбор поля для редактирования."""
     await state.update_data(select=callback.data)
     await callback.message.edit_text(
@@ -332,9 +325,7 @@ async def about_url_update(
         F.photo,
     ),
 )
-async def update_about_info(
-    message: Message, state: FSMContext, session: AsyncSession
-):
+async def update_about_info(message: Message, state: FSMContext, session: AsyncSession):
     """Внести изменения продукта в БД."""
     current_state = await state.get_state()
     old_data = await state.get_data()

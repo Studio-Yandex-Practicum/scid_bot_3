@@ -11,6 +11,7 @@ from admin.keyboards.keyboards import (
     get_inline_confirmation_keyboard,
     get_inline_keyboard,
 )
+
 # from settings import SUPPORT_OPTIONS
 from sqlalchemy.ext.asyncio import AsyncSession
 from aiogram.fsm.state import State, StatesGroup
@@ -67,9 +68,7 @@ async def get_question_list(question_type: str, session: AsyncSession):
 async def add_question(callback: CallbackQuery, state: FSMContext):
     current_state = await state.get_state()
     await state.set_state(AddQuestion.question_type)
-    await state.update_data(
-        question_type=await set_question_type(current_state)
-    )
+    await state.update_data(question_type=await set_question_type(current_state))
     await callback.message.answer("Введите текст нового вопрос")
     await state.set_state(AddQuestion.question)
 
@@ -93,9 +92,7 @@ async def add_question_answer(
     await info_crud.create(data, session=session)
     await message.answer(
         "Вопрос добавлен!",
-        reply_markup=await get_inline_keyboard(
-            previous_menu=data.get("question_type")
-        ),
+        reply_markup=await get_inline_keyboard(previous_menu=data.get("question_type")),
     )
     await state.clear()
 
@@ -108,9 +105,7 @@ async def question_to_delete(
 ):
     current_state = await state.get_state()
     await state.set_state(DeleteQuestion.question_type)
-    await state.update_data(
-        question_type=await set_question_type(current_state)
-    )
+    await state.update_data(question_type=await set_question_type(current_state))
     question_type = (await state.get_data()).get("question_type")
     question_list = await get_question_list(question_type, session)
     await callback.message.edit_text(
@@ -145,9 +140,7 @@ async def delete_question(
     await info_crud.remove(question, session)
     await callback.message.edit_text(
         "Вопрос удален!",
-        reply_markup=await get_inline_keyboard(
-            previous_menu=question.question_type
-        ),
+        reply_markup=await get_inline_keyboard(previous_menu=question.question_type),
     )
 
 
@@ -160,9 +153,7 @@ async def update_question(
 ):
     current_state = await state.get_state()
     await state.set_state(UpdateQuestion.question_type)
-    await state.update_data(
-        question_type=await set_question_type(current_state)
-    )
+    await state.update_data(question_type=await set_question_type(current_state))
     question_type = (await state.get_data()).get("question_type")
     question_list = await get_question_list(question_type, session)
     await callback.message.edit_text(
@@ -208,17 +199,13 @@ async def update_question_answer(
     await state.set_state(UpdateQuestion.answer)
 
 
-@info_router.message(
-    or_f(UpdateQuestion.confirm, UpdateQuestion.answer), F.text
-)
+@info_router.message(or_f(UpdateQuestion.confirm, UpdateQuestion.answer), F.text)
 async def update_question_data(
     message: Message, state: FSMContext, session: AsyncSession
 ):
     current_state = await state.get_state()
     old_data = await state.get_data()
-    question = await info_crud.get_by_question_text(
-        old_data.get("question"), session
-    )
+    question = await info_crud.get_by_question_text(old_data.get("question"), session)
 
     if current_state == UpdateQuestion.confirm:
         await state.update_data(question=message.text)

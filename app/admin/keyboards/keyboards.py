@@ -35,11 +35,7 @@ async def get_inline_keyboard(
                 InlineKeyboardButton(
                     text=option,
                     callback_data=str(callback[index]),
-                    url=(
-                        urls[index]
-                        if urls and index in range(len(urls))
-                        else None
-                    ),
+                    url=(urls[index] if urls and index in range(len(urls)) else None),
                 )
             )
 
@@ -204,9 +200,7 @@ async def get_delete_message_keyboard() -> InlineKeyboardMarkup:
     """Создать копку для удаления сообщения."""
 
     keyboard = InlineKeyboardBuilder()
-    keyboard.add(
-        InlineKeyboardButton(text="Понятно! :)", callback_data="delete")
-    )
+    keyboard.add(InlineKeyboardButton(text="Понятно! :)", callback_data="delete"))
     return keyboard.adjust(1).as_markup(resize_keyboard=True)
 
 

@@ -63,16 +63,12 @@ async def start_cmd(message: Message):
     if message.from_user.id in admin_list:
         await message.answer(
             GREETINGS,
-            reply_markup=await get_reply_keyboard(
-                ADMIN_BASE_BUTTONS, size=(1, 2)
-            ),
+            reply_markup=await get_reply_keyboard(ADMIN_BASE_BUTTONS, size=(1, 2)),
         )
     else:
         await message.answer(
             GREETINGS,
-            reply_markup=await get_reply_keyboard(
-                BASE_KEYBOARD_BUTTONS, size=(1, 2)
-            ),
+            reply_markup=await get_reply_keyboard(BASE_KEYBOARD_BUTTONS, size=(1, 2)),
         )
 
 
@@ -118,9 +114,7 @@ async def portfolio_info(callback: CallbackQuery, session: AsyncSession):
 
 
 @user_router.callback_query(F.data == MAIN_MENU_OPTIONS.get("company_bio"))
-async def main_info(
-    callback: CallbackQuery, session: AsyncSession, state: FSMContext
-):
+async def main_info(callback: CallbackQuery, session: AsyncSession, state: FSMContext):
     """Получить список ссылок на информацию о компании."""
 
     await state.clear()
@@ -195,9 +189,7 @@ async def info_faq(
     await state.set_state(QuestionAnswer.question)
 
 
-@user_router.callback_query(
-    F.data == PORTFOLIO_MENU_OPTIONS.get("other_projects")
-)
+@user_router.callback_query(F.data == PORTFOLIO_MENU_OPTIONS.get("other_projects"))
 async def portfolio_other_projects(
     callback: CallbackQuery, session: AsyncSession, state: FSMContext
 ):
@@ -227,9 +219,7 @@ async def get_products_list(
 ):
     """Получить список продуктов."""
 
-    products = [
-        product.title for product in await product_crud.get_multi(session)
-    ]
+    products = [product.title for product in await product_crud.get_multi(session)]
 
     await state.clear()
 
@@ -300,9 +290,7 @@ async def get_product_info(
 
 
 @user_router.callback_query(QuestionAnswer.question, F.data)
-async def faq_answer(
-    callback: CallbackQuery, session: AsyncSession, state: FSMContext
-):
+async def faq_answer(callback: CallbackQuery, session: AsyncSession, state: FSMContext):
     """Получить ответ на вопрос из раздела Техподдержка."""
 
     question_list = [

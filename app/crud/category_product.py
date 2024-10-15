@@ -6,9 +6,7 @@ from models.models import CategoryType
 
 
 class CategoryTypeCRUD(CRUDBase):
-    async def get_category_by_product_id(
-        self, product_id: int, session: AsyncSession
-    ):
+    async def get_category_by_product_id(self, product_id: int, session: AsyncSession):
         """Получить список всех вариантов продукта."""
         product_categories = await session.execute(
             select(self.model).where(self.model.product_id == product_id)
@@ -27,9 +25,7 @@ class CategoryTypeCRUD(CRUDBase):
         )
         return active_field.scalars().first()
 
-    async def get_multi_for_product(
-        self, product_id: int, session: AsyncSession
-    ):
+    async def get_multi_for_product(self, product_id: int, session: AsyncSession):
         categories_for_product = await session.execute(
             select(self.model).where(self.model.product_id == product_id)
         )

@@ -1,24 +1,20 @@
-import os
 import logging
 from aiogram import Bot, Dispatcher
 from aiogram.fsm.storage.memory import MemoryStorage
-from dotenv import load_dotenv
 
-load_dotenv()
+from .settings import settings
 
-# Настройка логирования
 logger = logging.getLogger(__name__)
 
-bot = Bot(token=os.getenv('BOT_TOKEN'))
+bot = Bot(token=settings.bot_token)
 dispatcher = Dispatcher(storage=MemoryStorage())
 
 
 def check_token() -> None:
     """Проверка наличия токена бота."""
 
-    if os.getenv('BOT_TOKEN') is None:
+    if settings.bot_token is None:
         logger.error("Токен бота не найден.")
-        raise ValueError('Отсутствуют необходимые токены.')
-
+        raise ValueError("Отсутствуют необходимые токены.")
     else:
         logger.info("Токен бота успешно загружен.")
