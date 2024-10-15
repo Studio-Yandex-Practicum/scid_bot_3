@@ -13,6 +13,7 @@ from admin.keyboards.keyboards import (
     get_inline_confirmation_keyboard,
     get_inline_keyboard,
 )
+
 # from settings import (
 #     MAIN_MENU_OPTIONS,
 # )
@@ -80,9 +81,7 @@ async def add_product_description(message: Message, state: FSMContext):
 
 
 @product_router.message(AddProduct.response, F.text)
-async def creeate_product(
-    message: Message, state: FSMContext, session: AsyncSession
-):
+async def creeate_product(message: Message, state: FSMContext, session: AsyncSession):
     """Создать продкет в БД."""
 
     await state.update_data(response=message.text)
@@ -110,9 +109,7 @@ async def add_product_categoty(
     last_product = await product_crud.get_last_added_product(session)
     await state.update_data(product_id=last_product.id)
 
-    await callback.message.answer(
-        "Введите название для дополнительной информации"
-    )
+    await callback.message.answer("Введите название для дополнительной информации")
 
     await state.set_state(AddProductInfo.name)
 
@@ -135,9 +132,7 @@ async def add_product_category_name(message: Message, state: FSMContext):
     or_f(AddProductInfo.name, AddProductInfo.description),
     or_f(F.data == "Ссылка", F.data == "Текст", F.data == "Картинка"),
 )
-async def add_product_category_data(
-    callback: CallbackQuery, state: FSMContext
-):
+async def add_product_category_data(callback: CallbackQuery, state: FSMContext):
     """Добавить информацию в основной вариант."""
 
     if callback.data == "Ссылка":
@@ -219,9 +214,7 @@ async def confirm_delete(
 ):
     """Подтверждение удаления."""
 
-    portfolio_project = await product_crud.get_by_product_name(
-        callback.data, session
-    )
+    portfolio_project = await product_crud.get_by_product_name(callback.data, session)
     await callback.message.edit_text(
         f"Вы уверены, что хотите удалить "
         f"этот проект?\n\n {portfolio_project.title}",
@@ -239,9 +232,7 @@ async def delete_product(
 ):
     """Удалить продукт из БД."""
 
-    portfolio_project = await product_crud.get_by_product_name(
-        callback.data, session
-    )
+    portfolio_project = await product_crud.get_by_product_name(callback.data, session)
 
     await product_crud.remove(portfolio_project, session)
     await callback.message.edit_text(
@@ -277,9 +268,7 @@ async def product_to_update(
         F.data != PREVIOUS_MENU,
     ),
 )
-async def update_portfolio_project_choise(
-    callback: CallbackQuery, state: FSMContext
-):
+async def update_portfolio_project_choise(callback: CallbackQuery, state: FSMContext):
     """Выбор поля для редактирования."""
 
     await state.update_data(select=callback.data)
@@ -291,9 +280,7 @@ async def update_portfolio_project_choise(
     )
 
 
-@product_router.callback_query(
-    UpdateProduct.select, F.data == "Название проекта"
-)
+@product_router.callback_query(UpdateProduct.select, F.data == "Название проекта")
 async def about_name_update(
     callback: CallbackQuery, state: FSMContext, session: AsyncSession
 ):
@@ -326,12 +313,8 @@ async def about_url_update(
     await state.set_state(UpdateProduct.response)
 
 
-@product_router.message(
-    or_f(UpdateProduct.title, UpdateProduct.response), F.text
-)
-async def update_about_info(
-    message: Message, state: FSMContext, session: AsyncSession
-):
+@product_router.message(or_f(UpdateProduct.title, UpdateProduct.response), F.text)
+async def update_about_info(message: Message, state: FSMContext, session: AsyncSession):
     """Внести изменения продукта в БД."""
 
     current_state = await state.get_state()

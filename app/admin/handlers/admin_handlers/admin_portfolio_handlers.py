@@ -13,6 +13,7 @@ from admin.keyboards.keyboards import (
     get_inline_confirmation_keyboard,
     get_inline_keyboard,
 )
+
 # from settings import (
 #     MAIN_MENU_OPTIONS,
 #     ADMIN_PORTFOLIO_OPTIONS,
@@ -66,18 +67,13 @@ PREVIOUS_MENU = PORTFOLIO_MENU_OPTIONS.get("other_projects")
 async def get_portfolio_project_list(session: AsyncSession):
     """Получить список названий проектов для портфолио."""
     projects = [
-        project.project_name
-        for project in await portfolio_crud.get_multi(session)
+        project.project_name for project in await portfolio_crud.get_multi(session)
     ]
     return projects
 
 
-@portfolio_router.callback_query(
-    SectionState.other_projects, F.data == "Добавить"
-)
-async def add_portfolio_project_name(
-    callback: CallbackQuery, state: FSMContext
-):
+@portfolio_router.callback_query(SectionState.other_projects, F.data == "Добавить")
+async def add_portfolio_project_name(callback: CallbackQuery, state: FSMContext):
     await callback.message.answer("Введите название проекта:")
     await state.set_state(AddProject.project_name)
 
@@ -103,9 +99,7 @@ async def create_portfolio_project(
     await state.clear()
 
 
-@portfolio_router.callback_query(
-    SectionState.other_projects, F.data == "Удалить"
-)
+@portfolio_router.callback_query(SectionState.other_projects, F.data == "Удалить")
 async def portfolio_project_to_delete(
     callback: CallbackQuery, state: FSMContext, session: AsyncSession
 ):
@@ -123,9 +117,7 @@ async def portfolio_project_to_delete(
 async def confirm_delete(
     callback: CallbackQuery, state: FSMContext, session: AsyncSession
 ):
-    portfolio_project = await portfolio_crud.get_by_project_name(
-        callback.data, session
-    )
+    portfolio_project = await portfolio_crud.get_by_project_name(callback.data, session)
     await callback.message.edit_text(
         f"Вы уверены, что хотите удалить этот проект?\n\n {portfolio_project.project_name}",
         reply_markup=await get_inline_confirmation_keyboard(
@@ -135,15 +127,11 @@ async def confirm_delete(
     await state.set_state(DeleteProject.confirm)
 
 
-@portfolio_router.callback_query(
-    DeleteProject.confirm, F.data != PREVIOUS_MENU
-)
+@portfolio_router.callback_query(DeleteProject.confirm, F.data != PREVIOUS_MENU)
 async def delete_protfolio_project(
     callback: CallbackQuery, state: FSMContext, session: AsyncSession
 ):
-    portfolio_project = await portfolio_crud.get_by_project_name(
-        callback.data, session
-    )
+    portfolio_project = await portfolio_crud.get_by_project_name(callback.data, session)
     await portfolio_crud.remove(portfolio_project, session)
     await callback.message.edit_text(
         "Проект удален!",
@@ -152,9 +140,7 @@ async def delete_protfolio_project(
     await state.clear()
 
 
-@portfolio_router.callback_query(
-    SectionState.other_projects, F.data == "Изменить"
-)
+@portfolio_router.callback_query(SectionState.other_projects, F.data == "Изменить")
 async def portfolio_project_to_update(
     callback: CallbackQuery, state: FSMContext, session: AsyncSession
 ):
@@ -170,11 +156,11 @@ async def portfolio_project_to_update(
 
 @portfolio_router.callback_query(
     UpdateProject.select,
-    and_f(F.data != "Название проекта", F.data != "Адрес ссылки", F.data != PREVIOUS_MENU),
+    and_f(
+        F.data != "Название проекта", F.data != "Адрес ссылки", F.data != PREVIOUS_MENU
+    ),
 )
-async def update_portfolio_project_choise(
-    callback: CallbackQuery, state: FSMContext
-):
+async def update_portfolio_project_choise(callback: CallbackQuery, state: FSMContext):
     await state.update_data(select=callback.data)
     await callback.message.edit_text(
         "Что вы хотите отредактировать?",
@@ -184,11 +170,10 @@ async def update_portfolio_project_choise(
     )
 
 
-@portfolio_router.callback_query(
-    UpdateProject.select, F.data == "Название проекта"
-)
+@portfolio_router.callback_query(UpdateProject.select, F.data == "Название проекта")
 async def about_name_update(
-    callback: CallbackQuery, state: FSMContext,
+    callback: CallbackQuery,
+    state: FSMContext,
 ):
     about_name = await state.get_data()
     about_name_text = about_name.get("select")
@@ -198,29 +183,21 @@ async def about_name_update(
     await state.set_state(UpdateProject.project_name)
 
 
-@portfolio_router.callback_query(
-    UpdateProject.select, F.data == "Адрес ссылки"
-)
+@portfolio_router.callback_query(UpdateProject.select, F.data == "Адрес ссылки")
 async def about_url_update(
     callback: CallbackQuery, state: FSMContext, session: AsyncSession
 ):
     about_name_data = await state.get_data()
     about_name_text = about_name_data.get("select")
-    about_info = await portfolio_crud.get_by_project_name(
-        about_name_text, session
-    )
+    about_info = await portfolio_crud.get_by_project_name(about_name_text, session)
     await callback.message.answer(
         f"Сейчас у ссылки такой адрес:\n\n {about_info.url}\n\n Введите новое название"
     )
     await state.set_state(UpdateProject.url)
 
 
-@portfolio_router.message(
-    or_f(UpdateProject.project_name, UpdateProject.url), F.text
-)
-async def update_about_info(
-    message: Message, state: FSMContext, session: AsyncSession
-):
+@portfolio_router.message(or_f(UpdateProject.project_name, UpdateProject.url), F.text)
+async def update_about_info(message: Message, state: FSMContext, session: AsyncSession):
     current_state = await state.get_state()
     old_data = await state.get_data()
     old_portfolio_data = await portfolio_crud.get_by_project_name(

@@ -6,18 +6,18 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.sql import func
 import sqlalchemy.dialects.postgresql as pgsql_types
 
-from app.core.db import Base
+from core.db import Base
 
 
 class RoleEnum(str, Enum):
-    USER = 'U'
-    ADMIN = 'A'
-    MANAGER = 'M'
+    USER = "U"
+    ADMIN = "A"
+    MANAGER = "M"
 
 
 class QuestionEnum(str, Enum):
-    GENERAL_QUESTIONS = 'Общие вопросы'
-    PROBLEMS_WITH_PRODUCTS = 'Проблемы с продуктами'
+    GENERAL_QUESTIONS = "Общие вопросы"
+    PROBLEMS_WITH_PRODUCTS = "Проблемы с продуктами"
 
 
 class User(Base):
@@ -59,7 +59,7 @@ class CategoryType(Base):
     name: Mapped[str] = mapped_column(pgsql_types.VARCHAR(150), nullable=False)
 
     product_id: Mapped[int] = mapped_column(
-        ForeignKey('productcategory.id', ondelete='CASCADE'),
+        ForeignKey("productcategory.id", ondelete="CASCADE"),
         nullable=False,
         index=True,
     )
@@ -96,7 +96,7 @@ class Info(Base):
 
     question_type: Mapped[QuestionEnum] = mapped_column(
         pgsql_types.ENUM(
-            QuestionEnum, name='question_enum', create_type=False
+            QuestionEnum, name="question_enum", create_type=False
         ),
         nullable=False,
     )
@@ -139,16 +139,18 @@ class ContactManager(Base):
 
 
 class Feedback(Base):
+    """Бд модель обратной связи."""
+
     user: Mapped[int] = mapped_column(
         ForeignKey("user.id", ondelete="CASCADE"), nullable=False
     )
-    rating: Mapped[int] = mapped_column(
-        pgsql_types.INTEGER, nullable=False
-    )
+
+    rating: Mapped[int] = mapped_column(pgsql_types.INTEGER, nullable=False)
+
     feedback_text: Mapped[str] = mapped_column(
         pgsql_types.TEXT, nullable=False
     )
+
     feedback_date: Mapped[datetime] = mapped_column(
         pgsql_types.TIMESTAMP, default=datetime.now
     )
-    unread: Mapped[bool] = mapped_column(pgsql_types.BOOLEAN, default=True)

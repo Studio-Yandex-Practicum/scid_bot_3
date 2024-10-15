@@ -15,6 +15,6 @@ def check_token() -> None:
 
     if settings.bot_token is None:
         logger.error("Токен бота не найден.")
-        raise ValueError('Отсутствуют необходимые токены.')
+        raise ValueError("Отсутствуют необходимые токены.")
     else:
         logger.info("Токен бота успешно загружен.")

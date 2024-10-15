@@ -182,9 +182,7 @@ async def user_callback_request_data(
 
 
 @admin_main_router.callback_query(UserState.close_case, F.data)
-async def close_case(
-    callback: CallbackQuery, state: FSMContext, session: AsyncSession
-):
+async def close_case(callback: CallbackQuery, state: FSMContext, session: AsyncSession):
     """Закрыть заявку на обратный звонок."""
 
     user = await user_crud.get(callback.data, session)

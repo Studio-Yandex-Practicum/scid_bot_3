@@ -2,7 +2,7 @@ import logging
 from pathlib import Path
 
 
-log_dir = Path(__file__).parent / 'log_levels'
+log_dir = Path(__file__).parent / "log_levels"
 log_dir.mkdir(exist_ok=True)
 
 
@@ -24,29 +24,25 @@ def setup_logging():
     if logger.hasHandlers():
         logger.handlers.clear()
 
-    info_handler = logging.FileHandler(log_dir / 'info.log', encoding='utf-8')
+    info_handler = logging.FileHandler(log_dir / "info.log", encoding="utf-8")
     info_handler.setLevel(logging.INFO)
     info_handler.addFilter(LevelFilter(logging.INFO))
     info_handler.setFormatter(
-        logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+        logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
     )
 
-    error_handler = logging.FileHandler(
-        log_dir / 'error.log', encoding='utf-8'
-    )
+    error_handler = logging.FileHandler(log_dir / "error.log", encoding="utf-8")
     error_handler.setLevel(logging.ERROR)
     error_handler.addFilter(LevelFilter(logging.ERROR))
     error_handler.setFormatter(
-        logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+        logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
     )
 
-    debug_handler = logging.FileHandler(
-        log_dir / 'debug.log', encoding='utf-8'
-    )
+    debug_handler = logging.FileHandler(log_dir / "debug.log", encoding="utf-8")
     debug_handler.setLevel(logging.DEBUG)
     debug_handler.addFilter(LevelFilter(logging.DEBUG))
     debug_handler.setFormatter(
-        logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+        logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
     )
 
     logger.setLevel(logging.DEBUG)
@@ -56,7 +52,29 @@ def setup_logging():
 
     console_handler = logging.StreamHandler()
     console_handler.setLevel(logging.INFO)
-    console_handler.setFormatter(logging.Formatter(
-        '%(asctime)s - %(levelname)s - %(message)s')
+    console_handler.setFormatter(
+        logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
     )
-    logger.addHandler(console_handler)
+    logger.addHandler(console_handler)  # вывод в консоль
+
+    alembic_logger = logging.getLogger("alembic")
+    alembic_logger.setLevel(logging.INFO)
+
+    alembic_info_handler = logging.FileHandler(
+        log_dir / "alembic_info.log", encoding="utf-8"
+    )
+    alembic_info_handler.setLevel(logging.INFO)
+    alembic_info_handler.setFormatter(
+        logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
+    )
+    alembic_logger.addHandler(alembic_info_handler)
+
+    alembic_error_handler = logging.FileHandler(
+        log_dir / "alembic_error.log", encoding="utf-8"
+    )
+    alembic_error_handler.setLevel(logging.ERROR)
+    alembic_error_handler.setFormatter(
+        logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
+    )
+
+    # alembic_logger.addHandler(alembic_error_handler) вывод в консоль

@@ -20,16 +20,17 @@ from bot.bot_const import MESSAGE_FOR_NOT_SUPPORTED_CONTENT_TYPE
 from loggers.log import setup_logging
 
 
-setup_logging()
 router = Router()
 
+
+setup_logging()
 logger = logging.getLogger(__name__)
 
 
 @message_exception_handler(
-    log_error_text='Ошибка при обработке команды /admin.'
+    log_error_text="Ошибка при обработке команды /admin."
 )
-@router.message(Command('admin'))
+@router.message(Command("admin"))
 async def cmd_admin(message: Message, session: AsyncSession) -> None:
     """Вход в админку."""
 
@@ -39,18 +40,16 @@ async def cmd_admin(message: Message, session: AsyncSession) -> None:
     if role in (RoleEnum.ADMIN, RoleEnum.MANAGER):
         await message.answer(
             ADMIN_POSITIVE_ANSWER,
-            reply_markup=await get_inline_keyboard(MAIN_MENU_BUTTONS)
+            reply_markup=await get_inline_keyboard(MAIN_MENU_BUTTONS),
         )
     else:
         await message.answer(ADMIN_NEGATIVE_ANSWER)
 
-    logger.info(
-        f'Пользователь {user_id} вызвал команду /admin.'
-    )
+    logger.info(f"Пользователь {user_id} вызвал команду /admin.")
 
 
 @message_exception_handler(
-    log_error_text='Ошибка при обработке команды /start.'
+    log_error_text="Ошибка при обработке команды /start."
 )
 @router.message(CommandStart())
 async def cmd_start(message: Message, session: AsyncSession) -> None:
@@ -61,14 +60,9 @@ async def cmd_start(message: Message, session: AsyncSession) -> None:
     if not await is_user_in_db(user_id, session):
         await create_user_id(user_id, session)
 
-    await message.answer(
-        START_MESSAGE,
-        reply_markup=main_keyboard
-    )
+    await message.answer(START_MESSAGE, reply_markup=main_keyboard)
 
-    logger.info(
-        f'Пользователь {user_id} вызвал команду /start.'
-    )
+    logger.info(f"Пользователь {user_id} вызвал команду /start.")
 
     await start_inactivity_timer(user_id, bot)
 

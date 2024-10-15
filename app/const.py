@@ -68,7 +68,9 @@ SUPPORT_OPTIONS = {
 SUPPROT_MENU_BUTTONS = get_buttons(SUPPORT_OPTIONS)
 
 # Информация о компании - кнопки и текст
-COMPANY_ABOUT = "Вот несколько вариантов информации о нашей компании. Что именно вас интересует?"
+COMPANY_ABOUT = (
+    "Вот несколько вариантов информации о нашей компании. Что именно вас интересует?"
+)
 
 
 # Портфолио - кнопки и текст
@@ -83,9 +85,7 @@ PORTFOLIO_BUTTONS = get_buttons(PORTFOLIO_MENU_OPTIONS)
 PORTFOLIO_DEFAULT_DATA = {"name": "Портфолио", "url": "https://scid.ru/cases"}
 
 # Продукты
-PRODUCT_LIST_TEXT = (
-    "Мы предлагаем следющие продукты и услуги. Что Вас интересует?"
-)
+PRODUCT_LIST_TEXT = "Мы предлагаем следющие продукты и услуги. Что Вас интересует?"
 PRODUCT_LIST = []
 
 # Константы проекта
