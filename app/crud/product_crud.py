@@ -21,7 +21,7 @@ class ProductCRUD(CRUDBase):
     ):
         """Получить объект модели по тексту названия."""
         product = await session.execute(
-            select(self.model).where(self.model.title == product_name)
+            select(self.model).where(self.model.name == product_name)
         )
         return product.scalars().first()
 

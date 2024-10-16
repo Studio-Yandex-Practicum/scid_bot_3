@@ -1,11 +1,9 @@
-from datetime import datetime
-
 from .base_crud import CRUDBase
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from models.models import User
+from models.models import User, RoleEnum
 
 
 class UserCRUD(CRUDBase):
@@ -27,42 +25,45 @@ class UserCRUD(CRUDBase):
         """Получить пользователя по его tg_id."""
 
         user = await session.execute(
-            select(self.model).where(self.model.telegram_id == tg_id)
+            select(self.model).where(self.model.tg_id == tg_id)
         )
 
         return user.scalars().first()
 
-    async def case_open(self, user: User, session: AsyncSession):
-        """Открыть заявку на обратный звонок."""
+    async def get_role_by_tg_id(
+        self, tg_id: int, session: AsyncSession
+    ) -> User:
+        """Получаем роль пользователя по его tg_id."""
 
-        setattr(user, "callback_request", True)
-        setattr(user, "callback_request_date", datetime.now())
+        result = await session.execute(
+            select(self.model.role).where(self.model.tg_id == tg_id)
+        )
 
-        session.add(user)
-        await session.commit()
-        await session.refresh(user)
-        return user
+        return result.scalar()
 
-    async def close_case(self, user: User, session: AsyncSession):
-        """Закрыть заявку на обратный звонок."""
+    async def get_manager_list(self, session: AsyncSession) -> list[User]:
+        """Получить список менеджеров."""
+        manager_list = await session.execute(
+            select(self.model).where(self.model.role == RoleEnum.MANAGER)
+        )
+        return manager_list.scalars().all()
 
-        setattr(user, "callback_request", False)
-        setattr(user, "case_closed_date", datetime.now())
-
-        session.add(user)
-        await session.commit()
-        await session.refresh(user)
-        return user
-
-    async def bulk_create(
-        self,
-        objs_in: list,
-        session: AsyncSession,
+    async def promote_to_manager(
+        self, user: User, name: str, session: AsyncSession
     ):
-        db_objs = [self.model(**obj) for obj in objs_in]
-        session.add_all(db_objs)
+        """Назначить пользователя менеджером."""
+        setattr(user, "role", RoleEnum.MANAGER)
+        setattr(user, "name", name)
+        session.add(user)
         await session.commit()
-        return db_objs
+        await session.refresh(user)
+
+    async def demote_to_user(self, user: User, session: AsyncSession):
+        """Снять с пользователя роль менеджера."""
+        setattr(user, "role", RoleEnum.USER)
+        session.add(user)
+        await session.commit()
+        await session.refresh(user)
 
 
 user_crud = UserCRUD(User)

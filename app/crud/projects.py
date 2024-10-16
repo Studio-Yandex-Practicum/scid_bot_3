@@ -1,3 +1,4 @@
+from typing import Union
 from sqlalchemy.ext.asyncio import AsyncSession
 from models.models import CheckCompanyPortfolio, ProductCategory, CategoryType
 from sqlalchemy import select
@@ -17,7 +18,7 @@ async def response_text_by_id(id: int, session: AsyncSession) -> str:
     """Возвращает ответ на выбранную категорию."""
 
     result = await session.execute(
-        select(ProductCategory.response).where(ProductCategory.id == id)
+        select(ProductCategory.description).where(ProductCategory.id == id)
     )
 
     return result.scalar()
@@ -30,8 +31,10 @@ async def get_categories_by_name(
 
     result = await session.execute(
         select(CategoryType)
-        .join(ProductCategory, ProductCategory.id == CategoryType.product_id)
-        .where(ProductCategory.title == product_name)
+        .join(
+            ProductCategory, ProductCategory.id == CategoryType.product_id
+        )
+        .where(ProductCategory.name == product_name)
     )
 
     return result.scalars().all()
@@ -41,7 +44,9 @@ async def get_title_by_id(category_id: int, session: AsyncSession) -> str:
     """Получает название категории по ID из базы данных."""
 
     result = await session.execute(
-        select(ProductCategory.title).where(ProductCategory.id == category_id)
+        select(ProductCategory.name).where(
+            ProductCategory.id == category_id
+        )
     )
     category_name = result.scalar()
 

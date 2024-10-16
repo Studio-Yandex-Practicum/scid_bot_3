@@ -1,23 +1,17 @@
 from aiogram import F, Router
 from aiogram.fsm.context import FSMContext
-from aiogram.types import CallbackQuery, Message
-from aiogram.filters import CommandStart, or_f
+from aiogram.types import CallbackQuery
+from aiogram.filters import or_f
 from aiogram.fsm.state import State, StatesGroup
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from crud.category_product import category_product_crud
-from admin.filters.filters import ChatTypeFilter
-from const import (
-    ADMIN_BASE_BUTTONS,
+from admin.admin_settings import (
     PORTFOLIO_DEFAULT_DATA,
     PORTFOLIO_MENU_TEXT,
     PORTFOLIO_OTHER_PROJECTS_TEXT,
     PRODUCT_LIST_TEXT,
-    admin_list,
     BASE_BUTTONS,
-    BASE_KEYBOARD_BUTTONS,
     MAIN_MENU_OPTIONS,
-    GREETINGS,
     MAIN_MENU_BUTTONS,
     COMPANY_ABOUT,
     PORTFOLIO_BUTTONS,
@@ -26,12 +20,12 @@ from const import (
     SUPPORT_MENU_TEXT,
     SUPPROT_MENU_BUTTONS,
 )
+from admin.filters.filters import ChatTypeFilter
 from admin.keyboards.keyboards import (
     get_inline_keyboard,
-    get_reply_keyboard,
     get_delete_message_keyboard,
 )
-
+from crud.category_product import category_product_crud
 from crud.info_crud import info_crud
 from crud.about_crud import company_info_crud
 from crud.portfolio_projects_crud import portfolio_crud
@@ -39,7 +33,9 @@ from crud.product_crud import product_crud
 
 
 user_router = Router()
-user_router.message.filter(ChatTypeFilter(["private"]))
+user_router.message.filter(
+    ChatTypeFilter(["private"]),
+)
 
 
 class QuestionAnswer(StatesGroup):
@@ -56,35 +52,6 @@ async def delete_message(callback: CallbackQuery):
     await callback.message.delete()
 
 
-@user_router.message(CommandStart())
-async def start_cmd(message: Message):
-    """Получить основную экранную клавиатуру."""
-
-    if message.from_user.id in admin_list:
-        await message.answer(
-            GREETINGS,
-            reply_markup=await get_reply_keyboard(ADMIN_BASE_BUTTONS, size=(1, 2)),
-        )
-    else:
-        await message.answer(
-            GREETINGS,
-            reply_markup=await get_reply_keyboard(BASE_KEYBOARD_BUTTONS, size=(1, 2)),
-        )
-
-
-@user_router.message(F.text == BASE_BUTTONS.get("main_menu"))
-async def main_menu(message: Message, state: FSMContext):
-    """Получить основное меню бота после команды с экранной клавиатуры."""
-
-    await message.answer(
-        BASE_BUTTONS.get("main_menu"),
-        reply_markup=await get_inline_keyboard(MAIN_MENU_BUTTONS),
-    )
-
-    await message.delete()
-    await state.clear()
-
-
 @user_router.callback_query(F.data == BASE_BUTTONS.get("main_menu"))
 async def main_menu_callback(callback: CallbackQuery, state: FSMContext):
     """Получить основное меню бота через callback_query."""
@@ -98,7 +65,7 @@ async def main_menu_callback(callback: CallbackQuery, state: FSMContext):
 
 @user_router.callback_query(F.data == MAIN_MENU_OPTIONS.get("portfolio"))
 async def portfolio_info(callback: CallbackQuery, session: AsyncSession):
-    portlio_url = await company_info_crud.get_portfolio(session)
+    portlio_url = await portfolio_crud.get_portfolio(session)
     await callback.message.edit_text(
         PORTFOLIO_MENU_TEXT,
         reply_markup=await get_inline_keyboard(
@@ -107,7 +74,6 @@ async def portfolio_info(callback: CallbackQuery, session: AsyncSession):
                 portlio_url.url,
             ],
             previous_menu=BASE_BUTTONS.get("main_menu"),
-            is_admin=callback.from_user.id in admin_list,
             admin_update_menu=callback.data,
         ),
     )
@@ -134,7 +100,6 @@ async def main_info(callback: CallbackQuery, session: AsyncSession, state: FSMCo
             options=about_company_buttons,
             previous_menu=BASE_BUTTONS.get("main_menu"),
             urls=company_about_urls,
-            is_admin=callback.from_user.id in admin_list,
             admin_update_menu=callback.data,
         ),
     )
@@ -155,8 +120,8 @@ async def support_menu(callback: CallbackQuery):
 
 @user_router.callback_query(
     or_f(
-        F.data == SUPPORT_OPTIONS.get("faq"),
-        F.data == SUPPORT_OPTIONS.get("troubleshooting"),
+        F.data == SUPPORT_OPTIONS.get("general_questions"),
+        F.data == SUPPORT_OPTIONS.get("problems_with_products"),
     )
 )
 async def info_faq(
@@ -181,7 +146,6 @@ async def info_faq(
         reply_markup=await get_inline_keyboard(
             options=question_list,
             previous_menu=MAIN_MENU_OPTIONS.get("support"),
-            is_admin=callback.from_user.id in admin_list,
             admin_update_menu=callback.data,
         ),
     )
@@ -196,9 +160,8 @@ async def portfolio_other_projects(
     """Получить список других проектов компании."""
 
     await state.clear()
-
     projects = await portfolio_crud.get_multi(session)
-    projects_names = [project.project_name for project in projects]
+    projects_names = [project.name for project in projects]
     urls = [project.url for project in projects]
 
     await callback.message.edit_text(
@@ -207,7 +170,6 @@ async def portfolio_other_projects(
             projects_names,
             previous_menu=MAIN_MENU_OPTIONS.get("portfolio"),
             urls=urls,
-            is_admin=callback.from_user.id in admin_list,
             admin_update_menu=callback.data,
         ),
     )
@@ -219,7 +181,9 @@ async def get_products_list(
 ):
     """Получить список продуктов."""
 
-    products = [product.title for product in await product_crud.get_multi(session)]
+    products = [
+        product.name for product in await product_crud.get_multi(session)
+    ]
 
     await state.clear()
 
@@ -228,7 +192,6 @@ async def get_products_list(
         reply_markup=await get_inline_keyboard(
             products,
             previous_menu=BASE_BUTTONS.get("main_menu"),
-            is_admin=callback.from_user.id in admin_list,
             admin_update_menu=callback.data,
         ),
     )
@@ -250,12 +213,11 @@ async def product_category(
     urls = [category.url for category in categories]
 
     await callback.message.edit_text(
-        f"{product.response}",
+        f"{product.description}",
         reply_markup=await get_inline_keyboard(
             categories_by_name,
             urls=urls,
             previous_menu=MAIN_MENU_OPTIONS.get("products"),
-            is_admin=callback.from_user.id in admin_list,
             admin_update_menu=callback.data,
         ),
     )
@@ -300,7 +262,7 @@ async def faq_answer(callback: CallbackQuery, session: AsyncSession, state: FSMC
     if callback.data not in question_list:
         return
 
-    question = await info_crud.get_by_question_text(callback.data, session)
+    question = await info_crud.get_by_string(callback.data, session)
     answer = f"{callback.data}\n\n{question.answer}"
 
     await callback.message.answer(
