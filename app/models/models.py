@@ -18,6 +18,8 @@ class RoleEnum(str, Enum):
 class QuestionEnum(str, Enum):
     GENERAL_QUESTIONS = "Общие вопросы"
     PROBLEMS_WITH_PRODUCTS = "Проблемы с продуктами"
+    GENERAL_QUESTIONS = "Общие вопросы"
+    PROBLEMS_WITH_PRODUCTS = "Проблемы с продуктами"
 
 
 class User(Base):
@@ -67,6 +69,7 @@ class CategoryType(Base):
 
     product_id: Mapped[int] = mapped_column(
         ForeignKey("productcategory.id", ondelete="CASCADE"),
+        ForeignKey("productcategory.id", ondelete="CASCADE"),
         nullable=False,
         index=True,
     )
@@ -103,6 +106,7 @@ class Info(Base):
 
     question_type: Mapped[QuestionEnum] = mapped_column(
         pgsql_types.ENUM(
+            QuestionEnum, name="question_enum", create_type=False
             QuestionEnum, name="question_enum", create_type=False
         ),
         nullable=False,
@@ -160,6 +164,7 @@ class Feedback(Base):
     feedback_text: Mapped[str] = mapped_column(
         pgsql_types.TEXT, nullable=False
     )
+
     feedback_date: Mapped[datetime] = mapped_column(
         pgsql_types.TIMESTAMP, default=datetime.now
     )

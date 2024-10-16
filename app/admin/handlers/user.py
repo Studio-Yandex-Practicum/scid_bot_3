@@ -80,9 +80,7 @@ async def portfolio_info(callback: CallbackQuery, session: AsyncSession):
 
 
 @user_router.callback_query(F.data == MAIN_MENU_OPTIONS.get("company_bio"))
-async def main_info(
-    callback: CallbackQuery, session: AsyncSession, state: FSMContext
-):
+async def main_info(callback: CallbackQuery, session: AsyncSession, state: FSMContext):
     """Получить список ссылок на информацию о компании."""
 
     await state.clear()
@@ -155,9 +153,7 @@ async def info_faq(
     await state.set_state(QuestionAnswer.question)
 
 
-@user_router.callback_query(
-    F.data == PORTFOLIO_MENU_OPTIONS.get("other_projects")
-)
+@user_router.callback_query(F.data == PORTFOLIO_MENU_OPTIONS.get("other_projects"))
 async def portfolio_other_projects(
     callback: CallbackQuery, session: AsyncSession, state: FSMContext
 ):
@@ -256,9 +252,7 @@ async def get_product_info(
 
 
 @user_router.callback_query(QuestionAnswer.question, F.data)
-async def faq_answer(
-    callback: CallbackQuery, session: AsyncSession, state: FSMContext
-):
+async def faq_answer(callback: CallbackQuery, session: AsyncSession, state: FSMContext):
     """Получить ответ на вопрос из раздела Техподдержка."""
 
     question_list = [

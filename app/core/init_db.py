@@ -8,6 +8,7 @@ from admin.admin_settings import admin_list
 
 async def add_portfolio():
     """Добавить ссылку на портфолио при запуске бота."""
+
     async with AsyncSessionLocal() as async_session:
         if not await portfolio_crud.get_by_string(
             PORTFOLIO_DEFAULT_DATA.get("name"), async_session

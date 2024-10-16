@@ -1,16 +1,12 @@
 from typing import Union
 from sqlalchemy.ext.asyncio import AsyncSession
-from models.models import (
-    CheckCompanyPortfolio, ProductCategory,
-    CategoryType
-)
+from models.models import CheckCompanyPortfolio, ProductCategory, CategoryType
 from sqlalchemy import select
 
 
 async def get_all_prtfolio_projects(
-        object_model: Union[CheckCompanyPortfolio, ProductCategory],
-        session: AsyncSession
-) -> list[Union[CheckCompanyPortfolio, ProductCategory]]:
+    object_model: CheckCompanyPortfolio | ProductCategory, session: AsyncSession
+) -> list[CheckCompanyPortfolio | ProductCategory]:
     """Получение всех проектов-портфолио или продуктов и услуг."""
 
     result = await session.execute(select(object_model))

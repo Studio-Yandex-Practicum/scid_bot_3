@@ -2,6 +2,7 @@ from datetime import datetime
 
 from sqlalchemy import select, and_, desc, func
 from sqlalchemy.ext.asyncio import AsyncSession
+
 from models.models import ContactManager
 
 
@@ -13,8 +14,8 @@ async def create_request_to_manager(
     data_to_db = ContactManager(
         **user_data,
         shipping_date=datetime.utcnow(),
-        need_support=(request_type == 'callback_request'),
-        need_contact_with_manager=(request_type == 'contact_manager')
+        need_support=(request_type == "callback_request"),
+        need_contact_with_manager=(request_type == "contact_manager")
     )
 
     session.add(data_to_db)

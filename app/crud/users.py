@@ -29,8 +29,14 @@ async def is_user_in_db(tg_id: int, session: AsyncSession) -> bool:
 async def get_role_by_tg_id(tg_id: int, session: AsyncSession) -> User:
     """Получаем роль пользователя по его tg_id."""
 
-    result = await session.execute(
-        select(User.role).where(User.tg_id == tg_id)
-    )
+    result = await session.execute(select(User.role).where(User.tg_id == tg_id))
+
+    return result.scalar()
+
+
+async def get_id_by_tg_id(tg_id: int, session: AsyncSession) -> User:
+    """Получение id по tg_id."""
+
+    result = await session.execute(select(User.id).where(User.tg_id == tg_id))
 
     return result.scalar()

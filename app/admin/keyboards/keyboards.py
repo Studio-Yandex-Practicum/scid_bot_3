@@ -98,9 +98,7 @@ async def get_delete_message_keyboard() -> InlineKeyboardMarkup:
     """Создать копку для удаления сообщения."""
 
     keyboard = InlineKeyboardBuilder()
-    keyboard.add(
-        InlineKeyboardButton(text="Понятно! :)", callback_data="delete")
-    )
+    keyboard.add(InlineKeyboardButton(text="Понятно! :)", callback_data="delete"))
     return keyboard.adjust(1).as_markup(resize_keyboard=True)
 
 
