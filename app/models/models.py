@@ -107,7 +107,6 @@ class Info(Base):
     question_type: Mapped[QuestionEnum] = mapped_column(
         pgsql_types.ENUM(
             QuestionEnum, name="question_enum", create_type=False
-            QuestionEnum, name="question_enum", create_type=False
         ),
         nullable=False,
     )
