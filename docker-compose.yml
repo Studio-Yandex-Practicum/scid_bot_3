@@ -15,5 +15,5 @@ services:
     container_name: scid-bot
     # build: .  # раскомментить для работы локально
     image: greenvibe/scid_bot_3
-    command: bash -c make docker_compose_command
+    command: make docker_compose_command
     env_file: .env
