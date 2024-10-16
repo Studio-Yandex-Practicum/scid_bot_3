@@ -1,0 +1,32 @@
+FROM python:3.12.0-slim
+WORKDIR /app
+
+# Установка необходимых системных зависимостей (если нужно)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+# Установка Poetry
+RUN curl -sSL https://install.python-poetry.org | python3 -
+
+# Установка пути для Poetry
+ENV PATH="/root/.local/bin:$PATH"
+
+# Копирование только pyproject.toml и poetry.lock (если есть) для кэширования зависимостей
+COPY pyproject.toml poetry.lock* ./
+
+# Установка зависимостей
+RUN poetry install --no-root
+
+# Копирование остальных файлов, включая alembic
+COPY . .
+
+# Создание миграций
+#WORKDIR /app/app
+#RUN poetry run alembic stamp head
+#RUN poetry run alembic revision --autogenerate -m "compose commit"
+#RUN poetry run alembic upgrade head
+
+# Команда для запуска приложения
+CMD ["poetry", "run", "python", "app/main.py"]

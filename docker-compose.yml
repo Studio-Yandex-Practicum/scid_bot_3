@@ -1,0 +1,19 @@
+volumes:
+  pg_data:
+
+services:
+  db:
+    container_name: scid-db
+    image: postgres:13
+    restart: on-failure
+    env_file: .env
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+  bot:
+    depends_on:
+      - db
+    container_name: scid-bot
+    # build: .  # раскомментить для работы локально
+    image: greenvibe/scid_bot_3
+    command: bash -c "cd app && poetry run alembic stamp head && poetry run alembic revision --autogenerate && poetry run alembic upgrade head && poetry run python main.py"
+    env_file: .env

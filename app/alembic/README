@@ -1,0 +1,19 @@
+Инициализировать Alembic в проекте(должены использовать асинхронный шаблон)
+```bash
+poetry run alembic init --template async alembic 
+```
+
+При первом запуске указать нулевое состояние базы
+```bash
+poetry run alembic stamp head
+```
+
+Создать миграции, если внесены изменения в /models
+```bash
+poetry run alembic revision --autogenerate -m "Your commit"
+``` 
+
+Применить миграции
+```bash
+poetry run alembic upgrade head
+```
