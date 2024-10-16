@@ -1,6 +1,10 @@
 from sqlalchemy import Integer
-from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
-from sqlalchemy.orm import declarative_base, declared_attr, Mapped, mapped_column
+from sqlalchemy.ext.asyncio import (
+    AsyncSession, create_async_engine, async_sessionmaker
+)
+from sqlalchemy.orm import (
+    declarative_base, declared_attr, Mapped, mapped_column
+)
 
 from .settings import settings
 
@@ -16,5 +20,5 @@ class PreBase:
 
 
 Base = declarative_base(cls=PreBase)
-engine = create_async_engine(settings.database_url) 
+engine = create_async_engine(settings.database_url)
 AsyncSessionLocal = async_sessionmaker(engine, class_=AsyncSession)
