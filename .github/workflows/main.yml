@@ -3,7 +3,7 @@ on:
   push:
     branches:
       - master
-      - dev  # закомментить перед выходом в прод
+#      - dev
 #  pull_request:
 #    branches:
 #      - dev

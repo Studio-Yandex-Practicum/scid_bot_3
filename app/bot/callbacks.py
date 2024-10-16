@@ -14,7 +14,7 @@ from bot.keyborads import (
     faq_or_problems_with_products_inline_keyboard,
     category_type_inline_keyboard,
     inline_products_and_services,
-    company_information_keyboard,
+    get_company_information_keyboard,
     company_portfolio_choice,
     support_keyboard,
     back_to_main_menu,
@@ -209,7 +209,7 @@ async def view_portfolio(callback: CallbackQuery) -> None:
     log_error_text="Ошибка при запросе информации о компании."
 )
 @router.callback_query(F.data == "company_info")
-async def company_info(callback: CallbackQuery) -> None:
+async def company_info(callback: CallbackQuery, session: AsyncSession) -> None:
     """Информация о компании."""
 
     await callback.answer()
@@ -217,7 +217,8 @@ async def company_info(callback: CallbackQuery) -> None:
     user_id = get_user_id(callback)
 
     await callback.message.edit_text(
-        bc.MESSAGE_FOR_COMPANY_INFO, reply_markup=company_information_keyboard
+        bc.MESSAGE_FOR_COMPANY_INFO,
+        reply_markup=await get_company_information_keyboard(session)
     )
 
     logger.info(f"Пользователь {user_id} " f"запросил информацию о компании. ")

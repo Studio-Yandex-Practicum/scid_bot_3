@@ -1,84 +1,66 @@
+import logging
+
 from aiogram import F, Router
 from aiogram.filters import or_f, and_f
 from aiogram.fsm.context import FSMContext
-from aiogram.fsm.state import State, StatesGroup
+from aiogram.fsm.state import State
 from aiogram.types import CallbackQuery, Message
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from admin.handlers.admin_handlers.admin import SectionState
+from admin.filters.filters import ChatTypeFilter, IsManagerOrAdmin
+from admin.admin_managers import (
+    CreateCategoryManager,
+    UpdateCategoryManager,
+    DeleteCategoryManager,
+    CategoryCreateState,
+    CategoryUpdateState,
+    CategoryDeleteState,
+)
+from admin.handlers.user import ProductCategory
+from admin.admin_settings import (
+    ADMIN_BASE_OPTIONS,
+    ADMIN_CONTENT_OPTIONS,
+    ADMIN_UPDATE_OPTIONS,
+    MAIN_MENU_OPTIONS,
+)
+from admin.keyboards.keyboards import get_inline_keyboard
+from bot.exceptions import message_exception_handler
 from crud.category_product import category_product_crud
 from crud.product_crud import product_crud
-from admin.filters.filters import ChatTypeFilter, IsAdmin
-from admin.handlers.user import ProductCategory
-from admin.keyboards.keyboards import (
-    get_inline_confirmation_keyboard,
-    get_inline_keyboard,
-)
 
-# from settings import MAIN_MENU_OPTIONS, admin_list
-from const import admin_list
-
-MAIN_MENU_OPTIONS = {
-    "company_bio": "Информация о компании",
-    "products": "Продукты и услуги",
-    "support": "Техническая поддержка",
-    "portfolio": "Портфолио",
-    "request_callback": "Связаться с менеджером",
-}
+logger = logging.getLogger(__name__)
 
 category_router = Router()
-category_router.message.filter(ChatTypeFilter(["private"]), IsAdmin())
+category_router.message.filter(ChatTypeFilter(["private"]), IsManagerOrAdmin())
+category_router.callback_query.filter(IsManagerOrAdmin())
+
+PREVIOUS_MENU = "Назад"
 
 
-class AddCategory(StatesGroup):
-    name = State()
-    url = State()
-    media = State()
-    description = State()
+category_create_manager = CreateCategoryManager(PREVIOUS_MENU)
+category_update_manager = UpdateCategoryManager(PREVIOUS_MENU)
+category_delete_manager = DeleteCategoryManager(PREVIOUS_MENU)
 
 
-class UpdateCategory(StatesGroup):
-    name = State()
-    url = State()
-    media = State()
-    description = State()
-    select = State()
-
-
-class DeleteCategory(AddCategory):
-    confirm = State()
-
-
-async def get_category_list(state: FSMContext, session: AsyncSession):
-    """Получить список вариантов для проекта."""
+async def get_categoties_by_product_id(state: FSMContext):
+    """Получить id продукта из состояния."""
     fsm_data = await state.get_data()
-    product_id = fsm_data.get("product_id")
-    return [
-        category
-        for category in await category_product_crud.get_multi_for_product(
-            product_id, session
-        )
-    ]
+    return fsm_data.get("product_id")
 
 
-async def get_category_by_name(
-    field_name: str, state: FSMContext, session: AsyncSession
-):
-    fsm_data = await state.get_data()
-    product_id = fsm_data.get("product_id")
-    return await category_product_crud.get_category_by_name(
-        product_id=product_id, field_name=field_name, session=session
-    )
-
-
+@message_exception_handler(
+    log_error_text="Ошибка при возврате к меню категорий"
+)
 @category_router.callback_query(
     or_f(
-        AddCategory(),
-        UpdateCategory(),
-        DeleteCategory(),
+        State(None),
+        CategoryCreateState(),
+        CategoryUpdateState(),
+        CategoryDeleteState(),
         SectionState.category,
     ),
-    or_f(F.data == "Назад", F.data == "Отмена"),
+    F.data == PREVIOUS_MENU,
 )
 async def get_back_to_category_menu(
     callback: CallbackQuery, state: FSMContext, session: AsyncSession
@@ -92,258 +74,254 @@ async def get_back_to_category_menu(
     categories_by_name = [category.name for category in categories]
     urls = [category.url for category in categories]
     await callback.message.edit_text(
-        f"{product.response}",
+        f"{product.description}",
         reply_markup=await get_inline_keyboard(
             categories_by_name,
             urls=urls,
             previous_menu=MAIN_MENU_OPTIONS.get("products"),
-            is_admin=callback.from_user.id in admin_list,
             admin_update_menu=callback.data,
         ),
     )
     await state.set_state(ProductCategory.product_id)
-
-
-@category_router.callback_query(SectionState.category, F.data == "Добавить")
-async def add_new_category(callback: CallbackQuery, state: FSMContext):
-    """Добавить основные варианты для продукта."""
-    await callback.message.answer(
-        "Введите название для дополнительной информации",
-        reply_markup=await get_inline_keyboard(previous_menu="Назад"),
+    logger.info(
+        f"Пользователь {callback.from_user.id} вернулся в меню категорий."
     )
-    await state.set_state(AddCategory.name)
 
 
-@category_router.message(AddCategory.name, F.text)
+@message_exception_handler(
+    log_error_text="Ошибка при добавлении названия категории"
+)
+@category_router.callback_query(
+    SectionState.category, F.data == ADMIN_BASE_OPTIONS.get("create")
+)
 async def add_product_category_name(
-    message: Message,
+    callback: CallbackQuery,
     state: FSMContext,
 ):
-    """Выбрать тип данных для основных вариантов."""
-
-    await state.update_data(name=message.text)
-    await message.answer(
-        "Выберете способ передачи информации:",
-        reply_markup=await get_inline_keyboard(
-            ["Ссылка", "Текст", "Картинка"],
-            previous_menu="Назад",
-        ),
+    """Добавить название категории."""
+    product_id = await get_categoties_by_product_id(state)
+    await category_create_manager.add_obj_name(product_id, callback, state)
+    logger.info(
+        f"Пользователь {callback.from_user.id} добавил название категории."
     )
 
 
-@category_router.callback_query(
-    or_f(AddCategory.name, AddCategory.description),
-    or_f(F.data == "Ссылка", F.data == "Текст", F.data == "Картинка"),
+@message_exception_handler(
+    log_error_text="Ошибка при выборе типа данных для категории"
 )
-async def add_product_category_data(
-    callback: CallbackQuery, state: FSMContext, session: AsyncSession
+@category_router.message(CategoryCreateState.name, F.text)
+async def select_new_category_type(message: Message, state: FSMContext):
+    """Выбрать тип данных для дополнительной информации о продукте."""
+    await category_create_manager.select_data_type(message, state)
+    logger.info(
+        f"Пользователь {message.from_user.id} выбрал тип данных для категории."
+    )
+
+
+@message_exception_handler(
+    log_error_text="Ошибка при добавлении ссылки на категорию"
+)
+@category_router.callback_query(
+    CategoryCreateState.select, F.data == ADMIN_CONTENT_OPTIONS.get("url")
+)
+async def add_product_category_url(callback: CallbackQuery, state: FSMContext):
+    """Добавить ссылку на категорию."""
+    await category_create_manager.add_obj_url_callback(callback, state)
+    logger.info(
+        f"Пользователь {callback.from_user.id} добавил ссылку на категорию."
+    )
+
+
+@message_exception_handler(
+    log_error_text="Ошибка при добавлении описания категории"
+)
+@category_router.callback_query(
+    CategoryCreateState.select,
+    F.data == ADMIN_CONTENT_OPTIONS.get("description"),
+)
+async def add_product_category_description(
+    callback: CallbackQuery, state: FSMContext
 ):
-    """Добавить информацию в основной вариант."""
-
-    if callback.data == "Ссылка":
-        info_type = "ссылку"
-        await state.set_state(AddCategory.url)
-    elif callback.data == "Текст":
-        info_type = "текст"
-        fsm_data = await state.get_data()
-        category_name = fsm_data.get("select")
-        product_id = fsm_data.get("product_id")
-        category = await category_product_crud.get_category_by_name(
-            product_id, category_name, session
-        )
-        if category:
-            await state.set_state(UpdateCategory.description)
-        else:
-            await state.set_state(AddCategory.description)
-    elif callback.data == "Картинка":
-        info_type = "Картинку"
-        await state.set_state(AddCategory.media)
-    await callback.message.answer(
-        f"Добавьте {info_type}",
-        reply_markup=await get_inline_keyboard(previous_menu="Назад"),
+    """Добавить текст описания категории."""
+    await category_create_manager.add_obj_description_callback(callback, state)
+    logger.info(
+        f"Пользователь {callback.from_user.id} добавил описание категории."
     )
 
 
-@category_router.message(or_f(AddCategory.media, UpdateCategory.media), F.photo)
-async def add_media_description(message: Message, state: FSMContext):
-    """Добавить описание к картинке."""
-    await state.update_data(media=message.photo[-1].file_id)
-    await message.answer(
-        "Добавить описание к картинке?",
-        reply_markup=await get_inline_confirmation_keyboard(
-            "Текст", cancel_option="Нет"
-        ),
+@message_exception_handler(
+    log_error_text="Ошибка при добавлении медиа для категории"
+)
+@category_router.callback_query(
+    CategoryCreateState.select, F.data == ADMIN_CONTENT_OPTIONS.get("media")
+)
+async def add_product_category_media(
+    callback: CallbackQuery, state: FSMContext
+):
+    """Добавить картинку для категории."""
+    await category_create_manager.add_obj_media_callback(callback, state)
+    logger.info(
+        f"Пользователь {callback.from_user.id} добавил медиа для категории."
     )
-    await state.set_state(AddCategory.description)
 
 
+@message_exception_handler(
+    log_error_text="Ошибка при создании информации для продукта в БД"
+)
 @category_router.message(
-    or_f(AddCategory.description, AddCategory.url),
-    or_f(F.text, F.photo, F.data == "Нет"),
+    or_f(
+        CategoryCreateState.description,
+        CategoryCreateState.url,
+        CategoryCreateState.media,
+    ),
+    or_f(F.text, F.photo),
 )
 async def create_product_with_data(
     message: Message, state: FSMContext, session: AsyncSession
 ):
-    """Создать вариант для продукта в БД и предложить добавить следующий."""
-    current_state = await state.get_state()
-    if current_state == AddCategory.description:
-        await state.update_data(description=message.text)
-    elif current_state == AddCategory.url:
-        await state.update_data(url=message.text)
-    data = await state.get_data()
-    await category_product_crud.create(data, session)
-    await message.answer(
-        "Информация добавлена!",
-        reply_markup=await get_inline_keyboard(previous_menu="Назад"),
+    """Создать информацию для продукта в БД."""
+    await category_create_manager.add_obj_to_db(message, state, session)
+    logger.info(
+        f"Пользователь {message.from_user.id} создал информацию для продукта в БД."
     )
 
 
-@category_router.callback_query(SectionState.category, F.data == "Удалить")
+@message_exception_handler(
+    log_error_text="Ошибка при выборе категории для удаления"
+)
+@category_router.callback_query(
+    SectionState.category, F.data == ADMIN_BASE_OPTIONS.get("delete")
+)
 async def product_to_delete(
     callback: CallbackQuery, state: FSMContext, session: AsyncSession
 ):
-    """Выбор продукта на удаление."""
-    categories = [category.name for category in await get_category_list(state, session)]
-    await callback.message.edit_text(
-        "Какой проект вы хотите удалить?",
-        reply_markup=await get_inline_keyboard(
-            options=categories,
-            previous_menu="Назад",
-        ),
+    """Выбор информации на удаление."""
+    product_id = await get_categoties_by_product_id(state)
+    await category_delete_manager.select_obj_to_delete(
+        product_id, callback, state, session
     )
-    await state.set_state(DeleteCategory.name)
+    logger.info(
+        f"Пользователь {callback.from_user.id} выбрал категорию для удаления."
+    )
 
 
-@category_router.callback_query(DeleteCategory.name, F.data)
+@message_exception_handler(
+    log_error_text="Ошибка при подтверждении удаления категории"
+)
+@category_router.callback_query(CategoryDeleteState.select, F.data)
 async def confirm_delete(
     callback: CallbackQuery, state: FSMContext, session: AsyncSession
 ):
-    """Подтверждение удаления."""
-    category = await get_category_by_name(callback.data, state, session)
-    await callback.message.edit_text(
-        f"Вы уверены, что хотите удалить этот проект?\n\n {category.name}",
-        reply_markup=await get_inline_confirmation_keyboard(
-            option=category.name, cancel_option="Назад"
-        ),
-    )
-    await state.set_state(DeleteCategory.confirm)
-
-
-@category_router.callback_query(DeleteCategory.confirm, F.data != "Назад")
-async def delete_product(
-    callback: CallbackQuery, state: FSMContext, session: AsyncSession
-):
-    """Удалить продукт из БД."""
-    category = await get_category_by_name(callback.data, state, session)
-    await category_product_crud.remove(category, session)
-    await callback.message.edit_text(
-        "Услуга удалена!",
-        reply_markup=await get_inline_keyboard(previous_menu="Назад"),
+    """Подтверждение удаления категории."""
+    await category_delete_manager.confirm_delete(callback, state, session)
+    logger.info(
+        f"Пользователь {callback.from_user.id} подтвердил удаление категории."
     )
 
 
-@category_router.callback_query(SectionState.category, F.data == "Изменить")
-async def product_to_update(
-    callback: CallbackQuery, state: FSMContext, session: AsyncSession
-):
-    """Выбор продукта для редактирования."""
-    categories = [category.name for category in await get_category_list(state, session)]
-    await callback.message.edit_text(
-        "Какую услугу вы хотите отредактировать?",
-        reply_markup=await get_inline_keyboard(
-            options=categories, previous_menu="Назад"
-        ),
-    )
-    await state.set_state(UpdateCategory.select)
-
-
-@category_router.callback_query(
-    UpdateCategory.select,
-    and_f(F.data != "Название", F.data != "Содержание"),
+@message_exception_handler(
+    log_error_text="Ошибка при удалении категории из БД"
 )
-async def update_portfolio_project_choise(callback: CallbackQuery, state: FSMContext):
-    """Выбор поля для редактирования."""
-    await state.update_data(select=callback.data)
-    await callback.message.edit_text(
-        "Что вы хотите отредактировать?",
-        reply_markup=await get_inline_keyboard(
-            ["Название", "Содержание"], previous_menu="Назад"
-        ),
-    )
-
-
-@category_router.callback_query(UpdateCategory.select, F.data == "Название")
-async def about_name_update(callback: CallbackQuery, state: FSMContext):
-    """Ввести новое название продукта."""
-    fsm_data = await state.get_data()
-    category_name = fsm_data.get("select")
-    await callback.message.answer(
-        f"Текущее название:\n\n {category_name}\n\n Введите новое название"
-    )
-    await state.set_state(UpdateCategory.name)
-
-
-@category_router.callback_query(UpdateCategory.select, F.data == "Содержание")
-async def about_url_update(
+@category_router.callback_query(
+    CategoryDeleteState.confirm, F.data != PREVIOUS_MENU
+)
+async def delete_category(
     callback: CallbackQuery, state: FSMContext, session: AsyncSession
 ):
-    """Изменить содержание продукта."""
-    fsm_data = await state.get_data()
-    category_choice = fsm_data.get("select")
-    category = await get_category_by_name(category_choice, state, session)
-    if category.url:
-        await callback.message.answer(
-            f"Текущий адрес ссылки:\n\n {category.url}\n\n Введите новый адрес ссылки:"
-        )
-        await state.set_state(UpdateCategory.url)
-    if category.description and not category.media:
-        await callback.message.answer(
-            f"Текущий текст:\n\n {category.description}\n\n Введите новый текст:"
-        )
-        await state.set_state(UpdateCategory.description)
-    if category.media:
-        await callback.message.answer("Текущая картинка:")
-        await callback.message.answer_photo(
-            photo=category.media, caption=category.description
-        )
-        await callback.message.answer(
-            "Добавьте новую картинку и описание",
-            reply_markup=await get_inline_keyboard(previous_menu="Назад"),
-        )
-        await state.set_state(UpdateCategory.media)
+    """Удалить информацию о категории из БД."""
+    await category_delete_manager.delete_obj(callback, state, session)
+    logger.info(
+        f"Пользователь {callback.from_user.id} удалил категорию из БД."
+    )
 
 
+@message_exception_handler(
+    log_error_text="Ошибка при выборе категории для обновления"
+)
+@category_router.callback_query(
+    SectionState.category, F.data == ADMIN_BASE_OPTIONS.get("update")
+)
+async def category_to_update(
+    callback: CallbackQuery, state: FSMContext, session: AsyncSession
+):
+    """Выбор информации для редактирования категории."""
+    product_id = await get_categoties_by_product_id(state)
+    await category_update_manager.select_obj_to_update(
+        product_id, callback, state, session
+    )
+    logger.info(
+        f"Пользователь {callback.from_user.id} выбрал категорию для обновления."
+    )
+
+
+@message_exception_handler(
+    log_error_text="Ошибка при выборе данных для обновления категории"
+)
+@category_router.callback_query(
+    CategoryUpdateState.select,
+    and_f(
+        F.data != ADMIN_UPDATE_OPTIONS.get("name"),
+        F.data != ADMIN_UPDATE_OPTIONS.get("content"),
+    ),
+)
+async def select_category_data_to_update(
+    callback: CallbackQuery, session: AsyncSession
+):
+    """Выбор поля для редактирования категории."""
+    await category_update_manager.select_data_to_update(callback, session)
+    logger.info(
+        f"Пользователь {callback.from_user.id} выбрал данные для обновления категории."
+    )
+
+
+@message_exception_handler(
+    log_error_text="Ошибка при обновлении имени категории"
+)
+@category_router.callback_query(
+    CategoryUpdateState.select, F.data == ADMIN_UPDATE_OPTIONS.get("name")
+)
+async def category_name_update(callback: CallbackQuery, state: FSMContext):
+    """Ввести новое название категории."""
+    await category_update_manager.change_obj_name(callback, state)
+    logger.info(
+        f"Пользователь {callback.from_user.id} обновил название категории."
+    )
+
+
+@message_exception_handler(
+    log_error_text="Ошибка при обновлении содержания категории"
+)
+@category_router.callback_query(
+    CategoryUpdateState.select, F.data == ADMIN_UPDATE_OPTIONS.get("content")
+)
+async def about_url_update(callback: CallbackQuery, state: FSMContext):
+    """Изменить содержание категории."""
+    await category_update_manager.change_obj_content(callback, state)
+    logger.info(
+        f"Пользователь {callback.from_user.id} обновил содержание категории."
+    )
+
+
+@message_exception_handler(
+    log_error_text="Ошибка при обновлении информации о категории в БД"
+)
 @category_router.message(
     or_f(
-        UpdateCategory.name,
-        UpdateCategory.media,
-        UpdateCategory.url,
-        UpdateCategory.description,
+        CategoryUpdateState.name,
+        CategoryUpdateState.media,
+        CategoryUpdateState.url,
+        CategoryUpdateState.description,
     ),
     or_f(
         F.text,
         F.photo,
     ),
 )
-async def update_about_info(message: Message, state: FSMContext, session: AsyncSession):
-    """Внести изменения продукта в БД."""
-    current_state = await state.get_state()
-    old_data = await state.get_data()
-    print(old_data)
-    old_category_data = await get_category_by_name(
-        old_data.get("select"), state, session
-    )
-    if current_state == UpdateCategory.name:
-        await state.update_data(name=message.text)
-    elif current_state == UpdateCategory.url:
-        await state.update_data(url=message.text)
-    elif current_state == UpdateCategory.media:
-        await state.update_data(media=message.photo)
-    elif current_state == UpdateCategory.description:
-        await state.update_data(description=message.text)
-    update_data = await state.get_data()
-    await category_product_crud.update(old_category_data, update_data, session)
-    await message.answer(
-        "Информация обновлена!",
-        reply_markup=await get_inline_keyboard(previous_menu="Назад"),
+async def update_about_info(
+    message: Message, state: FSMContext, session: AsyncSession
+):
+    """Внести изменения информации о категории в БД."""
+    await category_update_manager.update_obj_in_db(message, state, session)
+    logger.info(
+        f"Пользователь {message.from_user.id} обновил информацию о категории в БД."
     )
