@@ -140,7 +140,7 @@ async def get_manager(callback: CallbackQuery, session: AsyncSession):
     )
     last_case_message = (
         (
-            f"{last_case_closed.id} от "
+            f"{last_case_closed.id} "
             f"{last_case_closed.shipping_date_close.strftime(DATETIME_FORMAT)}"
         )
         if last_case_closed
@@ -150,7 +150,7 @@ async def get_manager(callback: CallbackQuery, session: AsyncSession):
         f"Менеджер {manager.name}\n\n "
         f"Телеграм id: {manager.tg_id} \n\n"
         f"Количество закрытых заявок: {cases_count} \n\n"
-        f"Номер последней закрытой заявки: {last_case_message}"
+        f"Номер и дата последней закрытой заявки: {last_case_message}"
     )
     await callback.message.edit_text(
         message_text,
