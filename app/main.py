@@ -30,14 +30,16 @@ async def main() -> None:
 
     dispatcher.include_router(fsm_context_router)
     dispatcher.include_router(feedback_context)
-    dispatcher.include_router(message_router)
-    dispatcher.include_router(callback_router)
     dispatcher.include_router(admin_router)
     dispatcher.include_router(user_router)
+    dispatcher.include_router(message_router)
+    dispatcher.include_router(callback_router)
 
     try:
         logger.info("Запуск бота...")
-        dispatcher.update.middleware(DataBaseSession(session_pool=AsyncSessionLocal))
+        dispatcher.update.middleware(
+            DataBaseSession(session_pool=AsyncSessionLocal)
+        )
         await add_portfolio()
         await set_admin()
         await dispatcher.start_polling(bot)

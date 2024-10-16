@@ -13,15 +13,5 @@ class FeedbackCRUD(CRUDBase):
         )
         return db_objs.scalars().all()
 
-    async def bulk_create(
-        self,
-        objs_in: list,
-        session: AsyncSession,
-    ):
-        db_objs = [self.model(**obj) for obj in objs_in]
-        session.add_all(db_objs)
-        await session.commit()
-        return db_objs
-
 
 feedback_crud = FeedbackCRUD(Feedback)
