@@ -2,6 +2,7 @@ from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from crud.about_crud import company_info_crud
 from crud.questions import get_question_by_title
 from crud.projects import get_all_prtfolio_projects, get_categories_by_name
 from models.models import CheckCompanyPortfolio, ProductCategory
@@ -45,22 +46,28 @@ main_keyboard = InlineKeyboardMarkup(
     ]
 )
 
-company_information_keyboard = InlineKeyboardMarkup(
-    inline_keyboard=[
-        [
-            InlineKeyboardButton(
-                text="Презентация компании.",
-                url="https://www.visme.co/ru/powerpoint-online/",
-            )
-        ],
-        [
-            InlineKeyboardButton(
-                text="Карточка компании.", url="https://github.com/Rxyalxrd"
-            )
-        ],
-        [back_to_main_menu],
-    ]
-)
+
+async def get_company_information_keyboard(session: AsyncSession):
+
+    builder = InlineKeyboardBuilder()
+
+    presentation = await company_info_crud.get_by_about_name(
+        "Презентация компании", session
+    )
+    card = await company_info_crud.get_by_about_name(
+        "Карточка компании", session
+    )
+
+    if presentation:
+        builder.add(
+            InlineKeyboardButton(text=presentation.name, url=presentation.url)
+        )
+    if card:
+        builder.add(InlineKeyboardButton(text=card.name, url=card.url))
+
+    builder.add(back_to_main_menu)
+
+    return builder.adjust(1).as_markup()
 
 
 async def inline_products_and_services(session: AsyncSession):
@@ -73,7 +80,7 @@ async def inline_products_and_services(session: AsyncSession):
     for obj in objects_in_db:
         keyboard.add(
             InlineKeyboardButton(
-                text=obj.title,
+                text=obj.name,
                 callback_data=f"category_{obj.id}"
             )
         )
@@ -104,7 +111,7 @@ async def list_of_projects_keyboard(session: AsyncSession):
 
     for project in projects:
         keyboard.add(InlineKeyboardButton(
-            text=project.project_name, url=project.url))
+            text=project.name, url=project.url))
 
     keyboard.add(back_to_main_menu)
 

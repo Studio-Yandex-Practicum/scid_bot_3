@@ -1,5 +1,5 @@
 PYTHON = python
-APP = app/main.py
+APP = main.py
 
 # Устанавливает зависимости, указанные в pyproject.toml
 install:
@@ -28,16 +28,16 @@ format:
 
 # Применяет последние миграции к базе данных
 migrate:
-	alembic upgrade head
+	poetry run alembic upgrade head
 
 # Откатывает последнюю миграцию базы данных
 downgrade:
-	alembic downgrade -1 
+	poetry run alembic downgrade -1 
 
 # Создает новую миграцию на основе изменений в моделях
 # Использование: make makemigration msg="описание изменений"
 makemigration:
-	alembic revision --autogenerate -m "$(msg)"
+	poetry run alembic revision --autogenerate -m "$(msg)"
 
 # Выполняет набор команд для Docker Compose:
 # 1. Проставляет текущее состояние миграций.

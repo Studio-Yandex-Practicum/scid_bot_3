@@ -10,9 +10,9 @@ from bot.exceptions import message_exception_handler
 from helpers import ask_next_question, start_inactivity_timer, get_user_id
 from loggers.log import setup_logging
 from bot.validators import is_valid_rating
-from crud.feedback import create_feedback
 from crud.users import get_id_by_tg_id
 from core.bot_setup import bot
+from crud.feedback_crud import feedback_crud
 
 
 router = Router()
@@ -81,7 +81,7 @@ async def process_description(
 
     feedback_data = await state.get_data()
 
-    await create_feedback(feedback_data, session)
+    await feedback_crud.create(feedback_data, session)
 
     logger.info(f'Запись создана в БД с ID: {feedback_data.get("user")}.')
 

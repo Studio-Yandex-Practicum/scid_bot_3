@@ -1,14 +1,8 @@
-from .base_crud import CRUDBase
-
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from .base_crud import CRUDBase
 from models.models import InformationAboutCompany
-
-# from core.settings import PORTFOLIO_DEFAULT_DATA
-
-
-PORTFOLIO_DEFAULT_DATA = {"name": "Портфолио", "url": "https://scid.ru/cases"}
 
 
 class AboutCRUD(CRUDBase):
@@ -16,26 +10,13 @@ class AboutCRUD(CRUDBase):
         self,
         about_name: str,
         session: AsyncSession,
-    ):
+    ) -> InformationAboutCompany:
         """Получить объект модели по тексту названия."""
+
         db_obj = await session.execute(
             select(self.model).where(self.model.name == about_name)
         )
         return db_obj.scalars().first()
-
-    async def get_portfolio(self, session: AsyncSession):
-        """Получить объект в котором хранится ссылка на портфолио."""
-        portfolio_obj = await session.execute(
-            select(self.model).where(
-                self.model.name == PORTFOLIO_DEFAULT_DATA.get("name")
-            )
-        )
-        return portfolio_obj.scalars().first()
-
-    async def get_multi(self, session: AsyncSession):
-        """Получить список всех объектов модели из БД."""
-        db_objs = await session.execute(select(self.model).where(self.model.id != 1))
-        return db_objs.scalars().all()
 
 
 company_info_crud = AboutCRUD(InformationAboutCompany)

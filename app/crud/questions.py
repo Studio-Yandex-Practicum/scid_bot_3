@@ -16,9 +16,13 @@ async def get_question_by_title(
     return result.scalars().all()
 
 
-async def get_question_by_id(question_id: int, session: AsyncSession) -> Info | None:
+async def get_question_by_id(
+        question_id: int, session: AsyncSession
+) -> Info | None:
     """Получить вопрос по его ID."""
 
-    result = await session.execute(select(Info).where(Info.id == int(question_id)))
+    result = await session.execute(
+        select(Info).where(Info.id == int(question_id))
+    )
 
     return result.scalar_one_or_none()
