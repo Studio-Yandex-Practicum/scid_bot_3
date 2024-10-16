@@ -9,7 +9,7 @@ from bot.handlers import router as message_router
 from bot.callbacks import router as callback_router
 from bot.fsm_contexts.manager_context import router as fsm_context_router
 from bot.fsm_contexts.feedback_context import router as feedback_context
-#from core.init_db import add_portfolio, set_admin
+from core.init_db import add_portfolio, set_admin
 from admin.handlers.admin_handlers import admin_router
 from admin.handlers.user import user_router
 from loggers.log import setup_logging
@@ -40,8 +40,8 @@ async def main() -> None:
         dispatcher.update.middleware(
             DataBaseSession(session_pool=AsyncSessionLocal)
         )
-        #await add_portfolio()
-        #await set_admin()
+        await add_portfolio()
+        await set_admin()
         await dispatcher.start_polling(bot)
 
     except Exception as e:
