@@ -18,10 +18,7 @@ class RoleEnum(str, Enum):
 class QuestionEnum(str, Enum):
     GENERAL_QUESTIONS = "Общие вопросы"
     PROBLEMS_WITH_PRODUCTS = "Проблемы с продуктами"
-    GENERAL_QUESTIONS = "Общие вопросы"
-    PROBLEMS_WITH_PRODUCTS = "Проблемы с продуктами"
-
-
+    
 class User(Base):
     """БД модель пользователя."""
 
