@@ -24,7 +24,7 @@ class UserCRUD(CRUDBase):
         """Получить пользователя по его tg_id."""
 
         user = await session.execute(
-            select(self.model).where(self.model.tg_id == tg_id)
+            select(self.model).where(self.model.tg_id == int(tg_id))
         )
 
         return user.scalars().first()
@@ -35,7 +35,7 @@ class UserCRUD(CRUDBase):
         """Получаем роль пользователя по его tg_id."""
 
         result = await session.execute(
-            select(self.model.role).where(self.model.tg_id == tg_id)
+            select(self.model.role).where(self.model.tg_id == int(tg_id))
         )
 
         return result.scalar()
