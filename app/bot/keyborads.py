@@ -24,17 +24,17 @@ main_keyboard = InlineKeyboardMarkup(
         ],
         [
             InlineKeyboardButton(
-                text="Получить информацию о компании.", callback_data="company_info"
+                text="Информация о компании.", callback_data="company_info"
             )
         ],
         [
             InlineKeyboardButton(
-                text="Узнать о продуктах и услугах.", callback_data="products_services"
+                text="Продуктах и услугах.", callback_data="products_services"
             )
         ],
         [
             InlineKeyboardButton(
-                text="Получить техническую поддержку.", callback_data="tech_support"
+                text="Техническая поддержка.", callback_data="tech_support"
             )
         ],
         [
@@ -72,7 +72,10 @@ async def inline_products_and_services(session: AsyncSession):
 
     for obj in objects_in_db:
         keyboard.add(
-            InlineKeyboardButton(text=obj.title, callback_data=f"category_{obj.id}")
+            InlineKeyboardButton(
+                text=obj.title,
+                callback_data=f"category_{obj.id}"
+            )
         )
 
     keyboard.add(back_to_main_menu)
@@ -100,7 +103,8 @@ async def list_of_projects_keyboard(session: AsyncSession):
     keyboard = InlineKeyboardBuilder()
 
     for project in projects:
-        keyboard.add(InlineKeyboardButton(text=project.project_name, url=project.url))
+        keyboard.add(InlineKeyboardButton(
+            text=project.project_name, url=project.url))
 
     keyboard.add(back_to_main_menu)
 
@@ -112,12 +116,14 @@ support_keyboard = InlineKeyboardMarkup(
         [InlineKeyboardButton(text="F.A.Q", callback_data="get_faq")],
         [
             InlineKeyboardButton(
-                text="Проблемы с продуктами", callback_data="get_problems_with_products"
+                text="Проблемы с продуктами",
+                callback_data="get_problems_with_products"
             )
         ],
         [
             InlineKeyboardButton(
-                text="Запрос на обратный звонок", callback_data="callback_request"
+                text="Запрос на обратный звонок",
+                callback_data="callback_request"
             )
         ],
         [back_to_main_menu],
@@ -156,7 +162,9 @@ async def category_type_inline_keyboard(
 
     for category_type in category_types:
         keyboard.add(
-            InlineKeyboardButton(text=category_type.name, url=category_type.url)
+            InlineKeyboardButton(
+                text=category_type.name, url=category_type.url
+            )
         )
 
     keyboard.add(back_to_previous_menu)

@@ -21,7 +21,9 @@ async def send_mail(subject, to, user_data):
     message["From"] = BASE_EMAIL
     message["To"] = to
     message["Subject"] = subject
-    message.attach(MIMEText(f"<html><body>{text}</body></html>", "html", "utf-8"))
+    message.attach(
+        MIMEText(f"<html><body>{text}</body></html>", "html", "utf-8")
+    )
 
     smtp_client = SMTP(hostname="smtp.yandex.ru", port=465, use_tls=True)
     async with smtp_client:

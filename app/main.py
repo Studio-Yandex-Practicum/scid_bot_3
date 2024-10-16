@@ -37,7 +37,9 @@ async def main() -> None:
 
     try:
         logger.info("Запуск бота...")
-        dispatcher.update.middleware(DataBaseSession(session_pool=AsyncSessionLocal))
+        dispatcher.update.middleware(
+            DataBaseSession(session_pool=AsyncSessionLocal)
+        )
         await add_portfolio()
         await dispatcher.start_polling(bot, skip_updates=True)
 
