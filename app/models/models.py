@@ -158,7 +158,7 @@ class ContactManager(Base):
     )
 
     manager_id: Mapped[int] = mapped_column(
-        pgsql_types.BIGINT, ForeignKey('user.tg_id'), nullable=True
+        pgsql_types.BIGINT, ForeignKey("user.tg_id"), nullable=True
     )
 
     manager: Mapped[User] = relationship(
@@ -180,3 +180,11 @@ class Feedback(Base):
         pgsql_types.TIMESTAMP, default=datetime.now
     )
     rating: Mapped[int] = mapped_column(pgsql_types.INTEGER, nullable=False)
+
+
+class Timer(Base):
+    """БД модель для таймера активности пользователя."""
+
+    timer: Mapped[int] = mapped_column(
+        pgsql_types.INTEGER, default=mc.TIMER_DEFAULT
+    )

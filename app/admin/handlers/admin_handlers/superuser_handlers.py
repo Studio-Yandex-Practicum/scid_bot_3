@@ -24,6 +24,7 @@ from bot.exceptions import message_exception_handler
 from models.models import User, RoleEnum
 from crud.request_to_manager import get_manager_stats
 from crud.user_crud import user_crud
+from crud.timer import change_timer
 
 logger = logging.getLogger(__name__)
 
@@ -34,6 +35,7 @@ superuser_router.callback_query.filter(IsAdminOnly())
 
 PREVIOUS_MENU = MAIN_MENU_OPTIONS.get("admin_special")
 
+timer = State()
 manager = State()
 
 
@@ -49,14 +51,12 @@ async def check_user_tg_id_data(
 ) -> tuple[User, str | None]:
     """
     Проверить данные пользователя и вернуть пользователя и соообщение,
-    если пользователь админ или такого пользователя нет в базе.
+    если такого пользователя нет в базе.
     """
     message_text = ""
     user: User = await user_crud.get_user_by_tg_id(tg_id, session)
     if not user:
         message_text = "Такого пользователя в базе нет!"
-    elif user.role == RoleEnum.ADMIN:
-        message_text = "Нельзя менять роль админа!"
     return user, message_text
 
 
@@ -181,7 +181,7 @@ async def get_manager(callback: CallbackQuery, session: AsyncSession):
         await callback.message.edit_text(
             message_text,
             reply_markup=await get_inline_keyboard(
-                previous_menu=PREVIOUS_MENU
+                previous_menu=SUPERUSER_PROMOTION_OPTIONS.get("manager_list")
             ),
         )
         logger.info(
@@ -288,9 +288,9 @@ async def check_user_and_make_him_manager(
             )
         else:
             if current_state == RoleState.user:
-                await user_crud.change_user_role(user, user_new_role, session)
+                await user_crud.update(user, user_new_role, session)
             elif current_state == RoleState.name:
-                await user_crud.change_user_role(
+                await user_crud.update(
                     user, user_new_role, session, message.text
                 )
             await message.answer(
@@ -302,6 +302,44 @@ async def check_user_and_make_him_manager(
             logger.info(
                 f"Пользователю {user_tg_id} изменили роль на {user_new_role}."
             )
+    except Exception as e:
+        await message.answer(
+            f"Произошла ошибка: {e}",
+            reply_markup=await get_inline_keyboard(
+                previous_menu=PREVIOUS_MENU
+            ),
+        )
+
+
+@superuser_router.callback_query(
+    F.data == SUPERUSER_SPECIAL_OPTIONS.get("set_timer")
+)
+async def change_inactivity_timer(callback: CallbackQuery, state: FSMContext):
+    """Ввести новое значение таймера активности."""
+    await callback.message.delete()
+    await callback.message.answer(
+        (
+            "Введите новое значение таймера для проверки "
+            "послденей активности пользователя. Укажите число секунд:"
+        )
+    )
+    await state.set_state(timer)
+
+
+@superuser_router.message(timer, F.text.isnumeric())
+async def check_and_set_new_timer(
+    message: Message, state: FSMContext, session: AsyncSession
+):
+    """Проверить и выставить новый таймер."""
+    try:
+        await change_timer(message.text, session)
+        await message.answer(
+            f"Новый таймер на {message.text} секунд установлен!",
+            reply_markup=await get_inline_keyboard(
+                previous_menu=PREVIOUS_MENU
+            ),
+        )
+        await state.clear()
     except Exception as e:
         await message.answer(
             f"Произошла ошибка: {e}",

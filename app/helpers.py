@@ -5,11 +5,13 @@ from aiogram.types import Message, CallbackQuery
 from aiogram import Bot
 from aiogram.fsm.state import State
 from aiogram.fsm.context import FSMContext
+from sqlalchemy.ext.asyncio import AsyncSession
 
 import bot.bot_const as bc
 from bot.exceptions import message_exception_handler
 from bot.keyborads import get_feedback_keyboard
 from bot.bot_const import Form, FeedbackForm
+from crud.timer import get_timer
 from loggers.log import setup_logging
 
 
@@ -26,18 +28,17 @@ def get_user_id(message: Message | CallbackQuery) -> int:
 user_timers = {}
 
 
-@message_exception_handler(
-    log_error_text="Ошибка запуска таймера."
-)
+@message_exception_handler(log_error_text="Ошибка запуска таймера.")
 async def start_inactivity_timer(
-    user_id: int, bot: Bot, timeout: int = 300
+    user_id: int, bot: Bot, session: AsyncSession
 ) -> None:
     """
     Запускает таймер.
 
     Для пользователя и отправляет сообщение, если пользователь бездействует.
     """
-
+    timeout_from_db = await get_timer(session)
+    timeout = timeout_from_db.timer
     logger.info(
         f"Запуск таймера для пользователя {user_id} с таймаутом {timeout}."
     )
@@ -67,8 +68,9 @@ async def inactivity_timer(user_id: int, bot: Bot, timeout: int):
 
         if user_id in user_timers:
             await bot.send_message(
-                user_id, bc.MESSAGE_FOR_GET_FEEDBACK,
-                reply_markup=get_feedback_keyboard
+                user_id,
+                bc.MESSAGE_FOR_GET_FEEDBACK,
+                reply_markup=get_feedback_keyboard,
             )
 
             del user_timers[user_id]

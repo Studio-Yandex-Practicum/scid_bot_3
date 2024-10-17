@@ -1,6 +1,6 @@
 from .base_crud import CRUDBase
 
-from sqlalchemy import select
+from sqlalchemy import select, or_
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from models.models import User, RoleEnum
@@ -30,13 +30,18 @@ class UserCRUD(CRUDBase):
         return result.scalar()
 
     async def get_manager_list(self, session: AsyncSession) -> list[User]:
-        """Получить список менеджеров."""
+        """Получить список менеджеров и администраторов."""
         manager_list = await session.execute(
-            select(self.model).where(self.model.role == RoleEnum.MANAGER)
+            select(self.model).where(
+                or_(
+                    self.model.role == RoleEnum.MANAGER,
+                    self.model.role == RoleEnum.ADMIN,
+                )
+            )
         )
         return manager_list.scalars().all()
 
-    async def change_user_role(
+    async def update(
         self,
         user: User,
         new_role: str,

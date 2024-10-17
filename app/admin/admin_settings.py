@@ -62,6 +62,7 @@ SUPERUSER_SPECIAL_OPTIONS = {
     "support_request": "Запросы на техподдержку",
     "feedbacks": "Отзывы",
     "promotion": "Управление персоналом",
+    "set_timer": "Изменить таймер активности"
 }
 SUPERUSER_SPECIAL_BUTTONS = get_buttons(SUPERUSER_SPECIAL_OPTIONS)
 SUPERUSER_PROMOTION_OPTIONS = {
