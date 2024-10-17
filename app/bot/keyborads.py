@@ -80,8 +80,7 @@ async def inline_products_and_services(session: AsyncSession):
     for obj in objects_in_db:
         keyboard.add(
             InlineKeyboardButton(
-                text=obj.name,
-                callback_data=f"category_{obj.id}"
+                text=obj.name, callback_data=f"category_{obj.id}"
             )
         )
 
@@ -90,16 +89,19 @@ async def inline_products_and_services(session: AsyncSession):
     return keyboard.adjust(1).as_markup()
 
 
-company_portfolio_choice = InlineKeyboardMarkup(
-    inline_keyboard=[
-        [
-            InlineKeyboardButton(
-                text="Перейти к проектам.", callback_data="show_projects"
-            )
-        ],
-        [back_to_main_menu],
-    ]
-)
+async def get_company_portfolio_choice(url: str):
+    """Инлайн клавиатура для портфолио."""
+    company_portfolio_choice = InlineKeyboardBuilder()
+    company_portfolio_choice.add(
+        InlineKeyboardButton(text="Портфолио", url=url)
+    )
+    company_portfolio_choice.add(
+        InlineKeyboardButton(
+            text="Перейти к проектам.", callback_data="show_projects"
+        )
+    )
+    company_portfolio_choice.add(back_to_main_menu)
+    return company_portfolio_choice.adjust(1).as_markup(resize_keyboard=True)
 
 
 async def list_of_projects_keyboard(session: AsyncSession):
@@ -110,8 +112,7 @@ async def list_of_projects_keyboard(session: AsyncSession):
     keyboard = InlineKeyboardBuilder()
 
     for project in projects:
-        keyboard.add(InlineKeyboardButton(
-            text=project.name, url=project.url))
+        keyboard.add(InlineKeyboardButton(text=project.name, url=project.url))
 
     keyboard.add(back_to_main_menu)
 
@@ -124,13 +125,13 @@ support_keyboard = InlineKeyboardMarkup(
         [
             InlineKeyboardButton(
                 text="Проблемы с продуктами",
-                callback_data="get_problems_with_products"
+                callback_data="get_problems_with_products",
             )
         ],
         [
             InlineKeyboardButton(
                 text="Запрос на обратный звонок",
-                callback_data="callback_request"
+                callback_data="callback_request",
             )
         ],
         [back_to_main_menu],

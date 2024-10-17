@@ -6,11 +6,11 @@ from aiogram.fsm.state import State, StatesGroup
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from admin.admin_settings import (
+    MAIN_MENU_TEXT,
     PORTFOLIO_DEFAULT_DATA,
     PORTFOLIO_MENU_TEXT,
     PORTFOLIO_OTHER_PROJECTS_TEXT,
     PRODUCT_LIST_TEXT,
-    BASE_BUTTONS,
     MAIN_MENU_OPTIONS,
     MAIN_MENU_BUTTONS,
     COMPANY_ABOUT,
@@ -32,8 +32,8 @@ from crud.portfolio_projects_crud import portfolio_crud
 from crud.product_crud import product_crud
 
 
-user_router = Router()
-user_router.message.filter(
+admin_main_router = Router()
+admin_main_router.message.filter(
     ChatTypeFilter(["private"]),
 )
 
@@ -47,24 +47,25 @@ class ProductCategory(StatesGroup):
     category = State()
 
 
-@user_router.callback_query(F.data == "delete")
+@admin_main_router.callback_query(F.data == "delete")
 async def delete_message(callback: CallbackQuery):
     await callback.message.delete()
 
 
-@user_router.callback_query(F.data == BASE_BUTTONS.get("main_menu"))
+@admin_main_router.callback_query(F.data == MAIN_MENU_TEXT)
 async def main_menu_callback(callback: CallbackQuery, state: FSMContext):
-    """Получить основное меню бота через callback_query."""
+    """Получить главное меню через callback_query."""
 
     await callback.message.edit_text(
-        BASE_BUTTONS.get("main_menu"),
+        MAIN_MENU_TEXT,
         reply_markup=await get_inline_keyboard(MAIN_MENU_BUTTONS),
     )
     await state.clear()
 
 
-@user_router.callback_query(F.data == MAIN_MENU_OPTIONS.get("portfolio"))
+@admin_main_router.callback_query(F.data == MAIN_MENU_OPTIONS.get("portfolio"))
 async def portfolio_info(callback: CallbackQuery, session: AsyncSession):
+    """Вывести меню с портфолио."""
     portlio_url = await portfolio_crud.get_portfolio(session)
     await callback.message.edit_text(
         PORTFOLIO_MENU_TEXT,
@@ -73,14 +74,18 @@ async def portfolio_info(callback: CallbackQuery, session: AsyncSession):
             urls=[
                 portlio_url.url,
             ],
-            previous_menu=BASE_BUTTONS.get("main_menu"),
+            previous_menu=MAIN_MENU_TEXT,
             admin_update_menu=callback.data,
         ),
     )
 
 
-@user_router.callback_query(F.data == MAIN_MENU_OPTIONS.get("company_bio"))
-async def main_info(callback: CallbackQuery, session: AsyncSession, state: FSMContext):
+@admin_main_router.callback_query(
+    F.data == MAIN_MENU_OPTIONS.get("company_bio")
+)
+async def main_info(
+    callback: CallbackQuery, session: AsyncSession, state: FSMContext
+):
     """Получить список ссылок на информацию о компании."""
 
     await state.clear()
@@ -98,14 +103,14 @@ async def main_info(callback: CallbackQuery, session: AsyncSession, state: FSMCo
         COMPANY_ABOUT,
         reply_markup=await get_inline_keyboard(
             options=about_company_buttons,
-            previous_menu=BASE_BUTTONS.get("main_menu"),
+            previous_menu=MAIN_MENU_TEXT,
             urls=company_about_urls,
             admin_update_menu=callback.data,
         ),
     )
 
 
-@user_router.callback_query(F.data == MAIN_MENU_OPTIONS.get("support"))
+@admin_main_router.callback_query(F.data == MAIN_MENU_OPTIONS.get("support"))
 async def support_menu(callback: CallbackQuery):
     """Получить меню выбора раздела техподдержки."""
 
@@ -113,12 +118,12 @@ async def support_menu(callback: CallbackQuery):
         SUPPORT_MENU_TEXT,
         reply_markup=await get_inline_keyboard(
             options=SUPPROT_MENU_BUTTONS,
-            previous_menu=BASE_BUTTONS.get("main_menu"),
+            previous_menu=MAIN_MENU_TEXT,
         ),
     )
 
 
-@user_router.callback_query(
+@admin_main_router.callback_query(
     or_f(
         F.data == SUPPORT_OPTIONS.get("general_questions"),
         F.data == SUPPORT_OPTIONS.get("problems_with_products"),
@@ -153,7 +158,9 @@ async def info_faq(
     await state.set_state(QuestionAnswer.question)
 
 
-@user_router.callback_query(F.data == PORTFOLIO_MENU_OPTIONS.get("other_projects"))
+@admin_main_router.callback_query(
+    F.data == PORTFOLIO_MENU_OPTIONS.get("other_projects")
+)
 async def portfolio_other_projects(
     callback: CallbackQuery, session: AsyncSession, state: FSMContext
 ):
@@ -175,7 +182,7 @@ async def portfolio_other_projects(
     )
 
 
-@user_router.callback_query(F.data == MAIN_MENU_OPTIONS.get("products"))
+@admin_main_router.callback_query(F.data == MAIN_MENU_OPTIONS.get("products"))
 async def get_products_list(
     callback: CallbackQuery, state: FSMContext, session: AsyncSession
 ):
@@ -191,7 +198,7 @@ async def get_products_list(
         PRODUCT_LIST_TEXT,
         reply_markup=await get_inline_keyboard(
             products,
-            previous_menu=BASE_BUTTONS.get("main_menu"),
+            previous_menu=MAIN_MENU_TEXT,
             admin_update_menu=callback.data,
         ),
     )
@@ -199,7 +206,7 @@ async def get_products_list(
     await state.set_state(ProductCategory.category)
 
 
-@user_router.callback_query(ProductCategory.category, F.data)
+@admin_main_router.callback_query(ProductCategory.category, F.data)
 async def product_category(
     callback: CallbackQuery, session: AsyncSession, state: FSMContext
 ):
@@ -226,7 +233,7 @@ async def product_category(
     await state.update_data(product_id=product.id)
 
 
-@user_router.callback_query(ProductCategory.product_id, F.data)
+@admin_main_router.callback_query(ProductCategory.product_id, F.data)
 async def get_product_info(
     callback: CallbackQuery, state: FSMContext, session: AsyncSession
 ):
@@ -251,8 +258,10 @@ async def get_product_info(
         )
 
 
-@user_router.callback_query(QuestionAnswer.question, F.data)
-async def faq_answer(callback: CallbackQuery, session: AsyncSession, state: FSMContext):
+@admin_main_router.callback_query(QuestionAnswer.question, F.data)
+async def faq_answer(
+    callback: CallbackQuery, session: AsyncSession, state: FSMContext
+):
     """Получить ответ на вопрос из раздела Техподдержка."""
 
     question_list = [

@@ -62,21 +62,16 @@ SUPERUSER_SPECIAL_OPTIONS = {
     "support_request": "Запросы на техподдержку",
     "feedbacks": "Отзывы",
     "promotion": "Управление персоналом",
+    "set_timer": "Изменить таймер активности"
 }
 SUPERUSER_SPECIAL_BUTTONS = get_buttons(SUPERUSER_SPECIAL_OPTIONS)
 SUPERUSER_PROMOTION_OPTIONS = {
-    "manager_list": "Список менеджеров",
+    "manager_list": "Список админов и менеджеров",
+    "promote_to_admin": "Добавить администратора",
     "promote": "Добавить менеджера",
-    "demote": "Убрать менеджера",
+    "demote": "Понизить до пользователя",
 }
 SUPERUSER_PROMOTION_BUTTONS = get_buttons(SUPERUSER_PROMOTION_OPTIONS)
-# Кнопки экранной клавиатуры
-BASE_BUTTONS = {
-    "main_menu": "Главное меню",
-    "call_manager": "Связаться с менеджером",
-    "rate_us": "Оставить отзыв",
-}
-BASE_KEYBOARD_BUTTONS = get_buttons(BASE_BUTTONS)
 
 # Главное меню - кнопки и текст
 MAIN_MENU_TEXT = "Главное меню"
@@ -120,9 +115,5 @@ PRODUCT_LIST_TEXT = (
 )
 
 # Константы проекта
-DEFAULT_STR_LEN = 150
-PHONE_NUMBER_LEN = 25
 PHONE_NUMBER_REGEX = r"(\+\d{5,25}$|\d{5,25}$)"
-USER_CALLBACK_PAGINATION = 5
-FEEDBACK_PAGINATION = 5
 DATETIME_FORMAT = '%d-%m-%Y %H:%M'
