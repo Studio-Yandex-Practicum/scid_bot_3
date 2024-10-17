@@ -20,11 +20,11 @@ from admin.admin_settings import (
 )
 
 
-admin_main_router = Router()
-admin_main_router.message.filter(
+admin_menu_router = Router()
+admin_menu_router.message.filter(
     ChatTypeFilter(["private"]), IsManagerOrAdmin()
 )
-admin_main_router.callback_query.filter(IsManagerOrAdmin())
+admin_menu_router.callback_query.filter(IsManagerOrAdmin())
 
 
 class UserState(StatesGroup):
@@ -73,7 +73,7 @@ class SectionState(StatesGroup):
             return cls.category
 
 
-@admin_main_router.callback_query(F.data.endswith("_"))
+@admin_menu_router.callback_query(F.data.endswith("_"))
 async def update_section_data(callback: CallbackQuery, state: FSMContext):
     """Админские кнопки для внесения изменений в разделы."""
 

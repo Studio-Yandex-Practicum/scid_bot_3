@@ -12,8 +12,11 @@ import models.models_const as mc
 
 class RoleEnum(str, Enum):
     USER = "Пользователь"
-    ADMIN = "Админ"
+    ADMIN = "Администратор"
     MANAGER = "Mенеджер"
+
+    def __str__(self) -> str:
+        return self.value
 
 
 class QuestionEnum(str, Enum):

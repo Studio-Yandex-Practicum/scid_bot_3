@@ -12,9 +12,11 @@ def phone_number_validator(phone_number: int) -> bool:
 def validate_url(url: str):
     """Валидация ссылки."""
     regex = re.compile(
-        r'^(https://)'
-        r'([A-Za-z0-9.-]+)'  # Домен
-        r'(:\d+)?'  # Порт (необязательный)
-        r'(/.*)?$'  # Путь (необязательный)
+        r"^(https://)" r"([A-Za-z0-9.-]+)" r"(:\d+)?" r"(/.*)?$"
     )
     return re.match(regex, url) is not None
+
+
+def validate_button_name_len(button_name: str):
+    """Валидация длины названия для кнопок."""
+    return len(button_name.encode("utf-8")) < 64

@@ -3,7 +3,7 @@ from aiogram.types import CallbackQuery, Message
 from aiogram.fsm.state import State, StatesGroup
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from admin.handlers.validators import validate_url
+from admin.handlers.validators import validate_button_name_len, validate_url
 from .base_manager import (
     BaseAdminManager,
 )
@@ -171,6 +171,18 @@ class UpdateManager(BaseAdminManager):
 
         current_state = await state.get_state()
         if current_state == self.states_group.name.state:
+            if not validate_button_name_len(message.text):
+                await message.answer(
+                    (
+                        "Слишком длинное название для кнопки! Из-за ограничений "
+                        "телеграма могут возникнуть проблемы :( "
+                        "Попробуйте ввести название покороче."
+                    ),
+                    reply_markup=await get_inline_keyboard(
+                        previous_menu=self.back_option
+                    ),
+                )
+                return
             await state.update_data(name=message.text)
         elif current_state == self.states_group.url.state:
             if not validate_url(message.text):

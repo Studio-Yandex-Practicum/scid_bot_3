@@ -13,11 +13,11 @@ class Settings(BaseSettings):
     telegram_chat_ids: str
     # email: str
     # email_password: str
-    # postgres_user: str
-    # postgres_password: str
-    # postgres_db: str
-    # db_host: str
-    # db_port: str
+    postgres_user: str
+    postgres_password: str
+    postgres_db: str
+    db_host: str
+    db_port: str
 
     class Config:
         env_file = ".env"

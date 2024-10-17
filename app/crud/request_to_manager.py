@@ -31,7 +31,7 @@ async def get_request(
     """Получить запрос по id."""
 
     request = await session.execute(
-        select(ContactManager).where(ContactManager.id == request_id)
+        select(ContactManager).where(ContactManager.id == int(request_id))
     )
     return request.scalars().first()
 
@@ -81,7 +81,7 @@ async def close_case(
         setattr(case_to_close, "need_support", False)
 
     setattr(case_to_close, "shipping_date_close", datetime.now())
-    setattr(case_to_close, "manager_id", manager_id)
+    setattr(case_to_close, "manager_id", int(manager_id))
 
     session.add(case_to_close)
     await session.commit()
@@ -97,12 +97,12 @@ async def get_manager_stats(
     closed_requests_count = await session.execute(
         select(func.count())
         .select_from(ContactManager)
-        .where(ContactManager.manager_id == manager_id)
+        .where(ContactManager.manager_id == int(manager_id))
     )
 
     last_closed_requests = await session.execute(
         select(ContactManager)
-        .where(ContactManager.manager_id == manager_id)
+        .where(ContactManager.manager_id == int(manager_id))
         .order_by(desc(ContactManager.shipping_date_close))
         .limit(1)
     )
