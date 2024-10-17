@@ -39,12 +39,12 @@ async def get_feedback_yes(
 
     logger.info(f"Пользователь {callback.from_user.id} начал процесс.")
 
-    await start_inactivity_timer(user_id, bot)
+    await start_inactivity_timer(user_id, bot, session)
 
 
 @message_exception_handler(log_error_text="Ошибка при обработке оценки.")
 @router.message(bc.FeedbackForm.rating)
-async def process_rating(message: Message, state: FSMContext) -> None:
+async def process_rating(message: Message, state: FSMContext, session:AsyncSession) -> None:
     """Обрабатывает ввод оценки."""
 
     rating = message.text
@@ -63,7 +63,7 @@ async def process_rating(message: Message, state: FSMContext) -> None:
 
     logger.info(f"Пользователь {message.from_user.id} ввел оценку.")
 
-    await start_inactivity_timer(user_id, bot)
+    await start_inactivity_timer(user_id, bot, session)
 
 
 @message_exception_handler(log_error_text="Ошибка при обработке текста.")
@@ -90,6 +90,6 @@ async def process_description(
         f"Ваш комментарий: {feedback_data['feedback_text']}"
     )
 
-    await start_inactivity_timer(user_id, bot)
+    await start_inactivity_timer(user_id, bot, session)
 
     await state.clear()

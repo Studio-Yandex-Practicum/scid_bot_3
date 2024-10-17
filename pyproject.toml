@@ -17,6 +17,9 @@ asyncpg = "^0.29.0"
 aiosmtplib = "^3.0.2"
 make = "^0.1.6.post2"
 black = "^24.10.0"
+pytest = "^8.0.0"
+pytest-asyncio = "^0.24.0"
+pytest-mock = "^3.6.1"
 
 [tool.poetry.group.dev.dependencies]
 aiosqlite = "^0.20.0"

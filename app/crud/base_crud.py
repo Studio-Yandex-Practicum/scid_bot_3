@@ -44,7 +44,7 @@ class CRUDBase:
         """Получить объект модели по ее id."""
 
         db_obj = await session.execute(
-            select(self.model).where(self.model.id == obj_id)
+            select(self.model).where(self.model.id == int(obj_id))
         )
 
         return db_obj.scalars().first()

@@ -31,7 +31,7 @@ logger = logging.getLogger(__name__)
 @message_exception_handler(log_error_text="Ошибка при выводе формы.")
 @router.callback_query(F.data.in_(("contact_manager", "callback_request")))
 async def contact_with_manager(
-    callback: CallbackQuery, state: FSMContext
+    callback: CallbackQuery, state: FSMContext, session: AsyncSession
 ) -> None:
     """Выводит форму для связи с менеджером или запрос на обратный звонок."""
 
@@ -47,7 +47,7 @@ async def contact_with_manager(
 
     logger.info(f"Пользователь {user_id} начал процесс.")
 
-    await start_inactivity_timer(user_id, bot)
+    await start_inactivity_timer(user_id, bot, session)
 
 
 @message_exception_handler(
@@ -122,6 +122,6 @@ async def process_phone_number(
         ).as_markup(),
     )
 
-    await start_inactivity_timer(user_id, bot)
+    await start_inactivity_timer(user_id, bot, session)
 
     await state.clear()

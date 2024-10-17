@@ -1,9 +1,9 @@
 PYTHON = python
-APP = main.py
+APP = app/main.py
 
 # Устанавливает зависимости, указанные в pyproject.toml
 install:
-	poetry install
+	poetry install --no-root
 
 # Добавляет новый пакет в проект
 # Использование: make install-package PACKAGE=<имя_пакета>
