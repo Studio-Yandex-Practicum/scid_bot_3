@@ -1,8 +1,7 @@
-from .base_crud import CRUDBase
-
 from sqlalchemy import select, or_
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from .base_crud import CRUDBase
 from models.models import User, RoleEnum
 
 
