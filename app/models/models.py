@@ -12,8 +12,11 @@ import models.models_const as mc
 
 class RoleEnum(str, Enum):
     USER = "Пользователь"
-    ADMIN = "Админ"
+    ADMIN = "Администратор"
     MANAGER = "Mенеджер"
+
+    def __str__(self) -> str:
+        return self.value
 
 
 class QuestionEnum(str, Enum):
@@ -155,7 +158,7 @@ class ContactManager(Base):
     )
 
     manager_id: Mapped[int] = mapped_column(
-        pgsql_types.BIGINT, ForeignKey('user.tg_id'), nullable=True
+        pgsql_types.BIGINT, ForeignKey("user.tg_id"), nullable=True
     )
 
     manager: Mapped[User] = relationship(

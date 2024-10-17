@@ -9,18 +9,19 @@ from helpers import get_user_id, start_inactivity_timer
 from core.bot_setup import bot
 from bot.exceptions import message_exception_handler
 from bot.keyborads import (
+    get_company_portfolio_choice,
     list_of_projects_keyboard,
     main_keyboard,
     faq_or_problems_with_products_inline_keyboard,
     category_type_inline_keyboard,
     inline_products_and_services,
     get_company_information_keyboard,
-    company_portfolio_choice,
     support_keyboard,
     back_to_main_menu,
 )
 from crud.questions import get_question_by_id
 from crud.projects import get_title_by_id, response_text_by_id
+from crud.portfolio_projects_crud import portfolio_crud
 import bot.bot_const as bc
 from loggers.log import setup_logging
 from redis_db.connect import get_redis_connection
@@ -58,7 +59,9 @@ async def show_projects(
     log_error_text="Ошибка при возврате в основное меню."
 )
 @router.callback_query(F.data == "back_to_main_menu")
-async def previous_choice(callback: CallbackQuery) -> None:
+async def previous_choice(
+    callback: CallbackQuery, session: AsyncSession
+) -> None:
     """Возвращает в основное меню."""
 
     await callback.answer()
@@ -88,7 +91,8 @@ async def get_questions(
     redis_client = await get_redis_connection()
 
     question_type = (
-        "GENERAL_QUESTIONS" if callback.data == "get_faq"
+        "GENERAL_QUESTIONS"
+        if callback.data == "get_faq"
         else "PROBLEMS_WITH_PRODUCTS"
     )
 
@@ -125,9 +129,9 @@ async def get_faq_answer(
     if question:
         await callback.message.edit_text(
             text=f"{question.answer}",
-            reply_markup=InlineKeyboardBuilder().add(
-                back_to_main_menu
-            ).as_markup(),
+            reply_markup=InlineKeyboardBuilder()
+            .add(back_to_main_menu)
+            .as_markup(),
         )
     else:
         await callback.message.edit_text(bc.QUESTION_NOT_FOUND)
@@ -192,11 +196,11 @@ async def get_response_by_title(
     await start_inactivity_timer(user_id, bot, redis_client)
 
 
-@message_exception_handler(
-    log_error_text="Ошибка при показе портфолио."
-)
+@message_exception_handler(log_error_text="Ошибка при показе портфолио.")
 @router.callback_query(F.data == "view_portfolio")
-async def view_portfolio(callback: CallbackQuery) -> None:
+async def view_portfolio(
+    callback: CallbackQuery, session: AsyncSession
+) -> None:
     """Показ портфолио компании."""
 
     await callback.answer()
@@ -204,8 +208,10 @@ async def view_portfolio(callback: CallbackQuery) -> None:
     user_id = get_user_id(callback)
     redis_client = await get_redis_connection()
 
+    url = await portfolio_crud.get_portfolio(session)
     await callback.message.edit_text(
-        bc.MESSAGE_FOR_VIEW_PORTFOLIO, reply_markup=company_portfolio_choice
+        bc.MESSAGE_FOR_VIEW_PORTFOLIO,
+        reply_markup=await get_company_portfolio_choice(url=url.url)
     )
 
     logger.info(f"Пользователь {user_id} запросил портфолио.")
@@ -227,7 +233,7 @@ async def company_info(callback: CallbackQuery, session: AsyncSession) -> None:
 
     await callback.message.edit_text(
         bc.MESSAGE_FOR_COMPANY_INFO,
-        reply_markup=await get_company_information_keyboard(session)
+        reply_markup=await get_company_information_keyboard(session),
     )
 
     logger.info(f"Пользователь {user_id} " f"запросил информацию о компании. ")
@@ -237,7 +243,7 @@ async def company_info(callback: CallbackQuery, session: AsyncSession) -> None:
 
 @message_exception_handler(log_error_text="Ошибка при запросе техподдержки.")
 @router.callback_query(F.data == "tech_support")
-async def get_support(callback: CallbackQuery) -> None:
+async def get_support(callback: CallbackQuery, session: AsyncSession) -> None:
     """Выводит виды тех. поддержки."""
 
     await callback.answer()

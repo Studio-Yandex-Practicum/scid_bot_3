@@ -81,7 +81,7 @@ async def close_case(
         setattr(case_to_close, "need_support", False)
 
     setattr(case_to_close, "shipping_date_close", datetime.now())
-    setattr(case_to_close, "manager_id", manager_id)
+    setattr(case_to_close, "manager_id", int(manager_id))
 
     session.add(case_to_close)
     await session.commit()
