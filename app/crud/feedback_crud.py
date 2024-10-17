@@ -6,7 +6,7 @@ from models.models import Feedback
 
 
 class FeedbackCRUD(CRUDBase):
-    async def get_multi(self, session: AsyncSession):
+    async def get_multi(self, session: AsyncSession) -> list[Feedback]:
         """Получить список всех объектов модели из БД."""
         db_objs = await session.execute(
             select(self.model).order_by(desc(self.model.feedback_date))

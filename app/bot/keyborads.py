@@ -2,6 +2,7 @@ from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from crud.about_crud import company_info_crud
 from crud.questions import get_question_by_title
 from crud.projects import get_all_prtfolio_projects, get_categories_by_name
 from models.models import CheckCompanyPortfolio, ProductCategory
@@ -24,17 +25,17 @@ main_keyboard = InlineKeyboardMarkup(
         ],
         [
             InlineKeyboardButton(
-                text="Получить информацию о компании.", callback_data="company_info"
+                text="Информация о компании.", callback_data="company_info"
             )
         ],
         [
             InlineKeyboardButton(
-                text="Узнать о продуктах и услугах.", callback_data="products_services"
+                text="Продуктах и услугах.", callback_data="products_services"
             )
         ],
         [
             InlineKeyboardButton(
-                text="Получить техническую поддержку.", callback_data="tech_support"
+                text="Техническая поддержка.", callback_data="tech_support"
             )
         ],
         [
@@ -45,22 +46,28 @@ main_keyboard = InlineKeyboardMarkup(
     ]
 )
 
-company_information_keyboard = InlineKeyboardMarkup(
-    inline_keyboard=[
-        [
-            InlineKeyboardButton(
-                text="Презентация компании.",
-                url="https://www.visme.co/ru/powerpoint-online/",
-            )
-        ],
-        [
-            InlineKeyboardButton(
-                text="Карточка компании.", url="https://github.com/Rxyalxrd"
-            )
-        ],
-        [back_to_main_menu],
-    ]
-)
+
+async def get_company_information_keyboard(session: AsyncSession):
+
+    builder = InlineKeyboardBuilder()
+
+    presentation = await company_info_crud.get_by_about_name(
+        "Презентация компании", session
+    )
+    card = await company_info_crud.get_by_about_name(
+        "Карточка компании", session
+    )
+
+    if presentation:
+        builder.add(
+            InlineKeyboardButton(text=presentation.name, url=presentation.url)
+        )
+    if card:
+        builder.add(InlineKeyboardButton(text=card.name, url=card.url))
+
+    builder.add(back_to_main_menu)
+
+    return builder.adjust(1).as_markup()
 
 
 async def inline_products_and_services(session: AsyncSession):
@@ -72,7 +79,10 @@ async def inline_products_and_services(session: AsyncSession):
 
     for obj in objects_in_db:
         keyboard.add(
-            InlineKeyboardButton(text=obj.title, callback_data=f"category_{obj.id}")
+            InlineKeyboardButton(
+                text=obj.name,
+                callback_data=f"category_{obj.id}"
+            )
         )
 
     keyboard.add(back_to_main_menu)
@@ -100,7 +110,8 @@ async def list_of_projects_keyboard(session: AsyncSession):
     keyboard = InlineKeyboardBuilder()
 
     for project in projects:
-        keyboard.add(InlineKeyboardButton(text=project.project_name, url=project.url))
+        keyboard.add(InlineKeyboardButton(
+            text=project.name, url=project.url))
 
     keyboard.add(back_to_main_menu)
 
@@ -112,12 +123,14 @@ support_keyboard = InlineKeyboardMarkup(
         [InlineKeyboardButton(text="F.A.Q", callback_data="get_faq")],
         [
             InlineKeyboardButton(
-                text="Проблемы с продуктами", callback_data="get_problems_with_products"
+                text="Проблемы с продуктами",
+                callback_data="get_problems_with_products"
             )
         ],
         [
             InlineKeyboardButton(
-                text="Запрос на обратный звонок", callback_data="callback_request"
+                text="Запрос на обратный звонок",
+                callback_data="callback_request"
             )
         ],
         [back_to_main_menu],
@@ -156,7 +169,9 @@ async def category_type_inline_keyboard(
 
     for category_type in category_types:
         keyboard.add(
-            InlineKeyboardButton(text=category_type.name, url=category_type.url)
+            InlineKeyboardButton(
+                text=category_type.name, url=category_type.url
+            )
         )
 
     keyboard.add(back_to_previous_menu)

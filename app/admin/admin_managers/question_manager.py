@@ -9,6 +9,7 @@ from admin.keyboards.keyboards import (
     get_inline_keyboard,
 )
 from admin.admin_settings import ADMIN_QUESTION_BUTTONS, SUPPORT_OPTIONS
+from admin.handlers.validators import validate_button_name_len
 from crud.info_crud import info_crud
 
 
@@ -101,6 +102,18 @@ class QuestionCreateManager(QuestionBaseManager):
         Добавить ответ и перейти в
         следующее машинное состояние.
         """
+        if not validate_button_name_len(message.text):
+            await message.answer(
+                (
+                    "Слишком длинное название для кнопки! Из-за ограничений "
+                    "телеграма могут возникнуть проблемы :( "
+                    "Попробуйте ввести название покороче."
+                ),
+                reply_markup=await get_inline_keyboard(
+                    previous_menu=self.back_option
+                ),
+            )
+            return
         await state.update_data(question=message.text)
         await message.answer(
             "Введите ответ на этот вопрос:",

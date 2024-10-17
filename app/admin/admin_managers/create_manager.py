@@ -3,7 +3,7 @@ from aiogram.fsm.state import State, StatesGroup
 from aiogram.types import CallbackQuery, Message
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from admin.handlers.validators import validate_url
+from admin.handlers.validators import validate_button_name_len, validate_url
 from admin.keyboards.keyboards import (
     get_inline_keyboard,
 )
@@ -108,6 +108,18 @@ class CreateManager(BaseAdminManager):
         Добавить название объекта в state_data и перейти
         к заполнению следующего поля.
         """
+        if not validate_button_name_len(message.text):
+            await message.answer(
+                (
+                    "Слишком длинное название для кнопки! Из-за ограничений "
+                    "телеграма могут возникнуть проблемы :( "
+                    "Попробуйте ввести название покороче."
+                ),
+                reply_markup=await get_inline_keyboard(
+                    previous_menu=self.back_option
+                ),
+            )
+            return
         await state.update_data(name=message.text)
         await message.answer(
             message_text,

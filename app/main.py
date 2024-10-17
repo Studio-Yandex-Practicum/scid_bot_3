@@ -11,7 +11,6 @@ from bot.fsm_contexts.manager_context import router as fsm_context_router
 from bot.fsm_contexts.feedback_context import router as feedback_context
 from core.init_db import add_portfolio, set_admin
 from admin.handlers.admin_handlers import admin_router
-from admin.handlers.user import user_router
 from loggers.log import setup_logging
 
 
@@ -31,7 +30,6 @@ async def main() -> None:
     dispatcher.include_router(fsm_context_router)
     dispatcher.include_router(feedback_context)
     dispatcher.include_router(admin_router)
-    dispatcher.include_router(user_router)
     dispatcher.include_router(message_router)
     dispatcher.include_router(callback_router)
 

@@ -17,7 +17,7 @@ from admin.admin_managers import (
     CategoryUpdateState,
     CategoryDeleteState,
 )
-from admin.handlers.user import ProductCategory
+from admin.handlers.admin_handlers.admin_main_handlers import ProductCategory
 from admin.admin_settings import (
     ADMIN_BASE_OPTIONS,
     ADMIN_CONTENT_OPTIONS,

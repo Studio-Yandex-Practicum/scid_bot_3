@@ -7,18 +7,23 @@ from sqlalchemy.sql import func
 import sqlalchemy.dialects.postgresql as pgsql_types
 
 from core.db import Base
+import models.models_const as mc
 
 
 class RoleEnum(str, Enum):
     USER = "Пользователь"
-    ADMIN = "Админ"
+    ADMIN = "Администратор"
     MANAGER = "Mенеджер"
+
+    def __str__(self) -> str:
+        return self.value
 
 
 class QuestionEnum(str, Enum):
     GENERAL_QUESTIONS = "Общие вопросы"
     PROBLEMS_WITH_PRODUCTS = "Проблемы с продуктами"
-    
+
+
 class User(Base):
     """БД модель пользователя."""
 
@@ -27,7 +32,7 @@ class User(Base):
     )
 
     name: Mapped[str] = mapped_column(
-        pgsql_types.VARCHAR(32), default="Аноним"
+        pgsql_types.VARCHAR(mc.NAME_LENGTH), default="Аноним"
     )
 
     role: Mapped[RoleEnum] = mapped_column(
@@ -48,7 +53,7 @@ class User(Base):
 class ProductCategory(Base):
     """БД модель продуктов и услуг."""
 
-    name: Mapped[str] = mapped_column(pgsql_types.VARCHAR(150))
+    name: Mapped[str] = mapped_column(pgsql_types.VARCHAR(mc.NAME_LENGTH))
 
     description: Mapped[str] = mapped_column(pgsql_types.TEXT)
 
@@ -62,7 +67,9 @@ class ProductCategory(Base):
 class CategoryType(Base):
     """БД модель типов категорий."""
 
-    name: Mapped[str] = mapped_column(pgsql_types.VARCHAR(150), nullable=False)
+    name: Mapped[str] = mapped_column(
+        pgsql_types.VARCHAR(mc.NAME_LENGTH), nullable=False
+    )
 
     product_id: Mapped[int] = mapped_column(
         ForeignKey("productcategory.id", ondelete="CASCADE"),
@@ -71,9 +78,13 @@ class CategoryType(Base):
         index=True,
     )
 
-    url: Mapped[str] = mapped_column(pgsql_types.VARCHAR(128), nullable=True)
+    url: Mapped[str] = mapped_column(
+        pgsql_types.VARCHAR(mc.URL_LENGTH), nullable=True
+    )
 
-    media: Mapped[str] = mapped_column(pgsql_types.VARCHAR(128), nullable=True)
+    media: Mapped[str] = mapped_column(
+        pgsql_types.VARCHAR(mc.MEDIA_URL), nullable=True
+    )
 
     description: Mapped[str] = mapped_column(pgsql_types.TEXT, nullable=True)
 
@@ -85,17 +96,21 @@ class CategoryType(Base):
 class InformationAboutCompany(Base):
     """Бд модель информации о компании."""
 
-    name: Mapped[str] = mapped_column(pgsql_types.VARCHAR(48), nullable=False)
+    name: Mapped[str] = mapped_column(
+        pgsql_types.VARCHAR(mc.NAME_LENGTH), nullable=False
+    )
 
-    url: Mapped[str] = mapped_column(pgsql_types.VARCHAR(128))
+    url: Mapped[str] = mapped_column(pgsql_types.VARCHAR(mc.URL_LENGTH))
 
 
 class CheckCompanyPortfolio(Base):
     """Бд модель информации о проектах."""
 
-    name: Mapped[str] = mapped_column(pgsql_types.VARCHAR(48), nullable=False)
+    name: Mapped[str] = mapped_column(
+        pgsql_types.VARCHAR(mc.NAME_LENGTH), nullable=False
+    )
 
-    url: Mapped[str] = mapped_column(pgsql_types.VARCHAR(128))
+    url: Mapped[str] = mapped_column(pgsql_types.VARCHAR(mc.URL_LENGTH))
 
 
 class Info(Base):
@@ -117,11 +132,11 @@ class ContactManager(Base):
     """Бд модель заявки к менеджеру."""
 
     first_name: Mapped[str] = mapped_column(
-        pgsql_types.VARCHAR(32), nullable=False
+        pgsql_types.VARCHAR(mc.FIRST_NAME_LENGHT), nullable=False
     )
 
     phone_number: Mapped[str] = mapped_column(
-        pgsql_types.VARCHAR(25), nullable=False
+        pgsql_types.VARCHAR(mc.PHONE_NUMBER_LENGHT), nullable=False
     )
 
     need_support: Mapped[bool] = mapped_column(
