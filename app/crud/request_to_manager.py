@@ -73,7 +73,7 @@ async def close_case(
 ) -> tuple:
     """Закрыть заявку."""
 
-    case_to_close = await get_request(request_id, session)
+    case_to_close = await get_request(int(request_id), session)
 
     if case_to_close.need_contact_with_manager:
         setattr(case_to_close, "need_contact_with_manager", False)
