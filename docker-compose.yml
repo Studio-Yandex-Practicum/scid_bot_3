@@ -13,7 +13,7 @@ services:
     depends_on:
       - db
     container_name: scid-bot
-    build: .  # раскомментить для работы локально
-    # image: greenvibe/scid_bot_3
+    # build: .  # раскомментить для работы локально
+    image: greenvibe/scid_bot_3
     command: bash -c "cd app && poetry run alembic stamp head && poetry run alembic revision --autogenerate && poetry run alembic upgrade head && poetry run python main.py"
     env_file: .env
