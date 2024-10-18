@@ -171,7 +171,8 @@ async def category_type_inline_keyboard(
     for category_type in category_types:
         keyboard.add(
             InlineKeyboardButton(
-                text=category_type.name, url=category_type.url
+                text=category_type.name,
+                callback_data=f"show_category:{category_type.id}"
             )
         )
 
