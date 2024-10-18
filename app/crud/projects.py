@@ -52,3 +52,15 @@ async def get_title_by_id(category_id: int, session: AsyncSession) -> str:
     category_name = result.scalar()
 
     return category_name
+
+
+async def get_category_by_id(category_id: int, session: AsyncSession):
+
+    result = await session.execute(
+        select(CategoryType).where(
+            CategoryType.id == int(category_id)
+        )
+    )
+    category = result.scalar()
+
+    return category

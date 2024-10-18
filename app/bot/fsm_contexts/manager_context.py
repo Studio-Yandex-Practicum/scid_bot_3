@@ -19,7 +19,7 @@ from helpers import ask_next_question, get_user_id, start_inactivity_timer
 from loggers.log import setup_logging
 from core.bot_setup import bot
 from core.settings import settings
-
+from redis_db.connect import get_redis_connection
 
 router = Router()
 
@@ -37,6 +37,8 @@ async def contact_with_manager(
 
     user_id = get_user_id(callback)
 
+    redis_client = await get_redis_connection()
+
     await state.update_data(request_type=callback.data)
 
     await callback.message.edit_text(bc.START_INPUT_USER_DATA)
@@ -47,7 +49,7 @@ async def contact_with_manager(
 
     logger.info(f"Пользователь {user_id} начал процесс.")
 
-    await start_inactivity_timer(user_id, bot)
+    await start_inactivity_timer(user_id, bot, redis_client)
 
 
 @message_exception_handler(
@@ -58,6 +60,8 @@ async def process_first_name(message: Message, state: FSMContext) -> None:
     """Состояние: ввод имени."""
 
     user_id = get_user_id(message)
+
+    redis_client = await get_redis_connection()
 
     if not is_valid_name(message.text):
         await message.answer(bc.INPUT_NAME)
@@ -71,7 +75,7 @@ async def process_first_name(message: Message, state: FSMContext) -> None:
 
     await ask_next_question(message, state, bc.Form.phone_number, bc.QUESTIONS)
 
-    await start_inactivity_timer(user_id, bot)
+    await start_inactivity_timer(user_id, bot, redis_client)
 
 
 @message_exception_handler(
@@ -84,6 +88,8 @@ async def process_phone_number(
     """Состояние: ввод номера телефона."""
 
     user_id = get_user_id(message)
+
+    redis_client = await get_redis_connection()
 
     if not is_valid_phone_number(message.text):
         await message.answer(bc.INPUT_NUMBER_PHONE)
@@ -122,6 +128,6 @@ async def process_phone_number(
         ).as_markup(),
     )
 
-    await start_inactivity_timer(user_id, bot)
+    await start_inactivity_timer(user_id, bot, redis_client)
 
     await state.clear()

@@ -18,6 +18,7 @@ async def add_portfolio():
 
 async def set_admin():
     """Добавить все TELEGRAM_IDS в администраторы."""
+
     async with AsyncSessionLocal() as session:
         for admin in admin_list:
             if not await user_crud.get_user_by_tg_id(admin, session):
