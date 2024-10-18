@@ -1,7 +1,7 @@
 from sqlalchemy.ext.asyncio import AsyncSession
-from models.models import Info
-
 from sqlalchemy import select
+
+from models.models import Info
 
 
 async def get_question_by_title(

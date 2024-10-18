@@ -5,7 +5,7 @@ from crud.users import create_user_id
 from crud.user_crud import user_crud
 from core.db import AsyncSessionLocal
 from crud.portfolio_projects_crud import portfolio_crud
-from models.models import Timer
+from models.models import Timer, RoleEnum
 
 
 async def add_portfolio():
@@ -24,7 +24,7 @@ async def set_admin():
         for admin in admin_list:
             if not await user_crud.get_user_by_tg_id(admin, session):
                 user = await create_user_id(admin, session)
-                await user_crud.update(user, {"role": "ADMIN"}, session)
+                await user_crud.update(user, RoleEnum.ADMIN , session)
 
 
 async def set_timer():

@@ -1,6 +1,7 @@
 from sqlalchemy.ext.asyncio import AsyncSession
-from models.models import User
 from sqlalchemy import select
+
+from models.models import User
 
 
 async def create_user_id(tg_id: int, session: AsyncSession) -> User:
@@ -29,7 +30,9 @@ async def is_user_in_db(tg_id: int, session: AsyncSession) -> bool:
 async def get_role_by_tg_id(tg_id: int, session: AsyncSession) -> User:
     """Получаем роль пользователя по его tg_id."""
 
-    result = await session.execute(select(User.role).where(User.tg_id == tg_id))
+    result = await session.execute(
+        select(User.role).where(User.tg_id == tg_id)
+    )
 
     return result.scalar()
 
