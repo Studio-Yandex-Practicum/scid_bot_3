@@ -2,16 +2,13 @@ import logging
 
 from aiogram import Router, F
 from aiogram.filters import CommandStart, Command
-from aiogram.fsm.context import FSMContext
 from aiogram.types import Message
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from admin.keyboards.keyboards import get_inline_keyboard
 from admin.admin_settings import MAIN_MENU_BUTTONS
 from bot.bot_const import (
-    ADMIN_NEGATIVE_ANSWER,
-    ADMIN_POSITIVE_ANSWER,
-    START_MESSAGE,
+    ADMIN_NEGATIVE_ANSWER, ADMIN_POSITIVE_ANSWER, START_MESSAGE
 )
 from models.models import RoleEnum
 from crud.users import create_user_id, get_role_by_tg_id, is_user_in_db
@@ -21,7 +18,6 @@ from helpers import get_user_id, start_inactivity_timer
 from core.bot_setup import bot
 from bot.bot_const import MESSAGE_FOR_NOT_SUPPORTED_CONTENT_TYPE
 from loggers.log import setup_logging
-from redis_db.connect import get_redis_connection
 
 
 router = Router()
@@ -56,16 +52,10 @@ async def cmd_admin(message: Message, session: AsyncSession) -> None:
     log_error_text="Ошибка при обработке команды /start."
 )
 @router.message(CommandStart())
-async def cmd_start(
-    message: Message, state: FSMContext, session: AsyncSession
-) -> None:
+async def cmd_start(message: Message, session: AsyncSession) -> None:
     """Выводит приветствие пользователя."""
 
-    await state.clear()
-
     user_id = get_user_id(message)
-
-    redis_client = await get_redis_connection()
 
     if not await is_user_in_db(user_id, session):
         await create_user_id(user_id, session)
@@ -74,7 +64,7 @@ async def cmd_start(
 
     logger.info(f"Пользователь {user_id} вызвал команду /start.")
 
-    await start_inactivity_timer(user_id, bot, redis_client)
+    await start_inactivity_timer(message, user_id, bot)
 
 
 @router.message(F.content_type)

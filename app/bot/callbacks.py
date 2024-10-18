@@ -30,7 +30,6 @@ from crud.projects import (
 from crud.portfolio_projects_crud import portfolio_crud
 import bot.bot_const as bc
 from loggers.log import setup_logging
-from redis_db.connect import get_redis_connection
 
 
 router = Router()
@@ -49,7 +48,6 @@ async def show_projects(
     await callback.answer()
 
     user_id = get_user_id(callback)
-    redis_client = await get_redis_connection()
 
     await callback.message.edit_text(
         bc.MESSAGE_FOR_SHOW_PROJECTS,
@@ -58,7 +56,7 @@ async def show_projects(
 
     logger.info(f"Пользователь {user_id} запросил список проектов")
 
-    await start_inactivity_timer(user_id, bot, redis_client)
+    await start_inactivity_timer(callback.message, user_id, bot)
 
 
 @message_exception_handler(
@@ -71,7 +69,6 @@ async def previous_choice(callback: CallbackQuery) -> None:
     await callback.answer()
 
     user_id = get_user_id(callback)
-    redis_client = await get_redis_connection()
 
     await callback.message.edit_text(
         bc.MESSAGE_FOR_PREVIOUS_CHOICE, reply_markup=main_keyboard
@@ -79,7 +76,7 @@ async def previous_choice(callback: CallbackQuery) -> None:
 
     logger.info(f"Пользователь {user_id} вернулся в основное меню")
 
-    await start_inactivity_timer(user_id, bot, redis_client)
+    await start_inactivity_timer(callback.message, user_id, bot)
 
 
 @message_exception_handler(log_error_text="Ошибка при получении вопросов.")
@@ -92,7 +89,6 @@ async def get_questions(
     await callback.answer()
 
     user_id = get_user_id(callback)
-    redis_client = await get_redis_connection()
 
     question_type = (
         "GENERAL_QUESTIONS"
@@ -111,7 +107,7 @@ async def get_questions(
         f"Пользователь {user_id} " f"запросил {question_type.lower()}."
     )
 
-    await start_inactivity_timer(user_id, bot, redis_client)
+    await start_inactivity_timer(callback.message, user_id, bot)
 
 
 @message_exception_handler(
@@ -126,7 +122,6 @@ async def get_faq_answer(
     await callback.answer()
 
     user_id = get_user_id(callback)
-    redis_client = await get_redis_connection()
 
     question = await get_question_by_id(callback.data.split(":")[1], session)
 
@@ -145,7 +140,7 @@ async def get_faq_answer(
         f"ответ на вопрос {callback.data.split(':')[1]} "
     )
 
-    await start_inactivity_timer(user_id, bot, redis_client)
+    await start_inactivity_timer(callback.message, user_id, bot)
 
 
 @message_exception_handler(
@@ -160,7 +155,6 @@ async def back_to_products(
     await callback.answer()
 
     user_id = get_user_id(callback)
-    redis_client = await get_redis_connection()
 
     await callback.message.edit_text(
         text=bc.MESSAGE_FOR_BACK_TO_PRODUCTS,
@@ -169,7 +163,7 @@ async def back_to_products(
 
     logger.info(f"Пользователь {user_id} вернулся к выбору продуктов.")
 
-    await start_inactivity_timer(user_id, bot, redis_client)
+    await start_inactivity_timer(callback.message, user_id, bot)
 
 
 @message_exception_handler(
@@ -184,7 +178,6 @@ async def get_response_by_title(
     await callback.answer()
 
     user_id = get_user_id(callback)
-    redis_client = await get_redis_connection()
 
     category_id = int(callback.data.split("_")[1])
 
@@ -197,7 +190,7 @@ async def get_response_by_title(
 
     logger.info(f"Пользователь {user_id} выбрал категорию {category_id}.")
 
-    await start_inactivity_timer(user_id, bot, redis_client)
+    await start_inactivity_timer(callback.message, user_id, bot)
 
 
 @message_exception_handler(log_error_text="Ошибка при показе портфолио.")
@@ -210,7 +203,6 @@ async def view_portfolio(
     await callback.answer()
 
     user_id = get_user_id(callback)
-    redis_client = await get_redis_connection()
 
     url = await portfolio_crud.get_portfolio(session)
     await callback.message.edit_text(
@@ -220,7 +212,7 @@ async def view_portfolio(
 
     logger.info(f"Пользователь {user_id} запросил портфолио.")
 
-    await start_inactivity_timer(user_id, bot, redis_client)
+    await start_inactivity_timer(callback.message, user_id, bot)
 
 
 @message_exception_handler(
@@ -233,7 +225,6 @@ async def company_info(callback: CallbackQuery, session: AsyncSession) -> None:
     await callback.answer()
 
     user_id = get_user_id(callback)
-    redis_client = await get_redis_connection()
 
     await callback.message.edit_text(
         bc.MESSAGE_FOR_COMPANY_INFO,
@@ -242,7 +233,7 @@ async def company_info(callback: CallbackQuery, session: AsyncSession) -> None:
 
     logger.info(f"Пользователь {user_id} " f"запросил информацию о компании. ")
 
-    await start_inactivity_timer(user_id, bot, redis_client)
+    await start_inactivity_timer(callback.message, user_id, bot)
 
 
 @message_exception_handler(log_error_text="Ошибка при запросе техподдержки.")
@@ -253,7 +244,6 @@ async def get_support(callback: CallbackQuery) -> None:
     await callback.answer()
 
     user_id = get_user_id(callback)
-    redis_client = await get_redis_connection()
 
     await callback.message.edit_text(
         bc.MESSAGE_FOR_GET_SUPPORT, reply_markup=support_keyboard
@@ -261,7 +251,7 @@ async def get_support(callback: CallbackQuery) -> None:
 
     logger.info(f"Пользователь {user_id} запросил техподдержку.")
 
-    await start_inactivity_timer(user_id, bot, redis_client)
+    await start_inactivity_timer(callback.message, user_id, bot)
 
 
 @message_exception_handler(
@@ -276,7 +266,6 @@ async def products_services(
     await callback.answer()
 
     user_id = get_user_id(callback)
-    redis_client = await get_redis_connection()
 
     await callback.message.edit_text(
         bc.MESSAGE_FOR_PRODUCTS_SERVICES,
@@ -288,7 +277,7 @@ async def products_services(
         f"информацию о продуктах и услугах. "
     )
 
-    await start_inactivity_timer(user_id, bot, redis_client)
+    await start_inactivity_timer(callback.message, user_id, bot)
 
 
 @message_exception_handler(
@@ -311,6 +300,8 @@ async def process_category_callback(callback: CallbackQuery, session):
 
     await callback.answer()
 
+    user_id = get_user_id(callback)
+
     category_id = callback.data.split(":")[1]
 
     category = await get_category_by_id(category_id, session)
@@ -330,11 +321,18 @@ async def process_category_callback(callback: CallbackQuery, session):
         ).as_markup()
     )
 
+    await start_inactivity_timer(callback.message, user_id, bot)
 
+
+@message_exception_handler(
+    log_error_text='Ошибка при возврате назад.'
+)
 @router.callback_query(F.data.startswith("back"))
 async def process_back_callback(callback: CallbackQuery):
 
     await callback.answer()
+
+    user_id = get_user_id(callback)
 
     photo_message_id = callback.data.split(":")[1]
 
@@ -343,3 +341,5 @@ async def process_back_callback(callback: CallbackQuery):
     )
 
     await callback.message.delete()
+
+    await start_inactivity_timer(callback.message, user_id, bot)
