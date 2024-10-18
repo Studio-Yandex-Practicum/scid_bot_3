@@ -20,6 +20,7 @@ from admin.admin_settings import (
     SUPERUSER_SPECIAL_BUTTONS,
     SUPERUSER_SPECIAL_OPTIONS,
 )
+from redis_db.connect import get_redis_connection
 from bot.exceptions import message_exception_handler
 from models.models import User, RoleEnum
 from crud.request_to_manager import get_manager_stats
@@ -336,7 +337,10 @@ async def check_and_set_new_timer(
 ):
     """Проверить и выставить новый таймер."""
     try:
-        # await change_timer(message.text, session)
+        redis_client = await get_redis_connection()
+
+        await redis_client.set("timeout", int(message.text))
+        await redis_client.close()
         await message.answer(
             f"Новый таймер на {message.text} секунд установлен!",
             reply_markup=await get_inline_keyboard(

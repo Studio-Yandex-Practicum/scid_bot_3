@@ -1,11 +1,10 @@
 from admin.admin_settings import PORTFOLIO_DEFAULT_DATA
 from admin.admin_settings import admin_list
-from crud.timer import get_timer
 from crud.users import create_user_id
 from crud.user_crud import user_crud
 from core.db import AsyncSessionLocal
 from crud.portfolio_projects_crud import portfolio_crud
-from models.models import Timer, RoleEnum
+from models.models import RoleEnum
 
 
 async def add_portfolio():
@@ -27,12 +26,3 @@ async def set_admin():
                 await user_crud.update(user, RoleEnum.ADMIN , session)
 
 
-async def set_timer():
-    """Установить таймер активности."""
-    async with AsyncSessionLocal() as session:
-        if not await get_timer(session):
-            timer = Timer()
-            session.add(timer)
-            await session.commit()
-            await session.refresh(timer)
-            return timer
