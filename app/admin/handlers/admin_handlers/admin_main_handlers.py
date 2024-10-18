@@ -278,3 +278,4 @@ async def faq_answer(
         answer,
         reply_markup=await get_delete_message_keyboard(),
     )
+    await state.clear()

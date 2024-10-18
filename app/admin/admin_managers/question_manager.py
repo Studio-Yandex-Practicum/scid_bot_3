@@ -90,7 +90,7 @@ class QuestionCreateManager(QuestionBaseManager):
             question_type=await self.set_question_type(state)
         )
         await callback.message.answer(
-            "Введите текст вопроса:",
+            "Введите название для подкатегории общих вопров:",
             reply_markup=await get_inline_keyboard(
                 previous_menu=self.back_option
             ),
@@ -116,7 +116,7 @@ class QuestionCreateManager(QuestionBaseManager):
             return
         await state.update_data(question=message.text)
         await message.answer(
-            "Введите ответ на этот вопрос:",
+            "Введите вопросы и ответы для данной подкатегории:",
             reply_markup=await get_inline_keyboard(
                 previous_menu=self.back_option
             ),

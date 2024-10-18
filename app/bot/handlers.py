@@ -2,6 +2,7 @@ import logging
 
 from aiogram import Router, F
 from aiogram.filters import CommandStart, Command
+from aiogram.fsm.context import FSMContext
 from aiogram.types import Message
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -52,8 +53,10 @@ async def cmd_admin(message: Message, session: AsyncSession) -> None:
     log_error_text="Ошибка при обработке команды /start."
 )
 @router.message(CommandStart())
-async def cmd_start(message: Message, session: AsyncSession) -> None:
+async def cmd_start(message: Message, state: FSMContext, session: AsyncSession) -> None:
     """Выводит приветствие пользователя."""
+
+    await state.clear()
 
     user_id = get_user_id(message)
 
