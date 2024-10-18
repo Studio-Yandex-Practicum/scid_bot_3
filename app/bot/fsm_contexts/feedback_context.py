@@ -46,7 +46,7 @@ async def get_feedback_yes(
 
 @message_exception_handler(log_error_text="Ошибка при обработке оценки.")
 @router.message(bc.FeedbackForm.rating)
-async def process_rating(message: Message, state: FSMContext) -> None:
+async def process_rating(message: Message, state: FSMContext, session:AsyncSession) -> None:
     """Обрабатывает ввод оценки."""
 
     rating = message.text
