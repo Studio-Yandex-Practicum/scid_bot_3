@@ -13,7 +13,6 @@ from bot.validators import is_valid_rating
 from crud.users import get_id_by_tg_id
 from core.bot_setup import bot
 from crud.feedback_crud import feedback_crud
-from redis_db.connect import get_redis_connection
 
 
 router = Router()
@@ -25,13 +24,13 @@ logger = logging.getLogger(__name__)
 @message_exception_handler(log_error_text="Ошибка при составлении фидбека.")
 @router.callback_query(F.data == "get_feedback_yes")
 async def get_feedback_yes(
-    callback: CallbackQuery, state: FSMContext, session: AsyncSession
+    callback: CallbackQuery,
+    state: FSMContext,
+    session: AsyncSession
 ) -> None:
     """Начало сбора обратной связи."""
 
     user_id = get_user_id(callback)
-
-    redis_client = await get_redis_connection()
 
     await state.update_data(user=await get_id_by_tg_id(
         callback.from_user.id, session))
@@ -42,7 +41,7 @@ async def get_feedback_yes(
 
     logger.info(f"Пользователь {callback.from_user.id} начал процесс.")
 
-    await start_inactivity_timer(user_id, bot, redis_client)
+    await start_inactivity_timer(callback.message, user_id, bot)
 
 
 @message_exception_handler(log_error_text="Ошибка при обработке оценки.")
@@ -53,8 +52,6 @@ async def process_rating(message: Message, state: FSMContext) -> None:
     rating = message.text
 
     user_id = get_user_id(message)
-
-    redis_client = await get_redis_connection()
 
     if not is_valid_rating(rating):
         await message.answer("Пожалуйста, введите число от 1 до 10.")
@@ -68,7 +65,7 @@ async def process_rating(message: Message, state: FSMContext) -> None:
 
     logger.info(f"Пользователь {message.from_user.id} ввел оценку.")
 
-    await start_inactivity_timer(user_id, bot, redis_client)
+    await start_inactivity_timer(message, user_id, bot)
 
 
 @message_exception_handler(log_error_text="Ошибка при обработке текста.")
@@ -81,8 +78,6 @@ async def process_description(
     await state.update_data(feedback_text=message.text)
 
     user_id = get_user_id(message)
-
-    redis_client = await get_redis_connection()
 
     logger.info(f"Пользователь {message.from_user.id} ввел текст.")
 
@@ -97,6 +92,6 @@ async def process_description(
         f"Ваш комментарий: {feedback_data['feedback_text']}"
     )
 
-    await start_inactivity_timer(user_id, bot, redis_client)
+    await start_inactivity_timer(message, user_id, bot)
 
     await state.clear()

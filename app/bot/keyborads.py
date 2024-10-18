@@ -13,7 +13,8 @@ back_to_main_menu = InlineKeyboardButton(
 )
 
 back_to_previous_menu = InlineKeyboardButton(
-    text="Назад к продуктам.", callback_data="back_to_previous_menu"
+    text="Назад к продуктам.",
+    callback_data="back_to_previous_menu"
 )
 
 main_keyboard = InlineKeyboardMarkup(
