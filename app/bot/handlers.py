@@ -18,6 +18,7 @@ from helpers import get_user_id, start_inactivity_timer
 from core.bot_setup import bot
 from bot.bot_const import MESSAGE_FOR_NOT_SUPPORTED_CONTENT_TYPE
 from loggers.log import setup_logging
+from redis_db.connect import get_redis_connection
 
 
 router = Router()
@@ -57,6 +58,8 @@ async def cmd_start(message: Message, session: AsyncSession) -> None:
 
     user_id = get_user_id(message)
 
+    redis_client = await get_redis_connection()
+
     if not await is_user_in_db(user_id, session):
         await create_user_id(user_id, session)
 
@@ -64,7 +67,7 @@ async def cmd_start(message: Message, session: AsyncSession) -> None:
 
     logger.info(f"Пользователь {user_id} вызвал команду /start.")
 
-    await start_inactivity_timer(user_id, bot, session)
+    await start_inactivity_timer(user_id, bot, redis_client)
 
 
 @router.message(F.content_type)

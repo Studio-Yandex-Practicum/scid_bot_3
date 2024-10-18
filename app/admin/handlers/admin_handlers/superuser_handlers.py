@@ -24,7 +24,6 @@ from bot.exceptions import message_exception_handler
 from models.models import User, RoleEnum
 from crud.request_to_manager import get_manager_stats
 from crud.user_crud import user_crud
-from crud.timer import change_timer
 
 logger = logging.getLogger(__name__)
 
@@ -107,7 +106,8 @@ async def get_superuser_options(callback: CallbackQuery):
             ),
         )
         logger.info(
-            f"Пользователь {callback.from_user.id} открыл меню управления персоналом."
+            f"Пользователь {callback.from_user.id} открыл "
+            f"меню управления персоналом."
         )
     except Exception as e:
         await callback.message.answer(
@@ -167,7 +167,9 @@ async def get_manager(callback: CallbackQuery, session: AsyncSession):
         last_case_message = (
             (
                 f"{last_case_closed.id} "
-                f"{last_case_closed.shipping_date_close.strftime(DATETIME_FORMAT)}"
+                f"{last_case_closed.shipping_date_close.strftime(
+                    DATETIME_FORMAT
+                )}"
             )
             if last_case_closed
             else "закрытых заявок пока нет."
@@ -185,7 +187,8 @@ async def get_manager(callback: CallbackQuery, session: AsyncSession):
             ),
         )
         logger.info(
-            f"Пользователь {callback.from_user.id} запросил информацию о менеджере {manager.name}."
+            f"Пользователь {callback.from_user.id} запросил "
+            f"информацию о менеджере {manager.name}."
         )
     except Exception as e:
         await callback.message.answer(
@@ -227,7 +230,7 @@ async def get_user_id_for_action(callback: CallbackQuery, state: FSMContext):
             ),
         )
         logger.info(
-            f"Пользователь {callback.from_user.id} выбрал действие для смены роли."
+            f"Пользователь {callback.from_user.id} выбрал: смена роли."
         )
     except Exception as e:
         await callback.message.answer(
@@ -256,7 +259,8 @@ async def add_name_to_manager(message: Message, state: FSMContext):
             ),
         )
         logger.info(
-            f"Пользователь {message.text} готовится к назначению роли менеджера или админа."
+            f"Пользователь {message.text} готовится к "
+            f"назначению роли менеджера или админа. "
         )
     except Exception as e:
         await message.answer(
@@ -332,7 +336,7 @@ async def check_and_set_new_timer(
 ):
     """Проверить и выставить новый таймер."""
     try:
-        await change_timer(message.text, session)
+        # await change_timer(message.text, session)
         await message.answer(
             f"Новый таймер на {message.text} секунд установлен!",
             reply_markup=await get_inline_keyboard(
