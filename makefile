@@ -1,5 +1,6 @@
 PYTHON = python
 APP = app/main.py
+PACKAGE =""
 
 # Устанавливает зависимости, указанные в pyproject.toml
 install:
