@@ -2,13 +2,16 @@ import logging
 
 from aiogram import Router, F
 from aiogram.filters import CommandStart, Command
+from aiogram.fsm.context import FSMContext
 from aiogram.types import Message
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from admin.keyboards.keyboards import get_inline_keyboard
 from admin.admin_settings import MAIN_MENU_BUTTONS
 from bot.bot_const import (
-    ADMIN_NEGATIVE_ANSWER, ADMIN_POSITIVE_ANSWER, START_MESSAGE
+    ADMIN_NEGATIVE_ANSWER,
+    ADMIN_POSITIVE_ANSWER,
+    START_MESSAGE,
 )
 from models.models import RoleEnum
 from crud.users import create_user_id, get_role_by_tg_id, is_user_in_db
@@ -53,8 +56,12 @@ async def cmd_admin(message: Message, session: AsyncSession) -> None:
     log_error_text="Ошибка при обработке команды /start."
 )
 @router.message(CommandStart())
-async def cmd_start(message: Message, session: AsyncSession) -> None:
+async def cmd_start(
+    message: Message, state: FSMContext, session: AsyncSession
+) -> None:
     """Выводит приветствие пользователя."""
+
+    await state.clear()
 
     user_id = get_user_id(message)
 
