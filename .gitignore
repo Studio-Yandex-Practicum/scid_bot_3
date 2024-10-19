@@ -157,3 +157,9 @@ cython_debug/
 
 # PyCharm
 .idea/
+
+#poetry
+.poetry.lock
+
+#redis
+.redisdata/

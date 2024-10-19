@@ -67,7 +67,7 @@ async def cmd_start(message: Message, state: FSMContext, session: AsyncSession) 
 
     logger.info(f"Пользователь {user_id} вызвал команду /start.")
 
-    await start_inactivity_timer(user_id, bot, session)
+    await start_inactivity_timer(message, user_id, bot)
 
 
 @router.message(F.content_type)

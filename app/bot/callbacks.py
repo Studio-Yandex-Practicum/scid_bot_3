@@ -1,11 +1,12 @@
 import logging
 
+from aiogram.types import InlineKeyboardButton
 from aiogram import F, Router
 from aiogram.types import CallbackQuery
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from sqlalchemy.ext.asyncio import AsyncSession
-from helpers import get_user_id, start_inactivity_timer
 
+from helpers import get_user_id, start_inactivity_timer
 from core.bot_setup import bot
 from bot.exceptions import message_exception_handler
 from bot.keyborads import (
@@ -18,9 +19,14 @@ from bot.keyborads import (
     get_company_information_keyboard,
     support_keyboard,
     back_to_main_menu,
+
 )
 from crud.questions import get_question_by_id
-from crud.projects import get_title_by_id, response_text_by_id
+from crud.projects import (
+    get_category_by_id,
+    get_title_by_id,
+    response_text_by_id
+)
 from crud.portfolio_projects_crud import portfolio_crud
 import bot.bot_const as bc
 from loggers.log import setup_logging
@@ -50,16 +56,14 @@ async def show_projects(
 
     logger.info(f"Пользователь {user_id} запросил список проектов")
 
-    await start_inactivity_timer(user_id, bot, session)
+    await start_inactivity_timer(callback.message, user_id, bot)
 
 
 @message_exception_handler(
     log_error_text="Ошибка при возврате в основное меню."
 )
 @router.callback_query(F.data == "back_to_main_menu")
-async def previous_choice(
-    callback: CallbackQuery, session: AsyncSession
-) -> None:
+async def previous_choice(callback: CallbackQuery) -> None:
     """Возвращает в основное меню."""
 
     await callback.answer()
@@ -72,7 +76,7 @@ async def previous_choice(
 
     logger.info(f"Пользователь {user_id} вернулся в основное меню")
 
-    await start_inactivity_timer(user_id, bot, session)
+    await start_inactivity_timer(callback.message, user_id, bot)
 
 
 @message_exception_handler(log_error_text="Ошибка при получении вопросов.")
@@ -103,7 +107,7 @@ async def get_questions(
         f"Пользователь {user_id} " f"запросил {question_type.lower()}."
     )
 
-    await start_inactivity_timer(user_id, bot, session)
+    await start_inactivity_timer(callback.message, user_id, bot)
 
 
 @message_exception_handler(
@@ -136,7 +140,7 @@ async def get_faq_answer(
         f"ответ на вопрос {callback.data.split(':')[1]} "
     )
 
-    await start_inactivity_timer(user_id, bot, session)
+    await start_inactivity_timer(callback.message, user_id, bot)
 
 
 @message_exception_handler(
@@ -159,7 +163,7 @@ async def back_to_products(
 
     logger.info(f"Пользователь {user_id} вернулся к выбору продуктов.")
 
-    await start_inactivity_timer(user_id, bot, session)
+    await start_inactivity_timer(callback.message, user_id, bot)
 
 
 @message_exception_handler(
@@ -186,7 +190,7 @@ async def get_response_by_title(
 
     logger.info(f"Пользователь {user_id} выбрал категорию {category_id}.")
 
-    await start_inactivity_timer(user_id, bot, session)
+    await start_inactivity_timer(callback.message, user_id, bot)
 
 
 @message_exception_handler(log_error_text="Ошибка при показе портфолио.")
@@ -202,12 +206,13 @@ async def view_portfolio(
 
     url = await portfolio_crud.get_portfolio(session)
     await callback.message.edit_text(
-        bc.MESSAGE_FOR_VIEW_PORTFOLIO, reply_markup=await get_company_portfolio_choice(url=url.url)
+        bc.MESSAGE_FOR_VIEW_PORTFOLIO,
+        reply_markup=await get_company_portfolio_choice(url=url.url)
     )
 
     logger.info(f"Пользователь {user_id} запросил портфолио.")
 
-    await start_inactivity_timer(user_id, bot, session)
+    await start_inactivity_timer(callback.message, user_id, bot)
 
 
 @message_exception_handler(
@@ -228,12 +233,12 @@ async def company_info(callback: CallbackQuery, session: AsyncSession) -> None:
 
     logger.info(f"Пользователь {user_id} " f"запросил информацию о компании. ")
 
-    await start_inactivity_timer(user_id, bot, session)
+    await start_inactivity_timer(callback.message, user_id, bot)
 
 
 @message_exception_handler(log_error_text="Ошибка при запросе техподдержки.")
 @router.callback_query(F.data == "tech_support")
-async def get_support(callback: CallbackQuery, session: AsyncSession) -> None:
+async def get_support(callback: CallbackQuery) -> None:
     """Выводит виды тех. поддержки."""
 
     await callback.answer()
@@ -246,7 +251,7 @@ async def get_support(callback: CallbackQuery, session: AsyncSession) -> None:
 
     logger.info(f"Пользователь {user_id} запросил техподдержку.")
 
-    await start_inactivity_timer(user_id, bot, session)
+    await start_inactivity_timer(callback.message, user_id, bot)
 
 
 @message_exception_handler(
@@ -272,7 +277,7 @@ async def products_services(
         f"информацию о продуктах и услугах. "
     )
 
-    await start_inactivity_timer(user_id, bot, session)
+    await start_inactivity_timer(callback.message, user_id, bot)
 
 
 @message_exception_handler(
@@ -285,3 +290,56 @@ async def get_feedback_no(callback: CallbackQuery) -> None:
     await callback.answer()
 
     await callback.message.answer(bc.MESSAGE_FOR_GET_FEEDBACK_NO)
+
+
+@message_exception_handler(
+    log_error_text='Ошибка при ответе на выбранный тип категории.'
+)
+@router.callback_query(F.data.startswith("show_category"))
+async def process_category_callback(callback: CallbackQuery, session):
+
+    await callback.answer()
+
+    user_id = get_user_id(callback)
+
+    category_id = callback.data.split(":")[1]
+
+    category = await get_category_by_id(category_id, session)
+
+    photo_message = await callback.message.answer_photo(
+        photo=category.media
+    )
+
+    await callback.message.answer(
+        text=(
+            f"{category.name}\nОписание: "
+            f"{category.description}\nСсылка: {category.url}"),
+        reply_markup=InlineKeyboardBuilder().add(
+            InlineKeyboardButton(
+                text="Назад", callback_data=f"back:{photo_message.message_id}"
+            )
+        ).as_markup()
+    )
+
+    await start_inactivity_timer(callback.message, user_id, bot)
+
+
+@message_exception_handler(
+    log_error_text='Ошибка при возврате назад.'
+)
+@router.callback_query(F.data.startswith("back"))
+async def process_back_callback(callback: CallbackQuery):
+
+    await callback.answer()
+
+    user_id = get_user_id(callback)
+
+    photo_message_id = callback.data.split(":")[1]
+
+    await callback.message.bot.delete_message(
+        callback.message.chat.id, photo_message_id
+    )
+
+    await callback.message.delete()
+
+    await start_inactivity_timer(callback.message, user_id, bot)

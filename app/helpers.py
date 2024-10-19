@@ -5,15 +5,13 @@ from aiogram.types import Message, CallbackQuery
 from aiogram import Bot
 from aiogram.fsm.state import State
 from aiogram.fsm.context import FSMContext
-from sqlalchemy.ext.asyncio import AsyncSession
 
 import bot.bot_const as bc
 from bot.exceptions import message_exception_handler
 from bot.keyborads import get_feedback_keyboard
 from bot.bot_const import Form, FeedbackForm
-from crud.timer import get_timer
 from loggers.log import setup_logging
-
+from redis_db.connect import get_redis_connection
 
 setup_logging()
 logger = logging.getLogger(__name__)
@@ -30,15 +28,25 @@ user_timers = {}
 
 @message_exception_handler(log_error_text="Ошибка запуска таймера.")
 async def start_inactivity_timer(
-    user_id: int, bot: Bot, session: AsyncSession
+    message: Message,
+    user_id: int,
+    bot: Bot,
+    default_timeout: int = 60
 ) -> None:
     """
     Запускает таймер.
 
     Для пользователя и отправляет сообщение, если пользователь бездействует.
     """
-    timeout_from_db = await get_timer(session)
-    timeout = timeout_from_db.timer
+
+    try:
+        redis_client = await get_redis_connection()
+        timeout = await redis_client.get("timeout")
+        timeout = int(timeout) if timeout else default_timeout
+    except Exception as e:
+        logger.error(f"Не удалось установить соединение с Redis: {e}")
+        timeout = default_timeout
+
     logger.info(
         f"Запуск таймера для пользователя {user_id} с таймаутом {timeout}."
     )
@@ -51,6 +59,9 @@ async def start_inactivity_timer(
     )
 
     logger.info(f"Новый таймер запущен для пользователя {user_id}.")
+
+    if 'redis_client' in locals() and redis_client:
+        await redis_client.close()
 
     return None
 

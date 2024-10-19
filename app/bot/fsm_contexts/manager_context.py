@@ -12,7 +12,9 @@ from bot.exceptions import message_exception_handler
 from bot.keyborads import back_to_main_menu
 from bot.smtp import send_mail
 from bot.validators import (
-    is_valid_name, is_valid_phone_number, format_phone_number
+    is_valid_name,
+    is_valid_phone_number,
+    format_phone_number
 )
 from crud.request_to_manager import create_request_to_manager
 from helpers import ask_next_question, get_user_id, start_inactivity_timer
@@ -47,7 +49,7 @@ async def contact_with_manager(
 
     logger.info(f"Пользователь {user_id} начал процесс.")
 
-    await start_inactivity_timer(user_id, bot, session)
+    await start_inactivity_timer(callback.message, user_id, bot)
 
 
 @message_exception_handler(
@@ -71,7 +73,7 @@ async def process_first_name(message: Message, state: FSMContext) -> None:
 
     await ask_next_question(message, state, bc.Form.phone_number, bc.QUESTIONS)
 
-    await start_inactivity_timer(user_id, bot)
+    await start_inactivity_timer(message, user_id, bot)
 
 
 @message_exception_handler(
@@ -122,6 +124,6 @@ async def process_phone_number(
         ).as_markup(),
     )
 
-    await start_inactivity_timer(user_id, bot, session)
+    await start_inactivity_timer(message, user_id, bot)
 
     await state.clear()

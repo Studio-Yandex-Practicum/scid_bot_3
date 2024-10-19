@@ -20,11 +20,11 @@ from admin.admin_settings import (
     SUPERUSER_SPECIAL_BUTTONS,
     SUPERUSER_SPECIAL_OPTIONS,
 )
+from redis_db.connect import get_redis_connection
 from bot.exceptions import message_exception_handler
 from models.models import User, RoleEnum
 from crud.request_to_manager import get_manager_stats
 from crud.user_crud import user_crud
-from crud.timer import change_timer
 
 logger = logging.getLogger(__name__)
 
@@ -90,16 +90,25 @@ async def get_admin_special_options(
 )
 async def get_superuser_options(callback: CallbackQuery):
     """Перейти в меню управления персоналом."""
-    await callback.message.edit_text(
-        SUPERUSER_SPECIAL_OPTIONS.get("promotion"),
-        reply_markup=await get_inline_keyboard(
-            SUPERUSER_PROMOTION_BUTTONS,
-            previous_menu=PREVIOUS_MENU,
-        ),
-    )
-    logger.info(
-        f"Пользователь {callback.from_user.id} открыл меню управления персоналом."
-    )
+    try:
+        await callback.message.edit_text(
+            SUPERUSER_SPECIAL_OPTIONS.get("promotion"),
+            reply_markup=await get_inline_keyboard(
+                SUPERUSER_PROMOTION_BUTTONS,
+                previous_menu=PREVIOUS_MENU,
+            ),
+        )
+        logger.info(
+            f"Пользователь {callback.from_user.id} открыл "
+            f"меню управления персоналом."
+        )
+    except Exception as e:
+        await callback.message.answer(
+            f"Произошла ошибка: {e}",
+            reply_markup=await get_inline_keyboard(
+                previous_menu=PREVIOUS_MENU
+            ),
+        )
 
 
 @message_exception_handler(
@@ -135,33 +144,44 @@ async def get_manager_list(
 @superuser_router.callback_query(manager, F.data.isnumeric())
 async def get_manager(callback: CallbackQuery, session: AsyncSession):
     """Получить информацию о менеджере."""
-    manager = await user_crud.get_user_by_tg_id(callback.data, session)
-    cases_count, last_case_closed = await get_manager_stats(
-        callback.data, session
-    )
-    last_case_message = (
-        (
-            f"{last_case_closed.id} "
-            f"{last_case_closed.shipping_date_close.strftime(DATETIME_FORMAT)}"
+    try:
+        manager = await user_crud.get_user_by_tg_id(callback.data, session)
+        cases_count, last_case_closed = await get_manager_stats(
+            callback.data, session
         )
-        if last_case_closed
-        else "закрытых заявок пока нет."
-    )
-    message_text = (
-        f"{manager.role} {manager.name}\n\n "
-        f"Телеграм id: {manager.tg_id} \n\n"
-        f"Количество закрытых заявок: {cases_count} \n\n"
-        f"Номер и дата последней закрытой заявки: {last_case_message}"
-    )
-    await callback.message.edit_text(
-        message_text,
-        reply_markup=await get_inline_keyboard(
-            previous_menu=SUPERUSER_PROMOTION_OPTIONS.get("manager_list")
-        ),
-    )
-    logger.info(
-        f"Пользователь {callback.from_user.id} запросил информацию о менеджере {manager.name}."
-    )
+        last_case_message = (
+            (
+                f"{last_case_closed.id} "
+                f"{last_case_closed.shipping_date_close.strftime(
+                    DATETIME_FORMAT
+                )}"
+            )
+            if last_case_closed
+            else "закрытых заявок пока нет."
+        )
+        message_text = (
+            f"{manager.role.__str__()} {manager.name}\n\n "
+            f"Телеграм id: {manager.tg_id} \n\n"
+            f"Количество закрытых заявок: {cases_count} \n\n"
+            f"Номер и дата последней закрытой заявки: {last_case_message}"
+        )
+        await callback.message.edit_text(
+            message_text,
+            reply_markup=await get_inline_keyboard(
+                previous_menu=SUPERUSER_PROMOTION_OPTIONS.get("manager_list")
+            ),
+        )
+        logger.info(
+            f"Пользователь {callback.from_user.id} запросил "
+            f"информацию о менеджере {manager.name}."
+        )
+    except Exception as e:
+        await callback.message.answer(
+            f"Произошла ошибка: {e}",
+            reply_markup=await get_inline_keyboard(
+                previous_menu=PREVIOUS_MENU
+            ),
+        )
 
 
 @message_exception_handler(
@@ -176,24 +196,34 @@ async def get_manager(callback: CallbackQuery, session: AsyncSession):
 )
 async def get_user_id_for_action(callback: CallbackQuery, state: FSMContext):
     """Ввести телеграм id пользователя для смены роли."""
-    if callback.data == SUPERUSER_PROMOTION_OPTIONS.get("promote"):
-        await state.set_state(RoleState.manager)
-        await state.update_data(role=RoleEnum.MANAGER)
-    elif callback.data == SUPERUSER_PROMOTION_OPTIONS.get("promote_to_admin"):
-        await state.set_state(RoleState.admin)
-        await state.update_data(role=RoleEnum.ADMIN)
-    elif callback.data == SUPERUSER_PROMOTION_OPTIONS.get("demote"):
-        await state.set_state(RoleState.user)
-        await state.update_data(role=RoleEnum.USER)
-    await callback.message.edit_text(
-        "Введите id телеграм-пользователя:",
-        reply_markup=await get_inline_keyboard(
-            previous_menu=SUPERUSER_SPECIAL_OPTIONS.get("promotion")
-        ),
-    )
-    logger.info(
-        f"Пользователь {callback.from_user.id} выбрал действие для смены роли."
-    )
+    try:
+        if callback.data == SUPERUSER_PROMOTION_OPTIONS.get("promote"):
+            await state.set_state(RoleState.manager)
+            await state.update_data(role=RoleEnum.MANAGER)
+        elif callback.data == SUPERUSER_PROMOTION_OPTIONS.get(
+            "promote_to_admin"
+        ):
+            await state.set_state(RoleState.admin)
+            await state.update_data(role=RoleEnum.ADMIN)
+        elif callback.data == SUPERUSER_PROMOTION_OPTIONS.get("demote"):
+            await state.set_state(RoleState.user)
+            await state.update_data(role=RoleEnum.USER)
+        await callback.message.edit_text(
+            "Введите id телеграм-пользователя:",
+            reply_markup=await get_inline_keyboard(
+                previous_menu=PREVIOUS_MENU
+            ),
+        )
+        logger.info(
+            f"Пользователь {callback.from_user.id} выбрал: смена роли."
+        )
+    except Exception as e:
+        await callback.message.answer(
+            f"Произошла ошибка: {e}",
+            reply_markup=await get_inline_keyboard(
+                previous_menu=PREVIOUS_MENU
+            ),
+        )
 
 
 @message_exception_handler(
@@ -204,17 +234,26 @@ async def get_user_id_for_action(callback: CallbackQuery, state: FSMContext):
 )
 async def add_name_to_manager(message: Message, state: FSMContext):
     """Добавить имя для менеджера или админа."""
-    await state.update_data(tg_id=message.text)
-    await state.set_state(RoleState.name)
-    await message.answer(
-        "Введите имя для сотрудника:",
-        reply_markup=await get_inline_keyboard(
-            previous_menu=SUPERUSER_SPECIAL_OPTIONS.get("promotion")
-        ),
-    )
-    logger.info(
-        f"Пользователь {message.text} готовится к назначению роли менеджера или админа."
-    )
+    try:
+        await state.update_data(tg_id=message.text)
+        await state.set_state(RoleState.name)
+        await message.answer(
+            "Введите имя для сотрудника:",
+            reply_markup=await get_inline_keyboard(
+                previous_menu=PREVIOUS_MENU
+            ),
+        )
+        logger.info(
+            f"Пользователь {message.text} готовится к "
+            f"назначению роли менеджера или админа. "
+        )
+    except Exception as e:
+        await message.answer(
+            f"Произошла ошибка: {e}",
+            reply_markup=await get_inline_keyboard(
+                previous_menu=PREVIOUS_MENU
+            ),
+        )
 
 
 @message_exception_handler(log_error_text="Ошибка при смене роли")
@@ -273,13 +312,22 @@ async def check_and_set_new_timer(
     message: Message, state: FSMContext, session: AsyncSession
 ):
     """Проверить и выставить новый таймер."""
-    await change_timer(message.text, session)
-    await message.answer(
-        f"Новый таймер на {message.text} секунд установлен!",
-        reply_markup=await get_inline_keyboard(previous_menu=PREVIOUS_MENU),
-    )
-    await state.clear()
-    logger.info(
-        f"Пользователь {message.from_user.id} изменил таймер"
-        f" на {message.text}."
-    )
+    try:
+        redis_client = await get_redis_connection()
+
+        await redis_client.set("timeout", int(message.text))
+        await redis_client.close()
+        await message.answer(
+            f"Новый таймер на {message.text} секунд установлен!",
+            reply_markup=await get_inline_keyboard(
+                previous_menu=PREVIOUS_MENU
+            ),
+        )
+        await state.clear()
+    except Exception as e:
+        await message.answer(
+            f"Произошла ошибка: {e}",
+            reply_markup=await get_inline_keyboard(
+                previous_menu=PREVIOUS_MENU
+            ),
+        )
