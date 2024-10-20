@@ -47,6 +47,7 @@ class DeleteManager(BaseAdminManager):
         delete_obj(callback: CallbackQuery, state: FSMContext, session: AsyncSession) -> None:
             Удаляет выбранный объект из базы данных и сбрасывает состояние.
     """
+
     def __init__(
         self,
         model_crud: CRUDBase,

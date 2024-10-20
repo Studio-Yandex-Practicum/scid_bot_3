@@ -28,7 +28,9 @@ class UserCRUD(CRUDBase):
 
         return result.scalar()
 
-    async def get_manager_list(self, session: AsyncSession) -> list[User]:
+    async def get_manager_and_admin_list(
+        self, session: AsyncSession
+    ) -> list[User]:
         """Получить список менеджеров и администраторов."""
         manager_list = await session.execute(
             select(self.model).where(

@@ -13,7 +13,6 @@ async def create_request_to_manager(
 
     data_to_db = ContactManager(
         **user_data,
-        shipping_date=datetime.utcnow(),
         need_support=(request_type == "callback_request"),
         need_contact_with_manager=(request_type == "contact_manager")
     )
@@ -37,7 +36,7 @@ async def get_request(
 
 
 async def get_all_support_requests(
-    session: AsyncSession
+    session: AsyncSession,
 ) -> list[ContactManager]:
     """Получить список активных заявок на поддержку."""
 
@@ -53,7 +52,7 @@ async def get_all_support_requests(
 
 
 async def get_all_manager_requests(
-    session: AsyncSession
+    session: AsyncSession,
 ) -> list[ContactManager]:
     """Получить список активных заявок на звонок менеджера."""
 

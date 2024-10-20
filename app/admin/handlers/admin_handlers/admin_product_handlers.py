@@ -10,7 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from bot.exceptions import message_exception_handler
 
 from .admin import SectionState
-from crud.product_crud import product_crud
+from crud import products_crud
 from admin.filters.filters import ChatTypeFilter, IsManagerOrAdmin
 from admin.admin_managers import (
     CreateManager,
@@ -30,6 +30,7 @@ logger = logging.getLogger(__name__)
 product_router = Router()
 product_router.message.filter(ChatTypeFilter(["private"]), IsManagerOrAdmin())
 product_router.callback_query.filter(IsManagerOrAdmin())
+
 
 class ProductCreateState(StatesGroup):
     select = State()
@@ -55,13 +56,13 @@ class ProductDeleteState(StatesGroup):
 PREVIOUS_MENU = MAIN_MENU_OPTIONS.get("products")
 
 product_create_manager = CreateManager(
-    product_crud, PREVIOUS_MENU, ProductCreateState()
+    products_crud, PREVIOUS_MENU, ProductCreateState()
 )
 product_update_manager = UpdateManager(
-    product_crud, PREVIOUS_MENU, ProductUpdateState()
+    products_crud, PREVIOUS_MENU, ProductUpdateState()
 )
 product_delete_manager = DeleteManager(
-    product_crud, PREVIOUS_MENU, ProductDeleteState()
+    products_crud, PREVIOUS_MENU, ProductDeleteState()
 )
 
 

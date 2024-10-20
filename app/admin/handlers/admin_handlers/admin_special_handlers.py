@@ -23,7 +23,7 @@ from crud.request_to_manager import (
     get_all_support_requests,
     get_request,
 )
-from crud.feedback_crud import feedback_crud
+from crud import feedback_crud
 
 logger = logging.getLogger(__name__)
 

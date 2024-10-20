@@ -9,7 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from admin.handlers.admin_handlers.admin import SectionState
 from bot.exceptions import message_exception_handler
-from crud.portfolio_projects_crud import portfolio_crud
+from crud import portfolio_crud
 from admin.filters.filters import ChatTypeFilter, IsManagerOrAdmin
 from admin.admin_managers import (
     DeleteManager,

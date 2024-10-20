@@ -27,11 +27,13 @@ from admin.keyboards.keyboards import (
     get_delete_message_keyboard,
 )
 from bot.exceptions import message_exception_handler
-from crud.category_product import category_product_crud
-from crud.info_crud import info_crud
-from crud.about_crud import company_info_crud
-from crud.portfolio_projects_crud import portfolio_crud
-from crud.product_crud import product_crud
+from crud import (
+    company_info_crud,
+    category_product_crud,
+    info_crud,
+    portfolio_crud,
+    products_crud,
+)
 from models.models import ProductCategory
 
 logger = logging.getLogger(__name__)
@@ -214,7 +216,7 @@ async def get_products_list(
     callback: CallbackQuery, state: FSMContext, session: AsyncSession
 ):
     """Получить список продуктов."""
-    products: list[ProductCategory] = await product_crud.get_multi(session)
+    products: list[ProductCategory] = await products_crud.get_multi(session)
     product_names, product_id = extract_and_unpack(products, "name", "id")
 
     await state.clear()
@@ -242,7 +244,7 @@ async def product_category(
     callback: CallbackQuery, session: AsyncSession, state: FSMContext
 ):
     """Получить список дополнительных вариантов продукта."""
-    product: ProductCategory = await product_crud.get(callback.data, session)
+    product: ProductCategory = await products_crud.get(callback.data, session)
     categories = await category_product_crud.get_category_by_product_id(
         product.id, session
     )
@@ -273,8 +275,8 @@ async def get_product_info(
     """Получить данные варианта продукта."""
     state_data = await state.get_data()
     product_id = state_data.get("product_id")
-    category = await category_product_crud.get_active_field(
-        product_id=product_id, category_name=callback.data, session=session
+    category = await category_product_crud.get_category_by_name(
+        product_id=product_id, field_name=callback.data, session=session
     )
 
     if category.media:

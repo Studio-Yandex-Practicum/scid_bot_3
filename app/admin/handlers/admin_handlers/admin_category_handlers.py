@@ -28,8 +28,7 @@ from admin.admin_settings import (
 )
 from admin.keyboards.keyboards import get_inline_keyboard
 from bot.exceptions import message_exception_handler
-from crud.category_product import category_product_crud
-from crud.product_crud import product_crud
+from crud import category_product_crud, products_crud
 
 logger = logging.getLogger(__name__)
 
@@ -69,7 +68,7 @@ async def get_back_to_category_menu(
 ):
     """Корутина для реализации кнопки 'Назад'."""
     fsm_data = await state.get_data()
-    product = await product_crud.get(fsm_data.get("product_id"), session)
+    product = await products_crud.get(fsm_data.get("product_id"), session)
     categories = await category_product_crud.get_category_by_product_id(
         fsm_data.get("product_id"), session
     )

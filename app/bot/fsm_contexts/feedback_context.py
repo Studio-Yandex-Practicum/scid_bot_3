@@ -10,9 +10,8 @@ from bot.exceptions import message_exception_handler
 from helpers import ask_next_question, start_inactivity_timer, get_user_id
 from loggers.log import setup_logging
 from bot.validators import is_valid_rating
-from crud.users import get_id_by_tg_id
+from crud import user_crud, feedback_crud
 from core.bot_setup import bot
-from crud.feedback_crud import feedback_crud
 
 
 router = Router()
@@ -24,16 +23,15 @@ logger = logging.getLogger(__name__)
 @message_exception_handler(log_error_text="Ошибка при составлении фидбека.")
 @router.callback_query(F.data == "get_feedback_yes")
 async def get_feedback_yes(
-    callback: CallbackQuery,
-    state: FSMContext,
-    session: AsyncSession
+    callback: CallbackQuery, state: FSMContext, session: AsyncSession
 ) -> None:
     """Начало сбора обратной связи."""
 
     user_id = get_user_id(callback)
 
-    await state.update_data(user=await get_id_by_tg_id(
-        callback.from_user.id, session))
+    user = await user_crud.get_user_by_tg_id(user_id, session)
+
+    await state.update_data(user=user.id)
 
     await ask_next_question(
         callback.message, state, bc.FeedbackForm.rating, bc.FEEDBACK_QUESTIONS
@@ -46,7 +44,9 @@ async def get_feedback_yes(
 
 @message_exception_handler(log_error_text="Ошибка при обработке оценки.")
 @router.message(bc.FeedbackForm.rating)
-async def process_rating(message: Message, state: FSMContext, session:AsyncSession) -> None:
+async def process_rating(
+    message: Message, state: FSMContext, session: AsyncSession
+) -> None:
     """Обрабатывает ввод оценки."""
 
     rating = message.text

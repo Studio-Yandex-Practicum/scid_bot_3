@@ -24,7 +24,7 @@ from redis_db.connect import get_redis_connection
 from bot.exceptions import message_exception_handler
 from models.models import User, RoleEnum
 from crud.request_to_manager import get_manager_stats
-from crud.user_crud import user_crud
+from crud import user_crud
 
 logger = logging.getLogger(__name__)
 
@@ -113,7 +113,7 @@ async def get_manager_list(
     callback: CallbackQuery, state: FSMContext, session: AsyncSession
 ):
     """Получить список менеджеров."""
-    manager_list = await user_crud.get_manager_list(session)
+    manager_list = await user_crud.get_manager_and_admin_list(session)
     managers_tg_ids = [manager.tg_id for manager in manager_list]
     managers_names = [manager.name for manager in manager_list]
     await callback.message.edit_text(
