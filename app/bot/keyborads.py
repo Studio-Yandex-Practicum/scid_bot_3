@@ -48,28 +48,22 @@ main_keyboard = InlineKeyboardMarkup(
     ]
 )
 
+
 async def get_back_to_main_keyboard():
     """Клавиатура для возвращения на главное меню."""
     keyboard = InlineKeyboardBuilder()
     keyboard.add(back_to_main_menu)
     return keyboard.adjust(1).as_markup()
 
-async def get_company_information_keyboard(session: AsyncSession):
 
+async def get_company_information_keyboard(session: AsyncSession):
+    """Инлайн клавиатура для информации о компании."""
     builder = InlineKeyboardBuilder()
 
-    presentation = await company_info_crud.get_by_string(
-        "Презентация компании", session
-    )
-    card = await company_info_crud.get_by_string("Карточка компании", session)
+    about_company = await company_info_crud.get_multi(session)
 
-    if presentation:
-        builder.add(
-            InlineKeyboardButton(text=presentation.name, url=presentation.url)
-        )
-    if card:
-        builder.add(InlineKeyboardButton(text=card.name, url=card.url))
-
+    for info in about_company:
+        builder.add(InlineKeyboardButton(text=info.name, url=info.url))
     builder.add(back_to_main_menu)
 
     return builder.adjust(1).as_markup()
