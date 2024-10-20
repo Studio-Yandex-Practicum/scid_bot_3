@@ -1,15 +1,16 @@
 import logging
 
-from aiogram.types import InlineKeyboardButton
 from aiogram import F, Router
 from aiogram.types import CallbackQuery
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from admin.keyboards.keyboards import get_delete_message_keyboard
 from helpers import get_user_id, start_inactivity_timer
 from core.bot_setup import bot
 from bot.exceptions import message_exception_handler
 from bot.keyborads import (
+    get_back_to_main_keyboard,
     get_company_portfolio_choice,
     list_of_projects_keyboard,
     main_keyboard,
@@ -19,15 +20,13 @@ from bot.keyborads import (
     get_company_information_keyboard,
     support_keyboard,
     back_to_main_menu,
-
 )
-from crud.questions import get_question_by_id
-from crud.projects import (
-    get_category_by_id,
-    get_title_by_id,
-    response_text_by_id
+from crud import (
+    info_crud,
+    category_product_crud,
+    portfolio_crud,
+    products_crud,
 )
-from crud.portfolio_projects_crud import portfolio_crud
 import bot.bot_const as bc
 from loggers.log import setup_logging
 
@@ -123,7 +122,7 @@ async def get_faq_answer(
 
     user_id = get_user_id(callback)
 
-    question = await get_question_by_id(callback.data.split(":")[1], session)
+    question = await info_crud.get(callback.data.split(":")[1], session)
 
     if question:
         await callback.message.edit_text(
@@ -179,16 +178,15 @@ async def get_response_by_title(
 
     user_id = get_user_id(callback)
 
-    category_id = int(callback.data.split("_")[1])
+    product_id = int(callback.data.split("_")[1])
+    product = await products_crud.get(product_id, session)
 
     await callback.message.edit_text(
-        text=await response_text_by_id(category_id, session),
-        reply_markup=await category_type_inline_keyboard(
-            await get_title_by_id(category_id, session), session
-        ),
+        text=product.description,
+        reply_markup=await category_type_inline_keyboard(product.id, session),
     )
 
-    logger.info(f"Пользователь {user_id} выбрал категорию {category_id}.")
+    logger.info(f"Пользователь {user_id} выбрал категорию {product_id}.")
 
     await start_inactivity_timer(callback.message, user_id, bot)
 
@@ -207,7 +205,7 @@ async def view_portfolio(
     url = await portfolio_crud.get_portfolio(session)
     await callback.message.edit_text(
         bc.MESSAGE_FOR_VIEW_PORTFOLIO,
-        reply_markup=await get_company_portfolio_choice(url=url.url)
+        reply_markup=await get_company_portfolio_choice(url=url.url),
     )
 
     logger.info(f"Пользователь {user_id} запросил портфолио.")
@@ -289,11 +287,14 @@ async def get_feedback_no(callback: CallbackQuery) -> None:
 
     await callback.answer()
 
-    await callback.message.answer(bc.MESSAGE_FOR_GET_FEEDBACK_NO)
+    await callback.message.answer(
+        bc.MESSAGE_FOR_GET_FEEDBACK_NO,
+        reply_markup=await get_back_to_main_keyboard(),
+    )
 
 
 @message_exception_handler(
-    log_error_text='Ошибка при ответе на выбранный тип категории.'
+    log_error_text="Ошибка при ответе на выбранный тип категории."
 )
 @router.callback_query(F.data.startswith("show_category"))
 async def process_category_callback(callback: CallbackQuery, session):
@@ -304,29 +305,23 @@ async def process_category_callback(callback: CallbackQuery, session):
 
     category_id = callback.data.split(":")[1]
 
-    category = await get_category_by_id(category_id, session)
-
-    photo_message = await callback.message.answer_photo(
-        photo=category.media
-    )
-
-    await callback.message.answer(
-        text=(
-            f"{category.name}\nОписание: "
-            f"{category.description}\nСсылка: {category.url}"),
-        reply_markup=InlineKeyboardBuilder().add(
-            InlineKeyboardButton(
-                text="Назад", callback_data=f"back:{photo_message.message_id}"
-            )
-        ).as_markup()
-    )
+    category = await category_product_crud.get(category_id, session)
+    if category.media:
+        await callback.message.answer_photo(
+            photo=category.media,
+            caption=category.description,
+            reply_markup=await get_delete_message_keyboard(),
+        )
+    else:
+        await callback.message.answer(
+            category.description,
+            reply_markup=await get_delete_message_keyboard(),
+        )
 
     await start_inactivity_timer(callback.message, user_id, bot)
 
 
-@message_exception_handler(
-    log_error_text='Ошибка при возврате назад.'
-)
+@message_exception_handler(log_error_text="Ошибка при возврате назад.")
 @router.callback_query(F.data.startswith("back"))
 async def process_back_callback(callback: CallbackQuery):
 
