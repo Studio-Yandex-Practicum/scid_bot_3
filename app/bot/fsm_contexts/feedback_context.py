@@ -7,11 +7,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 import bot.bot_const as bc
 from bot.exceptions import message_exception_handler
-from helpers import ask_next_question, start_inactivity_timer, get_user_id
+from helpers import ask_next_question, get_user_id
 from loggers.log import setup_logging
 from bot.validators import is_valid_rating
 from crud import user_crud, feedback_crud
-from core.bot_setup import bot
+from bot.keyborads import get_back_to_main_keyboard
 
 
 router = Router()
@@ -39,8 +39,6 @@ async def get_feedback_yes(
 
     logger.info(f"Пользователь {callback.from_user.id} начал процесс.")
 
-    await start_inactivity_timer(callback.message, user_id, bot)
-
 
 @message_exception_handler(log_error_text="Ошибка при обработке оценки.")
 @router.message(bc.FeedbackForm.rating)
@@ -50,8 +48,6 @@ async def process_rating(
     """Обрабатывает ввод оценки."""
 
     rating = message.text
-
-    user_id = get_user_id(message)
 
     if not is_valid_rating(rating):
         await message.answer("Пожалуйста, введите число от 1 до 10.")
@@ -65,8 +61,6 @@ async def process_rating(
 
     logger.info(f"Пользователь {message.from_user.id} ввел оценку.")
 
-    await start_inactivity_timer(message, user_id, bot)
-
 
 @message_exception_handler(log_error_text="Ошибка при обработке текста.")
 @router.message(bc.FeedbackForm.feedback_text)
@@ -76,8 +70,6 @@ async def process_description(
     """Обрабатывает комментарий пользователя."""
 
     await state.update_data(feedback_text=message.text)
-
-    user_id = get_user_id(message)
 
     logger.info(f"Пользователь {message.from_user.id} ввел текст.")
 
@@ -89,9 +81,8 @@ async def process_description(
 
     await message.answer(
         f"Спасибо за вашу оценку: {feedback_data['rating']}\n"
-        f"Ваш комментарий: {feedback_data['feedback_text']}"
+        f"Ваш комментарий: {feedback_data['feedback_text']}",
+        reply_markup=await get_back_to_main_keyboard(),
     )
-
-    await start_inactivity_timer(message, user_id, bot)
 
     await state.clear()

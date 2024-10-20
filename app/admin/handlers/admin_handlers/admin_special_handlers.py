@@ -7,13 +7,18 @@ from aiogram.fsm.state import State, StatesGroup
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from admin.filters.filters import ChatTypeFilter, IsManagerOrAdmin
-from admin.keyboards.keyboards import get_inline_keyboard
+from admin.keyboards.keyboards import (
+    get_inline_keyboard,
+    get_paginated_inline_keyboard,
+)
 from admin.admin_settings import (
     ADMIN_SPECIAL_BUTTONS,
     ADMIN_SPECIAL_OPTIONS,
     DATETIME_FORMAT,
+    FEEDBACKS_PER_PAGE,
     MAIN_MENU_OPTIONS,
     MAIN_MENU_TEXT,
+    REQUESTS_PER_PAGE,
 )
 from bot.exceptions import message_exception_handler
 from models.models import ContactManager, Feedback
@@ -32,7 +37,6 @@ admin_special_router.message.filter(
     ChatTypeFilter(["private"]), IsManagerOrAdmin()
 )
 admin_special_router.callback_query.filter(IsManagerOrAdmin())
-
 
 PREVIOUS_MENU = MAIN_MENU_OPTIONS.get("admin_special")
 
@@ -55,12 +59,8 @@ async def get_state_name(state: str) -> str:
 async def get_requests_data(
     request_list: list[ContactManager],
 ) -> tuple[list[str]]:
-    """Получить названия и коллбеки для меню заявок."""
     options = [
-        (
-            f"Заявка номер {request.id} от "
-            f"{request.shipping_date.strftime(DATETIME_FORMAT)}"
-        )
+        f"Заявка номер {request.id} от {request.shipping_date.strftime(DATETIME_FORMAT)}"
         for request in request_list
     ]
     request_ids = [request.id for request in request_list]
@@ -70,16 +70,12 @@ async def get_requests_data(
 async def get_feedbacks_data(
     feedback_list: list[Feedback],
 ) -> tuple[list[str]]:
-    """Получить названия и коллбеки для меню отзывов."""
     options = [
-        (
-            f"Отзыв {feedback.id} от "
-            f"{feedback.feedback_date.strftime(DATETIME_FORMAT)}"
-        )
+        f"Отзыв {feedback.id} от {feedback.feedback_date.strftime(DATETIME_FORMAT)}"
         for feedback in feedback_list
     ]
-    request_ids = [feedback.id for feedback in feedback_list]
-    return options, request_ids
+    feedback_ids = [feedback.id for feedback in feedback_list]
+    return options, feedback_ids
 
 
 @message_exception_handler(
@@ -98,6 +94,22 @@ async def get_admin_special_options(callback: CallbackQuery):
     logger.info(f"Пользователь {callback.from_user.id} открыл админское меню.")
 
 
+async def display_requests_page(
+    callback: CallbackQuery, options, callbacks, page, title
+):
+    keyboard = await get_paginated_inline_keyboard(
+        options=options,
+        callback=callbacks,
+        items_per_page=REQUESTS_PER_PAGE,
+        page=page,
+        previous_menu=PREVIOUS_MENU,
+    )
+    await callback.message.edit_text(
+        title,
+        reply_markup=keyboard,
+    )
+
+
 @message_exception_handler(
     log_error_text="Ошибка при получении списка менеджерских заявок"
 )
@@ -107,16 +119,15 @@ async def get_admin_special_options(callback: CallbackQuery):
 async def get_manager_request_list(
     callback: CallbackQuery, state: FSMContext, session: AsyncSession
 ):
-    """Получить список заявок на обратный звонок от менеджера."""
     request_list = await get_all_manager_requests(session)
     options, callbacks = await get_requests_data(request_list)
-    await callback.message.edit_text(
+    current_page = 0
+    await display_requests_page(
+        callback,
+        options,
+        callbacks,
+        current_page,
         ADMIN_SPECIAL_OPTIONS.get("manager_request"),
-        reply_markup=await get_inline_keyboard(
-            options=options,
-            callback=callbacks,
-            previous_menu=PREVIOUS_MENU,
-        ),
     )
     await state.set_state(RequestState.manager_request)
     logger.info(
@@ -133,16 +144,15 @@ async def get_manager_request_list(
 async def get_support_request_list(
     callback: CallbackQuery, state: FSMContext, session: AsyncSession
 ):
-    """Получить список заявок на техподдержку."""
     request_list = await get_all_support_requests(session)
     options, callbacks = await get_requests_data(request_list)
-    await callback.message.edit_text(
+    current_page = 0
+    await display_requests_page(
+        callback,
+        options,
+        callbacks,
+        current_page,
         ADMIN_SPECIAL_OPTIONS.get("support_request"),
-        reply_markup=await get_inline_keyboard(
-            options=options,
-            callback=callbacks,
-            previous_menu=PREVIOUS_MENU,
-        ),
     )
     await state.set_state(RequestState.support_request)
     logger.info(
@@ -157,7 +167,6 @@ async def get_support_request_list(
 async def get_request_data(
     callback: CallbackQuery, state: FSMContext, session: AsyncSession
 ):
-    """Получить данные о заявке."""
     current_state = await state.get_state()
     back_option = await get_state_name(current_state)
     request = await get_request(callback.data, session)
@@ -183,7 +192,6 @@ async def get_request_data(
 async def close_request(
     callback: CallbackQuery, state: FSMContext, session: AsyncSession
 ):
-    """Закрыть заявку."""
     current_state = await state.get_state()
     back_option = await get_state_name(current_state)
     fsm_data = await state.get_data()
@@ -205,19 +213,62 @@ async def close_request(
 async def get_feedbacks(
     callback: CallbackQuery, state: FSMContext, session: AsyncSession
 ):
-    """Получить все отзывы."""
     feedbacks = await feedback_crud.get_multi(session)
     options, callbacks = await get_feedbacks_data(feedbacks)
-    await callback.message.edit_text(
-        ADMIN_SPECIAL_OPTIONS.get("feedbacks"),
-        reply_markup=await get_inline_keyboard(
-            options=options,
-            callback=callbacks,
-            previous_menu=PREVIOUS_MENU,
-        ),
-    )
+    current_page = 0
+    await display_feedbacks_page(callback, options, callbacks, current_page)
     await state.set_state(FeedbackState.feedback)
     logger.info(f"Пользователь {callback.from_user.id} запросил все отзывы.")
+
+
+async def display_feedbacks_page(
+    callback: CallbackQuery, options, callbacks, page
+):
+    keyboard = await get_paginated_inline_keyboard(
+        options=options,
+        callback=callbacks,
+        items_per_page=FEEDBACKS_PER_PAGE,
+        page=page,
+        previous_menu=PREVIOUS_MENU,
+    )
+    await callback.message.edit_text(
+        ADMIN_SPECIAL_OPTIONS.get("feedbacks"),
+        reply_markup=keyboard,
+    )
+
+
+@admin_special_router.callback_query(F.data.startswith("page_"))
+async def handle_page_navigation(
+    callback: CallbackQuery, state: FSMContext, session: AsyncSession
+):
+    page = int(callback.data.split("_")[1])
+
+    if FeedbackState.feedback.state == await state.get_state():
+        feedbacks = await feedback_crud.get_multi(session)
+        options, callbacks = await get_feedbacks_data(feedbacks)
+        await display_feedbacks_page(callback, options, callbacks, page)
+
+    elif RequestState.manager_request.state == await state.get_state():
+        request_list = await get_all_manager_requests(session)
+        options, callbacks = await get_requests_data(request_list)
+        await display_requests_page(
+            callback,
+            options,
+            callbacks,
+            page,
+            ADMIN_SPECIAL_OPTIONS.get("manager_request"),
+        )
+
+    elif RequestState.support_request.state == await state.get_state():
+        request_list = await get_all_support_requests(session)
+        options, callbacks = await get_requests_data(request_list)
+        await display_requests_page(
+            callback,
+            options,
+            callbacks,
+            page,
+            ADMIN_SPECIAL_OPTIONS.get("support_request"),
+        )
 
 
 @message_exception_handler(
@@ -229,11 +280,10 @@ async def get_feedbacks(
 async def get_feedback_content(
     callback: CallbackQuery, state: FSMContext, session: AsyncSession
 ):
-    """Получить содержание отзыва."""
     feedback = await feedback_crud.get(callback.data, session)
     message_text = (
         f"{feedback.feedback_text} \n\n Оценка: {feedback.rating} \n\n"
-        f" Дата отзыва: {feedback.feedback_date.strftime(DATETIME_FORMAT)}"
+        f"Дата отзыва: {feedback.feedback_date.strftime(DATETIME_FORMAT)}"
     )
     await callback.message.edit_text(
         message_text,

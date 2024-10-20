@@ -1,15 +1,16 @@
 import logging
 
-from aiogram.types import InlineKeyboardButton
 from aiogram import F, Router
 from aiogram.types import CallbackQuery
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from admin.keyboards.keyboards import get_delete_message_keyboard
 from helpers import get_user_id, start_inactivity_timer
 from core.bot_setup import bot
 from bot.exceptions import message_exception_handler
 from bot.keyborads import (
+    get_back_to_main_keyboard,
     get_company_portfolio_choice,
     list_of_projects_keyboard,
     main_keyboard,
@@ -182,9 +183,7 @@ async def get_response_by_title(
 
     await callback.message.edit_text(
         text=product.description,
-        reply_markup=await category_type_inline_keyboard(
-            product.id, session
-        ),
+        reply_markup=await category_type_inline_keyboard(product.id, session),
     )
 
     logger.info(f"Пользователь {user_id} выбрал категорию {product_id}.")
@@ -288,7 +287,10 @@ async def get_feedback_no(callback: CallbackQuery) -> None:
 
     await callback.answer()
 
-    await callback.message.answer(bc.MESSAGE_FOR_GET_FEEDBACK_NO)
+    await callback.message.answer(
+        bc.MESSAGE_FOR_GET_FEEDBACK_NO,
+        reply_markup=await get_back_to_main_keyboard(),
+    )
 
 
 @message_exception_handler(
@@ -304,22 +306,17 @@ async def process_category_callback(callback: CallbackQuery, session):
     category_id = callback.data.split(":")[1]
 
     category = await category_product_crud.get(category_id, session)
-
-    photo_message = await callback.message.answer_photo(photo=category.media)
-
-    await callback.message.answer(
-        text=(
-            f"{category.name}\nОписание: "
-            f"{category.description}\nСсылка: {category.url}"
-        ),
-        reply_markup=InlineKeyboardBuilder()
-        .add(
-            InlineKeyboardButton(
-                text="Назад", callback_data=f"back:{photo_message.message_id}"
-            )
+    if category.media:
+        await callback.message.answer_photo(
+            photo=category.media,
+            caption=category.description,
+            reply_markup=await get_delete_message_keyboard(),
         )
-        .as_markup(),
-    )
+    else:
+        await callback.message.answer(
+            category.description,
+            reply_markup=await get_delete_message_keyboard(),
+        )
 
     await start_inactivity_timer(callback.message, user_id, bot)
 

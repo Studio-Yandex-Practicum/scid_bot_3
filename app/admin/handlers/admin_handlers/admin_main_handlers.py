@@ -278,7 +278,6 @@ async def get_product_info(
     category = await category_product_crud.get_category_by_name(
         product_id=product_id, field_name=callback.data, session=session
     )
-
     if category.media:
         await callback.message.answer_photo(
             photo=category.media,

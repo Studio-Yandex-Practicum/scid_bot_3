@@ -89,7 +89,6 @@ SUPPORT_MENU_TEXT = "Какой вид поддержки Вам нужен?"
 SUPPORT_OPTIONS = {
     "general_questions": "Общие вопросы",
     "problems_with_products": "Проблемы с продуктами",
-    "callback_request": "Запрос на обратный звонок",
 }
 SUPPROT_MENU_BUTTONS = get_buttons(SUPPORT_OPTIONS)
 
@@ -117,3 +116,5 @@ PRODUCT_LIST_TEXT = (
 # Константы проекта
 PHONE_NUMBER_REGEX = r"(\+\d{5,25}$|\d{5,25}$)"
 DATETIME_FORMAT = '%d-%m-%Y %H:%M'
+FEEDBACKS_PER_PAGE = 5
+REQUESTS_PER_PAGE = 5 

@@ -65,7 +65,7 @@ class QuestionUpdateDeleteBase(QuestionBaseManager, ABC):
         self.question_type = await self.set_question_type(state)
         questions = await self.get_question_list(session)
         await callback.message.edit_text(
-            "Выберте вопрос:",
+            "Выберте категорию вопросов:",
             reply_markup=await get_inline_keyboard(
                 questions, previous_menu=self.back_option
             ),
@@ -90,7 +90,7 @@ class QuestionCreateManager(QuestionBaseManager):
             question_type=await self.set_question_type(state)
         )
         await callback.message.answer(
-            "Введите название для подкатегории общих вопров:",
+            "Введите название для категории вопров:",
             reply_markup=await get_inline_keyboard(
                 previous_menu=self.back_option
             ),
@@ -116,7 +116,7 @@ class QuestionCreateManager(QuestionBaseManager):
             return
         await state.update_data(question=message.text)
         await message.answer(
-            "Введите вопросы и ответы для данной подкатегории:",
+            "Введите вопросы и ответы для данной категории:",
             reply_markup=await get_inline_keyboard(
                 previous_menu=self.back_option
             ),
