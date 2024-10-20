@@ -1,6 +1,7 @@
 import logging
 
 from aiogram import F, Router
+from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -62,10 +63,12 @@ async def show_projects(
     log_error_text="Ошибка при возврате в основное меню."
 )
 @router.callback_query(F.data == "back_to_main_menu")
-async def previous_choice(callback: CallbackQuery) -> None:
+async def previous_choice(callback: CallbackQuery, state: FSMContext) -> None:
     """Возвращает в основное меню."""
 
     await callback.answer()
+
+    await state.clear()
 
     user_id = get_user_id(callback)
 
@@ -74,8 +77,6 @@ async def previous_choice(callback: CallbackQuery) -> None:
     )
 
     logger.info(f"Пользователь {user_id} вернулся в основное меню")
-
-    await start_inactivity_timer(callback.message, user_id, bot)
 
 
 @message_exception_handler(log_error_text="Ошибка при получении вопросов.")
