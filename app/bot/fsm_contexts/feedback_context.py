@@ -7,13 +7,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 import bot.bot_const as bc
 from bot.exceptions import message_exception_handler
-from helpers import ask_next_question, start_inactivity_timer, get_user_id
+from helpers import ask_next_question, get_user_id
 from loggers.log import setup_logging
 from bot.validators import is_valid_rating
-from crud.users import get_id_by_tg_id
-from core.bot_setup import bot
-from crud.feedback_crud import feedback_crud
-from redis_db.connect import get_redis_connection
+from crud import user_crud, feedback_crud
+from bot.keyborads import get_back_to_main_keyboard
 
 
 router = Router()
@@ -31,10 +29,9 @@ async def get_feedback_yes(
 
     user_id = get_user_id(callback)
 
-    redis_client = await get_redis_connection()
+    user = await user_crud.get_user_by_tg_id(user_id, session)
 
-    await state.update_data(user=await get_id_by_tg_id(
-        callback.from_user.id, session))
+    await state.update_data(user=user.id)
 
     await ask_next_question(
         callback.message, state, bc.FeedbackForm.rating, bc.FEEDBACK_QUESTIONS
@@ -42,19 +39,15 @@ async def get_feedback_yes(
 
     logger.info(f"Пользователь {callback.from_user.id} начал процесс.")
 
-    await start_inactivity_timer(user_id, bot, redis_client)
-
 
 @message_exception_handler(log_error_text="Ошибка при обработке оценки.")
 @router.message(bc.FeedbackForm.rating)
-async def process_rating(message: Message, state: FSMContext, session:AsyncSession) -> None:
+async def process_rating(
+    message: Message, state: FSMContext, session: AsyncSession
+) -> None:
     """Обрабатывает ввод оценки."""
 
     rating = message.text
-
-    user_id = get_user_id(message)
-
-    redis_client = await get_redis_connection()
 
     if not is_valid_rating(rating):
         await message.answer("Пожалуйста, введите число от 1 до 10.")
@@ -68,8 +61,6 @@ async def process_rating(message: Message, state: FSMContext, session:AsyncSessi
 
     logger.info(f"Пользователь {message.from_user.id} ввел оценку.")
 
-    await start_inactivity_timer(user_id, bot, redis_client)
-
 
 @message_exception_handler(log_error_text="Ошибка при обработке текста.")
 @router.message(bc.FeedbackForm.feedback_text)
@@ -79,10 +70,6 @@ async def process_description(
     """Обрабатывает комментарий пользователя."""
 
     await state.update_data(feedback_text=message.text)
-
-    user_id = get_user_id(message)
-
-    redis_client = await get_redis_connection()
 
     logger.info(f"Пользователь {message.from_user.id} ввел текст.")
 
@@ -94,9 +81,8 @@ async def process_description(
 
     await message.answer(
         f"Спасибо за вашу оценку: {feedback_data['rating']}\n"
-        f"Ваш комментарий: {feedback_data['feedback_text']}"
+        f"Ваш комментарий: {feedback_data['feedback_text']}",
+        reply_markup=await get_back_to_main_keyboard(),
     )
-
-    await start_inactivity_timer(user_id, bot, redis_client)
 
     await state.clear()

@@ -14,14 +14,13 @@ from bot.bot_const import (
     START_MESSAGE,
 )
 from models.models import RoleEnum
-from crud.users import create_user_id, get_role_by_tg_id, is_user_in_db
+from crud import user_crud
 from bot.keyborads import main_keyboard
 from bot.exceptions import message_exception_handler
 from helpers import get_user_id, start_inactivity_timer
 from core.bot_setup import bot
 from bot.bot_const import MESSAGE_FOR_NOT_SUPPORTED_CONTENT_TYPE
 from loggers.log import setup_logging
-from redis_db.connect import get_redis_connection
 
 
 router = Router()
@@ -39,7 +38,7 @@ async def cmd_admin(message: Message, session: AsyncSession) -> None:
     """Вход в админку."""
 
     user_id = get_user_id(message)
-    role = await get_role_by_tg_id(user_id, session)
+    role = await user_crud.get_role_by_tg_id(user_id, session)
 
     if role in (RoleEnum.ADMIN, RoleEnum.MANAGER):
         await message.answer(
@@ -65,16 +64,14 @@ async def cmd_start(
 
     user_id = get_user_id(message)
 
-    redis_client = await get_redis_connection()
-
-    if not await is_user_in_db(user_id, session):
-        await create_user_id(user_id, session)
+    if not await user_crud.get_user_by_tg_id(user_id, session):
+        await user_crud.create({"tg_id": user_id}, session)
 
     await message.answer(START_MESSAGE, reply_markup=main_keyboard)
 
     logger.info(f"Пользователь {user_id} вызвал команду /start.")
 
-    await start_inactivity_timer(user_id, bot, redis_client)
+    await start_inactivity_timer(message, user_id, bot)
 
 
 @router.message(F.content_type)
