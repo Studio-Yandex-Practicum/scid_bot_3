@@ -12,7 +12,7 @@ class CategoryTypeCRUD(CRUDBase):
         """Получить список всех вариантов продукта."""
 
         product_categories = await session.execute(
-            select(self.model).where(self.model.product_id == product_id)
+            select(self.model).where(self.model.product_id == int(product_id))
         )
         return product_categories.scalars().all()
 
@@ -23,7 +23,7 @@ class CategoryTypeCRUD(CRUDBase):
 
         active_field = await session.execute(
             select(self.model).where(
-                self.model.product_id == product_id,
+                self.model.product_id == int(product_id),
                 self.model.name == category_name,
             )
         )
@@ -35,7 +35,7 @@ class CategoryTypeCRUD(CRUDBase):
         """Получить все записи для продукта."""
 
         categories_for_product = await session.execute(
-            select(self.model).where(self.model.product_id == product_id)
+            select(self.model).where(self.model.product_id == int(product_id))
         )
         return categories_for_product.scalars().all()
 
@@ -46,7 +46,7 @@ class CategoryTypeCRUD(CRUDBase):
 
         field = await session.execute(
             select(self.model).where(
-                self.model.product_id == product_id,
+                self.model.product_id == int(product_id),
                 self.model.name == field_name,
             )
         )

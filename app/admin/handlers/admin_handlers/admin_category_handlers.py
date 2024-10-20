@@ -17,7 +17,9 @@ from admin.admin_managers import (
     CategoryUpdateState,
     CategoryDeleteState,
 )
-from admin.handlers.admin_handlers.admin_main_handlers import ProductCategory
+from admin.handlers.admin_handlers.admin_main_handlers import (
+    ProductCategoryStates,
+)
 from admin.admin_settings import (
     ADMIN_BASE_OPTIONS,
     ADMIN_CONTENT_OPTIONS,
@@ -82,7 +84,7 @@ async def get_back_to_category_menu(
             admin_update_menu=callback.data,
         ),
     )
-    await state.set_state(ProductCategory.product_id)
+    await state.set_state(ProductCategoryStates.product_id)
     logger.info(
         f"Пользователь {callback.from_user.id} вернулся в меню категорий."
     )
