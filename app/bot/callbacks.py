@@ -3,7 +3,6 @@ import logging
 from aiogram import F, Router
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery
-from aiogram.utils.keyboard import InlineKeyboardBuilder
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from admin.keyboards.keyboards import get_delete_message_keyboard
@@ -19,8 +18,7 @@ from bot.keyborads import (
     category_type_inline_keyboard,
     inline_products_and_services,
     get_company_information_keyboard,
-    support_keyboard,
-    back_to_main_menu,
+    support_keyboard
 )
 from crud import (
     info_crud,
@@ -126,11 +124,9 @@ async def get_faq_answer(
     question = await info_crud.get(callback.data.split(":")[1], session)
 
     if question:
-        await callback.message.edit_text(
-            text=f"{question.answer}",
-            reply_markup=InlineKeyboardBuilder()
-            .add(back_to_main_menu)
-            .as_markup(),
+        await callback.message.answer(
+            text=f"{question.question}\n\n {question.answer}",
+            reply_markup=await get_delete_message_keyboard(),
         )
     else:
         await callback.message.edit_text(bc.QUESTION_NOT_FOUND)
