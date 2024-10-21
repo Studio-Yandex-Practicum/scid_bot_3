@@ -14,7 +14,7 @@ from bot.smtp import send_mail
 from bot.validators import (
     is_valid_name,
     is_valid_phone_number,
-    format_phone_number
+    format_phone_number,
 )
 from crud.request_to_manager import create_request_to_manager
 from helpers import ask_next_question, get_user_id, start_inactivity_timer
@@ -33,7 +33,7 @@ logger = logging.getLogger(__name__)
 @message_exception_handler(log_error_text="Ошибка при выводе формы.")
 @router.callback_query(F.data.in_(("contact_manager", "callback_request")))
 async def contact_with_manager(
-    callback: CallbackQuery, state: FSMContext, session: AsyncSession
+    callback: CallbackQuery, state: FSMContext
 ) -> None:
     """Выводит форму для связи с менеджером или запрос на обратный звонок."""
 
@@ -41,7 +41,8 @@ async def contact_with_manager(
 
     await state.update_data(request_type=callback.data)
 
-    await callback.message.edit_text(bc.START_INPUT_USER_DATA)
+    await callback.message.delete()
+    await callback.message.answer(bc.START_INPUT_USER_DATA)
 
     await ask_next_question(
         callback.message, state, bc.Form.first_name, bc.QUESTIONS
@@ -96,8 +97,7 @@ async def process_phone_number(
     await state.update_data(phone_number=formatted_phone_number)
 
     logger.info(
-        f"Пользователь {user_id} ввёл телефон: "
-        f"{formatted_phone_number}."
+        f"Пользователь {user_id} ввёл телефон: " f"{formatted_phone_number}."
     )
 
     user_data = await state.get_data()
@@ -119,9 +119,9 @@ async def process_phone_number(
 
     await message.answer(
         bc.succses_answer(user_data),
-        reply_markup=InlineKeyboardBuilder().add(
-            back_to_main_menu
-        ).as_markup(),
+        reply_markup=InlineKeyboardBuilder()
+        .add(back_to_main_menu)
+        .as_markup(),
     )
 
     await start_inactivity_timer(message, user_id, bot)
