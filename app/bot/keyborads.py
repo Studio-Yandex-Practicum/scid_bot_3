@@ -17,6 +17,9 @@ back_to_main_menu = InlineKeyboardButton(
 back_to_previous_menu = InlineKeyboardButton(
     text="Назад к продуктам", callback_data="back_to_previous_menu"
 )
+back_to_support_menu = InlineKeyboardButton(
+    text="Назад", callback_data="tech_support"
+)
 
 main_keyboard = InlineKeyboardMarkup(
     inline_keyboard=[
@@ -120,7 +123,7 @@ async def list_of_projects_keyboard(session: AsyncSession):
 
 support_keyboard = InlineKeyboardMarkup(
     inline_keyboard=[
-        [InlineKeyboardButton(text="F.A.Q", callback_data="get_faq")],
+        [InlineKeyboardButton(text="Общие вопросы", callback_data="get_faq")],
         [
             InlineKeyboardButton(
                 text="Проблемы с продуктами",
@@ -155,7 +158,7 @@ async def faq_or_problems_with_products_inline_keyboard(
             )
         )
 
-    keyboard.add(back_to_main_menu)
+    keyboard.add(back_to_support_menu)
 
     return keyboard.adjust(1).as_markup()
 
