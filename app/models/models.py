@@ -7,17 +7,21 @@ from sqlalchemy.sql import func
 import sqlalchemy.dialects.postgresql as pgsql_types
 
 from core.db import Base
+import models.models_const as mc
 
 
 class RoleEnum(str, Enum):
-    USER = 'U'
-    ADMIN = 'A'
-    MANAGER = 'M'
+    USER = "Пользователь"
+    ADMIN = "Администратор"
+    MANAGER = "Mенеджер"
+
+    def __str__(self) -> str:
+        return self.value
 
 
 class QuestionEnum(str, Enum):
-    GENERAL_QUESTIONS = 'Общие вопросы'
-    PROBLEMS_WITH_PRODUCTS = 'Проблемы с продуктами'
+    GENERAL_QUESTIONS = "Общие вопросы"
+    PROBLEMS_WITH_PRODUCTS = "Проблемы с продуктами"
 
 
 class User(Base):
@@ -25,6 +29,10 @@ class User(Base):
 
     tg_id: Mapped[int] = mapped_column(
         pgsql_types.BIGINT, nullable=False, unique=True
+    )
+
+    name: Mapped[str] = mapped_column(
+        pgsql_types.VARCHAR(mc.NAME_LENGTH), default="Аноним"
     )
 
     role: Mapped[RoleEnum] = mapped_column(
@@ -37,18 +45,17 @@ class User(Base):
         server_default=func.now(),
         nullable=False,
     )
-
-    feedbacks = relationship(
-        "Feedback", back_populates="author", cascade="all, delete"
+    closed_requests: Mapped[list["ContactManager"]] = relationship(
+        "ContactManager", back_populates="manager"
     )
 
 
 class ProductCategory(Base):
     """БД модель продуктов и услуг."""
 
-    name: Mapped[str] = mapped_column(pgsql_types.VARCHAR(150))
+    name: Mapped[str] = mapped_column(pgsql_types.VARCHAR(mc.NAME_LENGTH))
 
-    response: Mapped[str] = mapped_column(pgsql_types.TEXT)
+    description: Mapped[str] = mapped_column(pgsql_types.TEXT)
 
     categories = relationship(
         "CategoryType",
@@ -60,17 +67,26 @@ class ProductCategory(Base):
 class CategoryType(Base):
     """БД модель типов категорий."""
 
-    name: Mapped[str] = mapped_column(pgsql_types.VARCHAR(150), nullable=False)
+    name: Mapped[str] = mapped_column(
+        pgsql_types.VARCHAR(mc.NAME_LENGTH), nullable=False
+    )
 
     product_id: Mapped[int] = mapped_column(
-        ForeignKey('productcategory.id', ondelete='CASCADE'),
+        ForeignKey("productcategory.id", ondelete="CASCADE"),
+        ForeignKey("productcategory.id", ondelete="CASCADE"),
         nullable=False,
         index=True,
     )
 
-    url: Mapped[str] = mapped_column(pgsql_types.VARCHAR(128))
+    url: Mapped[str] = mapped_column(
+        pgsql_types.VARCHAR(mc.URL_LENGTH), nullable=True
+    )
 
-    media: Mapped[str] = mapped_column(pgsql_types.VARCHAR(128), nullable=True)
+    media: Mapped[str] = mapped_column(
+        pgsql_types.VARCHAR(mc.MEDIA_URL), nullable=True
+    )
+
+    description: Mapped[str] = mapped_column(pgsql_types.TEXT, nullable=True)
 
     product_category = relationship(
         "ProductCategory", back_populates="categories"
@@ -80,19 +96,21 @@ class CategoryType(Base):
 class InformationAboutCompany(Base):
     """Бд модель информации о компании."""
 
-    name: Mapped[str] = mapped_column(pgsql_types.VARCHAR(48), nullable=False)
+    name: Mapped[str] = mapped_column(
+        pgsql_types.VARCHAR(mc.NAME_LENGTH), nullable=False
+    )
 
-    url: Mapped[str] = mapped_column(pgsql_types.VARCHAR(128))
+    url: Mapped[str] = mapped_column(pgsql_types.VARCHAR(mc.URL_LENGTH))
 
 
 class CheckCompanyPortfolio(Base):
     """Бд модель информации о проектах."""
 
     name: Mapped[str] = mapped_column(
-        pgsql_types.VARCHAR(48), nullable=False
+        pgsql_types.VARCHAR(mc.NAME_LENGTH), nullable=False
     )
 
-    url: Mapped[str] = mapped_column(pgsql_types.VARCHAR(128))
+    url: Mapped[str] = mapped_column(pgsql_types.VARCHAR(mc.URL_LENGTH))
 
 
 class Info(Base):
@@ -100,7 +118,7 @@ class Info(Base):
 
     question_type: Mapped[QuestionEnum] = mapped_column(
         pgsql_types.ENUM(
-            QuestionEnum, name='question_enum', create_type=False
+            QuestionEnum, name="question_enum", create_type=False
         ),
         nullable=False,
     )
@@ -114,11 +132,11 @@ class ContactManager(Base):
     """Бд модель заявки к менеджеру."""
 
     first_name: Mapped[str] = mapped_column(
-        pgsql_types.VARCHAR(32), nullable=False
+        pgsql_types.VARCHAR(mc.FIRST_NAME_LENGHT), nullable=False
     )
 
     phone_number: Mapped[str] = mapped_column(
-        pgsql_types.VARCHAR(25), nullable=False
+        pgsql_types.VARCHAR(mc.PHONE_NUMBER_LENGHT), nullable=False
     )
 
     need_support: Mapped[bool] = mapped_column(
@@ -136,31 +154,29 @@ class ContactManager(Base):
     )
 
     shipping_date_close: Mapped[datetime] = mapped_column(
-        pgsql_types.TIMESTAMP(timezone=True),
-        server_default=func.now(),
-        nullable=False,
+        pgsql_types.TIMESTAMP(timezone=True), nullable=True
     )
 
-    feedbacks = relationship(
-        "Feedback", back_populates="contact_manager", cascade="all, delete"
+    manager_id: Mapped[int] = mapped_column(
+        pgsql_types.BIGINT, ForeignKey("user.tg_id"), nullable=True
+    )
+
+    manager: Mapped[User] = relationship(
+        "User", back_populates="closed_requests"
     )
 
 
 class Feedback(Base):
+    """БД модель для отзывов."""
+
     user: Mapped[int] = mapped_column(
         ForeignKey("user.id", ondelete="CASCADE"), nullable=False
-    )
-    contact_manager_id: Mapped[int] = mapped_column(
-        ForeignKey("contactmanager.id", ondelete="CASCADE"), nullable=False
     )
     feedback_text: Mapped[str] = mapped_column(
         pgsql_types.TEXT, nullable=False
     )
+
     feedback_date: Mapped[datetime] = mapped_column(
         pgsql_types.TIMESTAMP, default=datetime.now
     )
-    unread: Mapped[bool] = mapped_column(pgsql_types.BOOLEAN, default=True)
-    author = relationship("User", back_populates="feedbacks")
-    contact_manager = relationship(
-        "ContactManager", back_populates="feedbacks"
-    )
+    rating: Mapped[int] = mapped_column(pgsql_types.INTEGER, nullable=False)

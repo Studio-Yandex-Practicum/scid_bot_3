@@ -1,32 +1,29 @@
-version: '3.3'
-
 volumes:
   pg_data:
+  redisdata:
 
 services:
+  redis:
+    image: redis:latest
+    container_name: scid-redis
+    environment:
+      - ALLOW_EMPTY_PASSWORD=yes
+    ports:
+      - '6379:6379'
+    volumes:
+      - redisdata:/data
   db:
     container_name: scid-db
     image: postgres:13
+    restart: on-failure
     env_file: .env
     volumes:
       - pg_data:/var/lib/postgresql/data
-
   bot:
     depends_on:
       - db
     container_name: scid-bot
-    #build: .  # раскомментить для работы локально
-    image: greenvibe/scid_bot_3  # закомментить для работы локально
-    command: bash -c "cd app && poetry run alembic stamp head && poetry run alembic revision --autogenerate && poetry run alembic upgrade head && poetry run python main.py"
+    # build: .  # раскомментить для работы локально
+    image: greenvibe/scid_bot_3
+    command: bash -c "cd app && poetry run alembic upgrade head && poetry run python main.py"
     env_file: .env
-
-  gateway:
-    depends_on:
-      - bot
-    container_name: scid-gateway
-    image: nginx:1.22.1-alpine
-    env_file: .env
-    volumes:
-      - ./nginx.conf:/etc/nginx/conf.d/default.conf
-    ports:
-      - 80:80

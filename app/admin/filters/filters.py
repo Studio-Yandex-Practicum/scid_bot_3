@@ -1,7 +1,9 @@
 from aiogram.filters import Filter
 from aiogram import Bot, types
-# from settings import admin_list
-from const import admin_list
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from crud.user_crud import user_crud
+from models.models import RoleEnum
 
 
 class ChatTypeFilter(Filter):
@@ -12,9 +14,27 @@ class ChatTypeFilter(Filter):
         return message.chat.type in self.chat_types
 
 
-class IsAdmin(Filter):
+class IsManagerOrAdmin(Filter):
     def __init__(self) -> None:
         pass
 
-    async def __call__(self, message: types.Message, bot: Bot) -> bool:
-        return message.from_user.id in admin_list
+    async def __call__(
+        self, message: types.Message, bot: Bot, session: AsyncSession
+    ) -> bool:
+        user_role = await user_crud.get_role_by_tg_id(
+            message.from_user.id, session
+        )
+        return user_role in {RoleEnum.ADMIN, RoleEnum.MANAGER}
+
+
+class IsAdminOnly(Filter):
+    def __init__(self) -> None:
+        pass
+
+    async def __call__(
+        self, message: types.Message, bot: Bot, session: AsyncSession
+    ) -> bool:
+        user_role = await user_crud.get_role_by_tg_id(
+            message.from_user.id, session
+        )
+        return user_role == RoleEnum.ADMIN

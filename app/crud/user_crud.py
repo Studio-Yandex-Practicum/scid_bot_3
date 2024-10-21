@@ -1,68 +1,63 @@
-from datetime import datetime
-
-from .base_crud import CRUDBase
-
-from sqlalchemy import select
+from sqlalchemy import select, or_
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from models.models import User
+from .base_crud import CRUDBase
+from models.models import User, RoleEnum
 
 
 class UserCRUD(CRUDBase):
-    async def get_users_with_callback_request(
-        self,
-        session: AsyncSession,
-    ):
-        """Получить список пользователей ожидающих обратного звонка."""
-
-        users_to_callback = await session.execute(
-            select(self.model)
-            .where(self.model.callback_request)
-            .order_by(self.model.callback_request_date)
-        )
-
-        return users_to_callback.scalars().all()
-
-    async def get_user_by_tg_id(self, tg_id: int, session: AsyncSession):
+    async def get_user_by_tg_id(
+        self, tg_id: int, session: AsyncSession
+    ) -> User:
         """Получить пользователя по его tg_id."""
 
         user = await session.execute(
-            select(self.model).where(self.model.telegram_id == tg_id)
+            select(self.model).where(self.model.tg_id == int(tg_id))
         )
 
         return user.scalars().first()
 
-    async def case_open(self, user: User, session: AsyncSession):
-        """Открыть заявку на обратный звонок."""
+    async def get_role_by_tg_id(
+        self, tg_id: int, session: AsyncSession
+    ) -> User:
+        """Получаем роль пользователя по его tg_id."""
 
-        setattr(user, "callback_request", True)
-        setattr(user, "callback_request_date", datetime.now())
+        result = await session.execute(
+            select(self.model.role).where(self.model.tg_id == int(tg_id))
+        )
 
-        session.add(user)
-        await session.commit()
-        await session.refresh(user)
-        return user
+        return result.scalar()
 
-    async def close_case(self, user: User, session: AsyncSession):
-        """Закрыть заявку на обратный звонок."""
+    async def get_manager_and_admin_list(
+        self, session: AsyncSession
+    ) -> list[User]:
+        """Получить список менеджеров и администраторов."""
+        manager_list = await session.execute(
+            select(self.model).where(
+                or_(
+                    self.model.role == RoleEnum.MANAGER,
+                    self.model.role == RoleEnum.ADMIN,
+                )
+            )
+        )
+        return manager_list.scalars().all()
 
-        setattr(user, "callback_request", False)
-        setattr(user, "case_closed_date", datetime.now())
-
-        session.add(user)
-        await session.commit()
-        await session.refresh(user)
-        return user
-
-    async def bulk_create(
+    async def update(
         self,
-        objs_in: list,
+        user: User,
+        new_role: str,
         session: AsyncSession,
+        name: str = None,
     ):
-        db_objs = [self.model(**obj) for obj in objs_in]
-        session.add_all(db_objs)
+        """
+        Поменять роль для пользователя и присвоить ему имя(необязательно).
+        """
+        if name:
+            setattr(user, "name", name)
+        setattr(user, "role", new_role)
+        session.add(user)
         await session.commit()
-        return db_objs
+        await session.refresh(user)
 
 
 user_crud = UserCRUD(User)

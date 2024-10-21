@@ -20,6 +20,7 @@ GREETINGS = (
     "Воспользуйтесь экранной клавиатурой для выбора опции."
 )
 
+
 # Кнопки админа
 ADMIN_BASE_OPTIONS = {
     "create": "Добавить",
@@ -37,13 +38,40 @@ ADMIN_BASE_REPLY_OPTIONS = {
     "feedback": "Посмотреть отзывы",
 }
 ADMIN_BASE_BUTTONS = get_buttons(ADMIN_BASE_REPLY_OPTIONS)
-# Кнопки экранной клавиатуры
-BASE_BUTTONS = {
-    "main_menu": "Главное меню",
-    "call_manager": "Связаться с менеджером",
-    "rate_us": "Оставить отзыв",
+ADMIN_UPDATE_OPTIONS = {
+    "name": "Название",
+    "content": "Содержание",
 }
-BASE_KEYBOARD_BUTTONS = get_buttons(BASE_BUTTONS)
+ADMIN_UPDATE_BUTTONS = get_buttons(ADMIN_UPDATE_OPTIONS)
+ADMIN_CONTENT_OPTIONS = {
+    "url": "Ссылка",
+    "description": "Текст",
+    "media": "Картинка",
+}
+ADMIN_CONTENT_BUTTONS = get_buttons(ADMIN_CONTENT_OPTIONS)
+ADMIN_QUESTION_OPTIONS = {"question": "Вопрос", "answer": "Ответ"}
+ADMIN_QUESTION_BUTTONS = get_buttons(ADMIN_QUESTION_OPTIONS)
+ADMIN_SPECIAL_OPTIONS = {
+    "manager_request": "Запросы на обратный звонок",
+    "support_request": "Запросы на техподдержку",
+    "feedbacks": "Отзывы",
+}
+ADMIN_SPECIAL_BUTTONS = get_buttons(ADMIN_SPECIAL_OPTIONS)
+SUPERUSER_SPECIAL_OPTIONS = {
+    "manager_request": "Запросы на обратный звонок",
+    "support_request": "Запросы на техподдержку",
+    "feedbacks": "Отзывы",
+    "promotion": "Управление персоналом",
+    "set_timer": "Изменить таймер активности"
+}
+SUPERUSER_SPECIAL_BUTTONS = get_buttons(SUPERUSER_SPECIAL_OPTIONS)
+SUPERUSER_PROMOTION_OPTIONS = {
+    "manager_list": "Список админов и менеджеров",
+    "promote_to_admin": "Добавить администратора",
+    "promote": "Добавить менеджера",
+    "demote": "Понизить до пользователя",
+}
+SUPERUSER_PROMOTION_BUTTONS = get_buttons(SUPERUSER_PROMOTION_OPTIONS)
 
 # Главное меню - кнопки и текст
 MAIN_MENU_TEXT = "Главное меню"
@@ -52,18 +80,18 @@ MAIN_MENU_OPTIONS = {
     "products": "Продукты и услуги",
     "support": "Техническая поддержка",
     "portfolio": "Портфолио",
-    "request_callback": "Связаться с менеджером",
+    "admin_special": "Дополнительно",
 }
 MAIN_MENU_BUTTONS = get_buttons(MAIN_MENU_OPTIONS)
 
 # Техподдержка - кнопки и текст
 SUPPORT_MENU_TEXT = "Какой вид поддержки Вам нужен?"
 SUPPORT_OPTIONS = {
-    "faq": "Общие вопросы",
-    "troubleshooting": "Проблемы с продуктами",
-    "callback_request": "Запрос на обратный звонок",
+    "general_questions": "Общие вопросы",
+    "problems_with_products": "Проблемы с продуктами",
 }
 SUPPROT_MENU_BUTTONS = get_buttons(SUPPORT_OPTIONS)
+
 
 # Информация о компании - кнопки и текст
 COMPANY_ABOUT = "Вот несколько вариантов информации о нашей компании. Что именно вас интересует?"
@@ -84,11 +112,9 @@ PORTFOLIO_DEFAULT_DATA = {"name": "Портфолио", "url": "https://scid.ru/
 PRODUCT_LIST_TEXT = (
     "Мы предлагаем следющие продукты и услуги. Что Вас интересует?"
 )
-PRODUCT_LIST = []
 
 # Константы проекта
-DEFAULT_STR_LEN = 150
-PHONE_NUMBER_LEN = 25
 PHONE_NUMBER_REGEX = r"(\+\d{5,25}$|\d{5,25}$)"
-USER_CALLBACK_PAGINATION = 5
-FEEDBACK_PAGINATION = 5
+DATETIME_FORMAT = '%d-%m-%Y %H:%M'
+FEEDBACKS_PER_PAGE = 5
+REQUESTS_PER_PAGE = 5 
